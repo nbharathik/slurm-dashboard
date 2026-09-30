@@ -9,9 +9,7 @@ import (
 	"time"
 )
 
-// HistoryRunner wraps a runner and keeps a ring of recent calls, like
-// RealRunner does, for runners that have none (demo mode). Calls are also
-// written to the logger, so the debug log shows the call rate.
+// HistoryRunner wraps a runner with a ring of recent calls (for demo mode) and logs each call.
 type HistoryRunner struct {
 	r   Runner
 	log *slog.Logger

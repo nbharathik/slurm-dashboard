@@ -47,9 +47,7 @@ type Checker struct {
 	last map[string]model.Quota
 }
 
-// NewRunner returns the storage runner: separate from the Slurm one, at
-// most 2 commands at a time, 30 s each. Site quota commands given as argv
-// are allowed as read-only by their basename.
+// NewRunner returns the storage runner (2 commands at a time, 30 s each); argv quota commands are read-only by basename.
 func NewRunner(locs []Location, log execx.Options) *execx.RealRunner {
 	opts := log
 	opts.MaxConcurrent, opts.DefaultTimeout = MaxConcurrent, Timeout

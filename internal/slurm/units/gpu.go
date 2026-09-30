@@ -13,18 +13,14 @@ type GPUCount struct {
 	N    int
 }
 
-// migProfile matches MIG slice profiles such as "1g.33gb", "3g.40gb",
-// "1g.10gb+me" or "1c.3g.40gb", on their own or after a GPU name
-// ("nvidia_a100_3g.39gb").
+// migProfile matches MIG profiles such as "1g.33gb" or "1c.3g.40gb", alone or after a GPU name.
 var migProfile = regexp.MustCompile(`(?i)(?:^|[_-])(?:\d+c\.)?\d+g\.\d+gb(?:\+me)?$`)
 
 // IsMIG reports whether a GRES type is a MIG slice rather than a whole GPU.
 func IsMIG(typ string) bool { return migProfile.MatchString(typ) }
 
-// GPUsByType parses a GRES list, as in a node's Gres= and GresUsed= or
-// squeue's %b, into per-type counts in first-seen order, merging repeated
-// types. Socket and index annotations ("(S:0-1)", "(IDX:0,2)") and flags
-// such as no_consume are ignored, as are other resources.
+// GPUsByType parses a GRES list into per-type counts in first-seen order, merging repeats.
+// Socket/index annotations, flags such as no_consume and other resources are ignored.
 func GPUsByType(s string) []GPUCount {
 	s = strings.TrimSpace(s)
 	switch s {
@@ -40,9 +36,7 @@ func GPUsByType(s string) []GPUCount {
 	return out
 }
 
-// GPUsByTypeTRES returns the typed GPU counts in a TRES map
-// ("gres/gpu:h200" = "2") and the untyped total ("gres/gpu"), or -1 when
-// there is no untyped entry.
+// GPUsByTypeTRES returns typed GPU counts in a TRES map and the untyped total (-1 if absent).
 func GPUsByTypeTRES(m map[string]string) (typed []GPUCount, total int) {
 	total = -1
 	if v, ok := m["gres/gpu"]; ok {

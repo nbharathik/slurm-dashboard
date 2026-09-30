@@ -20,11 +20,8 @@ var defaultFile []byte
 // ErrExists means the config file already exists and force was not set.
 var ErrExists = errors.New("config file already exists")
 
-// WriteDefault writes the commented default config to path. It refuses to
-// replace an existing file unless force is set; with force, the old file is
-// kept as path+".bak". The directory is created with mode 0700 and the file
-// with 0600, and the write is atomic (temporary file, then rename). It
-// returns the backup path, if one was made.
+// WriteDefault atomically writes the default config (0600). An existing file is
+// replaced only with force, and kept as path+".bak" (returned).
 func WriteDefault(path string, force bool) (backup string, err error) {
 	if _, err := os.Lstat(path); err == nil {
 		if !force {
@@ -86,12 +83,8 @@ var ErrNotSettable = errors.New("not a setting sdash can change")
 // newFileHeader starts a config file that Save creates.
 const newFileHeader = "# sdash settings. Changed with the Settings screen (,) or by hand;\n# every key is described in 'sdash config' and docs/config.md.\n"
 
-// Save writes one setting's value from c into the file at path and keeps
-// everything else, comments included. It replaces the key's line (or its
-// commented-out form) above the first table, or adds the key there. A
-// missing file is created with a short header and just that setting, so
-// later versions' defaults still apply to the rest. Only settings the
-// Settings screen may change are written; commands never are.
+// Save writes one setting from c into the file at path, keeping everything else.
+// Only settings the Settings screen may change are written; commands never are.
 func Save(path string, c Config, key string) error {
 	s, ok := Lookup(key)
 	if !ok || !s.Screen {
@@ -185,9 +178,7 @@ func setLine(data, key, val string) string {
 	return strings.Join(append(append(slices.Clone(lines[:end]), add...), lines[end:]...), "")
 }
 
-// splitComment splits a TOML line into its code and a trailing "# ..."
-// comment, ignoring '#' inside strings. The code keeps its trailing
-// spaces, so the comment's column is len(code).
+// splitComment splits a TOML line into code and trailing "# ..." comment, ignoring '#' in strings.
 func splitComment(s string) (code, comment string) {
 	var quote byte
 	for i := 0; i < len(s); i++ {

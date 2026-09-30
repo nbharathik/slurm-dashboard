@@ -313,10 +313,7 @@ const StatBatch = 20
 
 var jobNumber = regexp.MustCompile(`^[0-9]{1,12}$`)
 
-// MyStats samples the live usage of running jobs, at most StatBatch jobs
-// to a call, keyed by job ID. IDs that are not plain job numbers (array
-// tasks, heterogeneous jobs) are skipped. A job sstat has no steps for is
-// absent from the result.
+// MyStats samples live usage by job ID (StatBatch per call); array and heterogeneous IDs are skipped.
 func (s *Sources) MyStats(ctx context.Context, ids []string) (map[string]model.JobStat, error) {
 	var ok []string
 	for _, id := range ids {
@@ -442,9 +439,7 @@ func (s *Sources) BatchScript(ctx context.Context, id string) (string, error) {
 	return "", fmt.Errorf("script no longer available: %w", err)
 }
 
-// SubmitLine returns the command line a job was submitted with and its
-// working directory. Both are empty when Slurm does not record them
-// (before 23.02, or for jobs it no longer knows).
+// SubmitLine returns a job's submit command line and working directory (empty before Slurm 23.02).
 func (s *Sources) SubmitLine(ctx context.Context, id string) (line, workDir string, err error) {
 	out, err := s.run(ctx, "submitline", s.Cmd.SubmitLine(id))
 	if err != nil {

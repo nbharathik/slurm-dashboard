@@ -1,3 +1,4 @@
+// Package debuglog writes the rotating debug log (mode 0600, never blocks startup) and crash reports.
 package debuglog
 
 import (
@@ -18,10 +19,8 @@ type nopCloser struct{}
 
 func (nopCloser) Close() error { return nil }
 
-// Open returns a logger writing to cacheDir/debug.log. verbose enables
-// debug-level records (--debug); otherwise only info and above are kept.
-// On any error it returns a discarding logger and the error, so callers can
-// mention the problem without failing.
+// Open returns a logger for cacheDir/debug.log (debug level if verbose).
+// On error it returns a discarding logger plus the error.
 func Open(cacheDir string, verbose bool) (*slog.Logger, io.Closer, error) {
 	return open(cacheDir, verbose, MaxSize)
 }

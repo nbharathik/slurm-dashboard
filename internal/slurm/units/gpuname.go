@@ -5,9 +5,7 @@ import (
 	"strings"
 )
 
-// gpuRules turn a normalised GPU type (lower case, words separated by
-// spaces, vendor names removed) into a short display name. The first
-// matching rule wins.
+// gpuRules map a normalised GPU type to a short display name; first match wins.
 var gpuRules = []struct {
 	re   *regexp.Regexp
 	name func(m []string) string
@@ -24,13 +22,8 @@ var gpuRules = []struct {
 
 var vendorWords = map[string]bool{"nvidia": true, "tesla": true, "amd": true, "instinct": true, "geforce": true}
 
-// GPUDisplayName shortens a Slurm GPU type for tables: "nvidia_h200_nvl"
-// becomes "H200 NVL" and
-// "nvidia_rtx_pro_6000_blackwell_max-q_workstation_edition" becomes
-// "RTX PRO 6000 BW". aliases (the [gpu] aliases config) win, matched
-// case-insensitively. MIG slices keep their profile: "A100 3g.39gb", or
-// "MIG 1g.33gb" when the parent GPU is not named. Unknown types are shown
-// upper-cased when short, else in title case.
+// GPUDisplayName shortens a GPU type for tables ("nvidia_h200_nvl" gives "H200 NVL").
+// Aliases win (case-insensitive); MIG slices keep their profile; unknown types are upper-cased if short, else title case.
 func GPUDisplayName(raw string, aliases map[string]string) string {
 	raw = strings.TrimSpace(raw)
 	for k, v := range aliases {

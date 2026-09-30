@@ -1,4 +1,4 @@
-# sdash — Slurm Dashboard
+# sdash: Slurm Dashboard
 
 A terminal dashboard for Slurm jobs, queues, CPU/GPU capacity, usage and storage.
 Use it on Linux login nodes at university, research or other HPC clusters with

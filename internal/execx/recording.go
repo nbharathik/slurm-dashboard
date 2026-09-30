@@ -22,14 +22,8 @@ type recordMeta struct {
 	RecordedAt time.Time `json:"recorded_at"`
 }
 
-// RecordingRunner wraps another Runner and writes every result to Dir as
-// <name>.txt (stdout) and <name>.meta.json (argv, exit code, duration,
-// stderr). The name is the context label (see WithLabel) or the executable
-// name, with -2, -3, ... appended for repeats. FakeRunner.LoadDir reads the
-// same layout.
-//
-// Recorded output can contain real usernames and paths. Anonymise it before
-// committing (sdash record --anonymize).
+// RecordingRunner wraps a Runner and writes each result to Dir as <name>.txt and <name>.meta.json (FakeRunner.LoadDir reads them).
+// Output may hold real usernames and paths; anonymise before committing.
 type RecordingRunner struct {
 	Inner Runner
 	Dir   string

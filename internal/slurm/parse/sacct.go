@@ -13,15 +13,10 @@ import (
 // HistoryFields is the number of fields in the history sacct format.
 const HistoryFields = 20
 
-// History parses the history query:
+// History parses the sacct history query.
 //
-//	sacct -n -P --delimiter=<Sep> -u $USER -S ... -E now -o JobID,JobIDRaw,JobName,
-//	  Partition,State,ExitCode,Submit,Start,End,ElapsedRaw,TimelimitRaw,AllocCPUS,
-//	  TotalCPU,ReqMem,MaxRSS,TRESUsageInTot,AllocTRES,NNodes,NodeList,WorkDir
-//
-// Step lines (123.batch, 123.0) are folded into their job: peak memory is
-// the largest step's TRESUsageInTot mem (else MaxRSS), and TotalCPU falls
-// back to the sum of the steps. Efficiency is computed for every job.
+// Step lines (123.batch) fold into their job: peak memory is the largest
+// step's TRESUsageInTot mem (else MaxRSS); TotalCPU falls back to the step sum.
 func History(raw []byte) (jobs []model.HistoryJob, warns []model.ParseWarning) {
 	w := &warnings{source: "history"}
 	defer func() { warns = w.list }()

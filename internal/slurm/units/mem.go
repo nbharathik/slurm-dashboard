@@ -7,10 +7,8 @@ import (
 	"strings"
 )
 
-// ParseMemMB parses a Slurm memory size and returns megabytes. Suffixes
-// K, M, G, T and P are 1024-based; a bare number is MB; "0" means "all of
-// the node's memory". A trailing "n" (per node) or "c" (per CPU) from old
-// ReqMem values is reported through perCPU.
+// ParseMemMB parses a Slurm memory size into MB (1024-based; bare number is MB; "0" means all node memory).
+// A trailing "n" or "c" from old ReqMem values is reported through perCPU.
 func ParseMemMB(s string) (mb float64, perCPU bool, err error) {
 	s = strings.TrimSpace(s)
 	switch strings.ToLower(s) {

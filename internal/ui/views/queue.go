@@ -34,9 +34,7 @@ func NewQueue(ctx *Context) *Jobs {
 	return v
 }
 
-// queueKey handles the keys that differ on the Queue tab: e asks for a
-// start estimate, v cycles what is shown (all, mine, running, ...) and g
-// cycles the grouping. Sorting is s and S, as everywhere.
+// queueKey handles the Queue-only keys: e (start estimate), v (scope), g (grouping).
 func (v *Jobs) queueKey(ctx *Context, msg tea.KeyPressMsg, cur model.Job, hasCur bool) (tea.Cmd, bool) {
 	k := ctx.Keys
 	switch {

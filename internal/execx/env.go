@@ -2,19 +2,13 @@ package execx
 
 import "strings"
 
-// droppedPrefixes are environment variable prefixes that let users change
-// the output format of Slurm tools. sdash parses fixed formats, so they are
-// removed from every child environment.
+// droppedPrefixes are variables that change Slurm output formats; sdash parses fixed formats.
 var droppedPrefixes = []string{"SQUEUE_", "SINFO_", "SACCT_", "SSTAT_", "SPRIO_", "SSHARE_"}
 
-// droppedKeys are removed and then set to fixed values by SanitizeEnv.
+// droppedKeys are removed, then set to fixed values by SanitizeEnv.
 var droppedKeys = map[string]bool{"SLURM_TIME_FORMAT": true, "LC_ALL": true}
 
-// SanitizeEnv returns a copy of environ suitable for non-interactive child
-// processes. It removes SQUEUE_*, SINFO_*, SACCT_*, SSTAT_*, SPRIO_*,
-// SSHARE_* and SLURM_TIME_FORMAT, keeps everything else (including
-// SLURM_CONF) in order, and appends LC_ALL=C and SLURM_TIME_FORMAT=standard
-// so numbers and timestamps have one predictable form.
+// SanitizeEnv returns environ without Slurm format overrides, plus LC_ALL=C and SLURM_TIME_FORMAT=standard.
 func SanitizeEnv(environ []string) []string {
 	out := make([]string, 0, len(environ)+2)
 	for _, kv := range environ {

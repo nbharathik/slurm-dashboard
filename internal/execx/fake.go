@@ -21,13 +21,9 @@ type FakeResponse struct {
 	Delay    time.Duration // simulated run time; honours ctx cancellation
 }
 
-// FakeRunner answers commands from canned responses and never starts a
-// process. It applies the same Policy as RealRunner (except the test guard),
-// so a unit test fails if code under test tries to run a non-allowlisted or
-// unauthorised state-changing command.
+// FakeRunner answers from canned responses and starts no process; it applies RealRunner's Policy (minus the test guard).
 type FakeRunner struct {
-	// Handler answers argv that have no canned response. nil means such
-	// calls fail with ErrNoFixture.
+	// Handler answers argv without a canned response; nil means ErrNoFixture.
 	Handler func(ctx context.Context, argv []string) (Result, error)
 
 	policy    Policy
@@ -37,16 +33,14 @@ type FakeRunner struct {
 	inputs    []RunOpts
 }
 
-// Inputs returns the RunWith options of every call, in order (zero for
-// plain Run).
+// Inputs returns the RunWith options of every call, in order.
 func (f *FakeRunner) Inputs() []RunOpts {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	return slices.Clone(f.inputs)
 }
 
-// NewFake returns an empty FakeRunner. extraReadOnly allows additional
-// executables, as Policy.ExtraReadOnly does.
+// NewFake returns an empty FakeRunner; extraReadOnly is Policy.ExtraReadOnly.
 func NewFake(extraReadOnly ...string) *FakeRunner {
 	return &FakeRunner{
 		policy:    Policy{ExtraReadOnly: extraReadOnly, NoTestGuard: true},
@@ -61,8 +55,7 @@ func (f *FakeRunner) Set(argv []string, resp FakeResponse) {
 	f.responses[Key(argv)] = resp
 }
 
-// Calls returns every argv that reached the fake, including refused ones,
-// in order.
+// Calls returns every argv that reached the fake, refused ones included.
 func (f *FakeRunner) Calls() [][]string {
 	f.mu.Lock()
 	defer f.mu.Unlock()
@@ -122,8 +115,7 @@ func (f *FakeRunner) Run(ctx context.Context, argv ...string) (Result, error) {
 	return res, nil
 }
 
-// LoadDir registers every fixture pair in dir written by RecordingRunner:
-// <name>.meta.json (argv, exit code, stderr) and <name>.txt (stdout).
+// LoadDir registers the <name>.meta.json and <name>.txt pairs RecordingRunner wrote in dir.
 func (f *FakeRunner) LoadDir(dir string) error {
 	metas, err := filepath.Glob(filepath.Join(dir, "*.meta.json"))
 	if err != nil {

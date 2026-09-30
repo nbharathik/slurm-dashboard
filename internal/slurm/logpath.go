@@ -5,8 +5,7 @@ import (
 	"github.com/nbharathik/slurm-dashboard/internal/slurm/units"
 )
 
-// LogPath returns a job's stdout (or stderr) file from its scontrol
-// detail, with any remaining %-patterns expanded relative to WorkDir.
+// LogPath returns a job's stdout (or stderr) file with %-patterns expanded.
 func LogPath(d *model.JobDetail, stderr bool) string {
 	p := d.StdOut
 	if stderr && d.StdErr != "" {

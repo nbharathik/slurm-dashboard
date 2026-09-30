@@ -203,10 +203,8 @@ type settingsLine struct {
 	row     int
 }
 
-// settingsLines lists the rows under their group headings, shortened to
-// fit limit lines: with room for the headings all of them show, else only
-// the rows, scrolled so that the cursor row shows, with a line for what is
-// hidden above or below.
+// settingsLines lists rows under group headings, fitting limit lines; short of
+// room it drops headings and scrolls to the cursor row.
 func (s *settingsState) lines(limit int) []settingsLine {
 	var all []settingsLine
 	group := ""

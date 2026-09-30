@@ -169,9 +169,7 @@ func Predict(series []Sample, now time.Time) Forecast {
 	return f
 }
 
-// Points resamples a series into n values across the window ending at now,
-// for a line: each is the last reading up to the end of its slot, carried
-// forward across gaps, and NaN before the first reading.
+// Points resamples a series into n values ending at now, carrying readings over gaps; NaN before the first.
 func Points(series []Sample, now time.Time, n int) []float64 {
 	out := make([]float64, n)
 	for i := range out {

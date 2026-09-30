@@ -87,9 +87,7 @@ type UsageGPUType struct {
 	Hours   float64 `json:"gpu_hours"`
 }
 
-// UsageWaste is what completed jobs asked for and did not use. The *_jobs
-// fields say how many jobs each figure covers; idle GPU time is null when
-// the site records no GPU utilisation.
+// UsageWaste is what completed jobs did not use; *_jobs give each figure's coverage, idle GPU is null without GPU accounting.
 type UsageWaste struct {
 	CPUJobs      int      `json:"cpu_jobs"`
 	CPUHeldHours float64  `json:"cpu_hours_held"` // by those jobs

@@ -1,3 +1,4 @@
+// Package report builds the versioned JSON documents and text tables for the CLI; bump Schema before renaming or removing a field.
 package report
 
 import (

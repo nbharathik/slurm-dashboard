@@ -44,10 +44,8 @@ var limitKeys = []struct{ key, unit string }{
 	{"MaxSubmitJobsPU", ""},
 }
 
-// AssocMgr parses "scontrol show assoc_mgr users=USER flags=assoc,qos": the
-// limits of user's own associations, of the accounts above them, and of the
-// QOS the output lists. Records without a limit are left out. A site that
-// hides the data, or has no accounting, yields no scopes and no warning.
+// AssocMgr parses "scontrol show assoc_mgr" limits of the user, parent accounts and QOS.
+// Hidden data or no accounting yields no scopes and no warning.
 func AssocMgr(raw []byte, user string) (scopes []model.LimitScope, warns []model.ParseWarning) {
 	w := &warnings{source: "assocmgr"}
 	defer func() { warns = w.list }()

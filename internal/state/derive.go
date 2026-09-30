@@ -15,9 +15,7 @@ func sortTransitions(ts []Transition) {
 	slices.SortFunc(ts, func(a, b Transition) int { return cmp.Compare(a.Job.ID.Raw, b.Job.ID.Raw) })
 }
 
-// JoinJobs enriches the user's jobs: running jobs take their allocated
-// GPU count from the cluster-wide data, and pending jobs get their rank
-// among pending jobs of the same partition (highest priority first).
+// JoinJobs adds allocated GPU counts to running jobs and queue ranks to pending ones.
 func JoinJobs(jobs []model.Job, running []model.RunningJob, pending []parse.PendingJob) []model.Job {
 	out := slices.Clone(jobs)
 	alloc := make(map[string]int, len(running))
@@ -113,10 +111,8 @@ func spread(n, nodes int) int {
 	return (n + nodes - 1) / nodes
 }
 
-// NodeGPUUsage combines nodes with running jobs. me is the current user.
-// When other users' jobs are hidden (PrivateData=jobs), the allocated GPUs
-// not explained by visible jobs are counted as Others and FreeBy stays
-// unknown for them.
+// NodeGPUUsage combines nodes with running jobs; me is the current user.
+// With PrivateData=jobs, GPUs not explained by visible jobs count as Others.
 func NodeGPUUsage(nodes []model.Node, running []model.RunningJob, me string) []NodeUsage {
 	onNode := map[string][]model.RunningJob{}
 	for _, r := range running {

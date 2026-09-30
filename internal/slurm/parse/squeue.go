@@ -11,12 +11,7 @@ import (
 // MyJobsFields is the number of fields in the jobs squeue format.
 const MyJobsFields = 23
 
-// MyJobs parses "squeue [--me] -h -o <23 fields>" (including %u, so the
-// same format serves "all users" mode): JobID, ArrayJobID, ArrayTaskID,
-// Partition, QOS, Account, State, TimeUsed, TimeLimit, TimeLeft, Nodes,
-// CPUs, MinMemory, Gres, Reason, NodeList, StartTime, EndTime, SubmitTime,
-// Priority, Dependency, User, Name. Fields are separated by Sep; Name is
-// last so it may contain anything.
+// MyJobs parses "squeue -h -o" with 23 Sep-separated fields; Name is last so it may contain anything.
 func MyJobs(raw []byte) (jobs []model.Job, warns []model.ParseWarning) {
 	w := &warnings{source: "myjobs"}
 	defer func() { warns = w.list }()
@@ -75,11 +70,7 @@ func MyJobs(raw []byte) (jobs []model.Job, warns []model.ParseWarning) {
 	return jobs, w.list
 }
 
-// Running parses the cluster-wide running-jobs query:
-//
-//	squeue -h -t RUNNING -O "JobID:48,UserName:48,Partition:64,NumNodes:8,NodeList:1024,EndTime:24,tres-alloc:1024"
-//
-// Every field is whitespace-free, so lines are split with strings.Fields.
+// Running parses the cluster-wide "squeue -t RUNNING -O" query; fields are whitespace-free.
 func Running(raw []byte) (jobs []model.RunningJob, warns []model.ParseWarning) {
 	w := &warnings{source: "cluster"}
 	defer func() { warns = w.list }()

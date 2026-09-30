@@ -11,11 +11,8 @@ import (
 // getuid is the user whose files are trusted; tests replace it.
 var getuid = os.Getuid
 
-// TrustIssues reports why a config file cannot be trusted to run
-// commands: it (or the directory holding it) can be changed by someone
-// else. Such a file still applies, but LoadLayers drops its storage
-// commands and its notify_command, since whoever can edit the file could
-// otherwise run programs as this user. Root may own any file.
+// TrustIssues reports why a config file (or its directories) is writable by others.
+// LoadLayers then drops its commands, since editors could run programs as this user.
 func TrustIssues(path string) []Issue {
 	issue := func(why string) []Issue {
 		return []Issue{{File: path, Level: Error, Msg: why + "; its storage commands and notify_command are ignored (check ownership and write permissions on the file and its parent directories)"}}

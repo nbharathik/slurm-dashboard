@@ -4,6 +4,5 @@ package execx
 
 import "os/exec"
 
-// setProcessGroup is a no-op on platforms without process groups; sdash
-// only targets Linux and macOS, this keeps the package compiling elsewhere.
+// setProcessGroup is a no-op where process groups are unavailable.
 func setProcessGroup(*exec.Cmd) {}

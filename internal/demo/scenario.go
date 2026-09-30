@@ -1,7 +1,4 @@
-// Package demo simulates a Slurm cluster for "sdash --demo". Its runner
-// answers the same commands sdash runs on a real cluster with real
-// Slurm-format text, so demo mode exercises the real parsers, collectors
-// and safety checks. Time moves jobs through a fixed script that loops.
+// Package demo is a fake Slurm runner for "sdash --demo" that answers with real Slurm-format text.
 package demo
 
 import (

@@ -1,3 +1,4 @@
+// Package insights derives alerts, explanations, usage summaries and storage trends.
 package insights
 
 import (
@@ -24,17 +25,14 @@ type Input struct {
 	History      []model.HistoryJob // recent finished jobs (any range)
 	Ended        []model.HistoryJob // jobs seen ending in this session
 	Storage      []model.Quota
-	// Stats is the latest sstat sample of running jobs by job ID, taken at
-	// StatsAt; Waste says the user wants the idle-job warning.
+	// Stats is the latest sstat sample by job ID, taken at StatsAt; Waste enables the idle-job warning.
 	Stats     map[string]model.JobStat
 	StatsAt   time.Time
 	Waste     bool
 	Dismissed map[string]time.Time // key → dismissed until
-	// StorageWarn and StorageCrit are the [alerts] thresholds in percent;
-	// zero means the defaults.
+	// StorageWarn and StorageCrit are [alerts] percent thresholds; zero means default.
 	StorageWarn, StorageCrit int
-	// TimeLeftWarn is how close to its time limit a running job is warned
-	// about: zero means TimeLeftWarn's default, negative means never.
+	// TimeLeftWarn is how near its time limit a job is warned about: zero is the default, negative never.
 	TimeLeft time.Duration
 }
 
@@ -232,11 +230,8 @@ func timeLeft(in Input) []model.Alert {
 	return out
 }
 
-// idleJobs notes running jobs that, after IdleAfter, leave most of what
-// they asked for unused: under IdleCPU of the CPUs (of jobs with at least
-// two), under IdleMem of the memory (of requests of a gigabyte or more) or
-// under IdleGPU of the GPU time when the site records it. Array tasks and
-// heterogeneous jobs are not sampled.
+// idleJobs flags running jobs that, after IdleAfter, use under IdleCPU, IdleMem or IdleGPU of their request.
+// Array tasks and heterogeneous jobs are not sampled.
 func idleJobs(in Input) []model.Alert {
 	if !in.Waste || len(in.Stats) == 0 || in.StatsAt.IsZero() || in.Now.Sub(in.StatsAt) > StatFresh {
 		return nil
@@ -272,9 +267,7 @@ func idleJobs(in Input) []model.Alert {
 
 func alertPercent(f float64) int { return int(f*100 + 0.5) }
 
-// plainJob reports whether id is a bare job number: not an array task
-// ("8_3") or a heterogeneous component ("8+1"), which sstat cannot tell
-// apart.
+// plainJob reports whether id is a bare job number (sstat cannot tell "8_3" or "8+1" apart).
 func plainJob(id string) bool {
 	return id != "" && strings.Trim(id, "0123456789") == ""
 }

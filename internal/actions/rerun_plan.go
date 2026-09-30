@@ -16,9 +16,7 @@ type RerunField struct {
 	Suggest  string // right-size suggestion, "" when none
 }
 
-// RerunPlan is what a rerun keeps from the original job: the editable
-// fields, the other command-line options it carries over, and those it
-// cannot carry.
+// RerunPlan is what a rerun keeps from the original job: editable fields, carried options, dropped ones.
 type RerunPlan struct {
 	Fields     []RerunField
 	Carried    []Opt
@@ -26,8 +24,7 @@ type RerunPlan struct {
 	ScriptArgs []string // the original script's arguments, which a rerun cannot pass
 }
 
-// rerunFields are the form's resources, each with the options that can
-// set it; the first one the original used names the field.
+// rerunFields are the form's resources; the first option the original used names the field.
 var rerunFields = []struct {
 	label string
 	names []string
@@ -47,9 +44,7 @@ var ignoredOnRerun = map[string]bool{
 	"wrap":     true, // the stored script already holds the wrapped command
 }
 
-// PlanRerun combines the original command line (line may be nil when
-// Slurm does not record it), the script's #SBATCH lines and the right-size
-// suggestions (option name to value) into a plan.
+// PlanRerun combines the original command line (nil if unrecorded), #SBATCH lines and suggestions into a plan.
 func PlanRerun(line *parse.SbatchLine, directives []parse.SbatchOpt, suggest map[string]string) RerunPlan {
 	var p RerunPlan
 	var lineOpts []parse.SbatchOpt
@@ -106,9 +101,7 @@ func lastOf(line, script []parse.SbatchOpt, name string) (string, bool) {
 	return parse.Last(script, name)
 }
 
-// Opts turns the form's values (field name to value) into the options a
-// rerun passes: the carried options, then each field that differs from
-// the original or was on the original command line.
+// Opts turns form values into rerun options: carried ones, then fields that changed or were on the command line.
 func (p RerunPlan) Opts(values map[string]string) ([]Opt, error) {
 	opts := append([]Opt(nil), p.Carried...)
 	for _, f := range p.Fields {

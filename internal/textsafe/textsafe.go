@@ -1,10 +1,4 @@
-// Package textsafe removes terminal control sequences and invisible
-// characters from text that other people wrote: job names and comments,
-// node reasons, reservation, user and account names. Slurm passes such
-// text through unchanged, so without this a job named
-// "\x1b]52;c;...\x07" could write to the clipboard of anyone who looks at
-// the queue, and bidi overrides could make a name read differently from
-// what it is.
+// Package textsafe strips terminal control sequences and invisible characters from text others wrote (job names, reasons, accounts).
 package textsafe
 
 import (
@@ -12,9 +6,7 @@ import (
 	"unicode/utf8"
 )
 
-// Field cleans a single-line value: escape sequences, control characters
-// (a tab becomes a space), bidi controls and zero-width characters are
-// removed, and invalid UTF-8 becomes U+FFFD.
+// Field cleans a single-line value: strips escapes, controls, bidi and zero-width characters.
 func Field(s string) string { return clean(s, false) }
 
 // Text cleans multi-line text the same way, keeping newlines.

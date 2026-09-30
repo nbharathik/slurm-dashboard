@@ -8,9 +8,7 @@ import (
 	"github.com/nbharathik/slurm-dashboard/internal/model"
 )
 
-// ParseJobState parses a job state. "CANCELLED by 1234" becomes CANCELLED
-// with canceller UID "1234". Unknown states are returned unchanged (upper
-// case) so they can be shown neutrally.
+// ParseJobState parses a job state; "CANCELLED by 1234" gives canceller UID "1234". Unknown states are upper-cased.
 func ParseJobState(s string) (state model.JobState, cancelledBy string) {
 	s = strings.TrimSpace(s)
 	if base, uid, ok := strings.Cut(s, " by "); ok {

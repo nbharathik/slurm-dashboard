@@ -13,17 +13,13 @@ import (
 	"github.com/nbharathik/slurm-dashboard/internal/execx"
 )
 
-// Shell completion asks Slurm for job IDs, node and partition names. Each
-// lookup has a short timeout and is cached, so pressing tab repeatedly
-// does not load the controller.
+// Completion lookups are short-timeout and cached so repeated tabs spare the controller.
 const (
 	completeTimeout = 3 * time.Second
 	completeTTL     = 30 * time.Second
 )
 
-// completionSetup finishes the setup for shell completion: cobra runs the
-// persistent pre-run for its own __complete command, before the target
-// command's flags (--demo, --config) are parsed.
+// completionSetup runs setup for __complete, whose pre-run precedes flag parsing (--demo, --config).
 func (a *app) completionSetup() {
 	if a.log == nil {
 		_ = a.setup(nil)

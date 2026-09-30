@@ -172,9 +172,7 @@ warnings alone exit with 0.`,
 	}
 }
 
-// validateConfig checks every config file that exists and prints its
-// issues. It returns errSilent when there are errors, so the exit status
-// is 1.
+// validateConfig prints issues of every existing config file; errSilent on errors.
 func (a *app) validateConfig(out io.Writer) error {
 	if err := a.requirePaths(); err != nil {
 		return err

@@ -28,23 +28,19 @@ const (
 
 // Options configures a RealRunner. Zero fields take the defaults above.
 type Options struct {
-	// MaxConcurrent caps how many commands run at once. The Slurm runner
-	// uses 3 to protect the shared controller; the storage runner uses 2.
+	// MaxConcurrent caps simultaneous commands (Slurm runner 3, to protect the controller).
 	MaxConcurrent int
-	// DefaultTimeout applies when the caller's context has no deadline.
-	// Collectors normally set their own, shorter, per-source deadline.
+	// DefaultTimeout applies when ctx has no deadline.
 	DefaultTimeout time.Duration
-	// MaxStdout is the stdout cap in bytes. Exceeding it kills the command
-	// and returns ErrOutputTooLarge.
+	// MaxStdout is the stdout cap in bytes; exceeding it kills the command (ErrOutputTooLarge).
 	MaxStdout int
-	// MaxStderr is the stderr cap in bytes. Extra stderr is dropped.
+	// MaxStderr is the stderr cap in bytes; extra is dropped.
 	MaxStderr int
 	// HistorySize is how many recent calls History keeps.
 	HistorySize int
 	// BaseEnv is the environment before sanitising; nil means os.Environ().
 	BaseEnv []string
-	// Logger receives one debug record per call and a warning per refusal.
-	// nil discards.
+	// Logger gets a debug record per call and a warning per refusal; nil discards.
 	Logger *slog.Logger
 	// Policy decides which commands may run.
 	Policy Policy
@@ -61,8 +57,7 @@ type CallRecord struct {
 	Refused  bool   // true when the policy refused the command
 }
 
-// RealRunner runs commands on the local machine. It is safe for concurrent
-// use.
+// RealRunner runs commands locally; safe for concurrent use.
 type RealRunner struct {
 	opts Options
 	sem  chan struct{}
@@ -72,8 +67,7 @@ type RealRunner struct {
 	next    int
 	full    bool
 
-	// exec runs an already-approved command. Tests replace it to observe
-	// policy and concurrency behaviour without starting processes.
+	// exec runs an approved command; tests replace it.
 	exec func(ctx context.Context, argv []string) (Result, error)
 }
 
@@ -109,8 +103,7 @@ func NewReal(opts Options) *RealRunner {
 	return r
 }
 
-// Run checks argv against the policy, waits for a free slot, and runs the
-// command with the sanitised environment, a timeout, and capped output.
+// Run checks argv against the policy, waits for a slot, then runs it sanitised, timed and output-capped.
 func (r *RealRunner) Run(ctx context.Context, argv ...string) (Result, error) {
 	argv = slices.Clone(argv)
 	res := Result{Argv: argv, ExitCode: -1}
@@ -142,16 +135,9 @@ func (r *RealRunner) Run(ctx context.Context, argv ...string) (Result, error) {
 	return res, err
 }
 
-// RunUserShell runs a command the user wrote in their own config (a site
-// quota command, the on_job_end hook) with "sh -c". It is outside the
-// allowlist on purpose: the user chose the command, as if they typed it.
-// It still gets the runner's semaphore, timeout, capped output, sanitised
-// environment (plus extraEnv, e.g. SDASH_JOB_ID=812) and its own process
-// group, and every call is logged. Job data must only ever be passed in
-// extraEnv, never interpolated into script.
-//
-// Only internal/storage and internal/notify may call it (golangci-lint
-// enforces this).
+// RunUserShell runs a user-configured command via "sh -c", outside the allowlist on purpose.
+// Semaphore, timeout and caps still apply. Pass job data only in extraEnv, never in script.
+// Only internal/storage and internal/notify may call it (lint-enforced).
 func RunUserShell(ctx context.Context, r *RealRunner, script string, extraEnv []string) (Result, error) {
 	argv := []string{"sh", "-c", script}
 	res := Result{Argv: argv, ExitCode: -1}
@@ -229,9 +215,7 @@ func (r *RealRunner) executeEnv(ctx context.Context, argv, env []string) (Result
 
 	switch {
 	case stdout.Overflowed():
-		// Checked first: the command may have exited on its own before the
-		// kill landed, but its output is still truncated and must not be
-		// parsed as complete.
+		// Checked first: output is truncated even if the command exited before the kill landed.
 		return res, fmt.Errorf("%s: stdout exceeded %d bytes: %w", name, r.opts.MaxStdout, ErrOutputTooLarge)
 	case err == nil:
 		return res, nil

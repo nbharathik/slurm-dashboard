@@ -1,3 +1,4 @@
+// Package theme holds the colours, styles and symbols; state is never shown by colour alone.
 package theme
 
 import (

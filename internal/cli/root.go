@@ -1,3 +1,4 @@
+// Package cli is the cobra command tree, global flags and non-TUI subcommands; exit codes: 0 ok, 1 error, 2 usage, 3 no Slurm.
 package cli
 
 import (
@@ -71,9 +72,7 @@ func (a *app) clock() time.Time {
 	return time.Now()
 }
 
-// configPath is the user's config file: --config, else $SDASH_CONFIG, else
-// the XDG default. It is always absolute, so it can be passed to an editor
-// without being mistaken for an option.
+// configPath is the absolute user config path: --config, $SDASH_CONFIG, else XDG default.
 func (a *app) configPath() string {
 	flag := a.configFlag
 	if flag == "" {
@@ -177,9 +176,7 @@ gently, and by default shows the exact command before any destructive action.`,
 	return root
 }
 
-// setup resolves paths and opens the debug log before any subcommand runs.
-// Neither failure is fatal here: commands that need the paths call
-// requirePaths, and a missing debug log only matters with --debug.
+// setup resolves paths and opens the debug log; failures are non-fatal here (see requirePaths).
 func (a *app) setup(cmd *cobra.Command) error {
 	a.log = debuglog.Discard()
 	a.paths, a.pathsErr = config.ResolvePaths(a.env.Getenv)

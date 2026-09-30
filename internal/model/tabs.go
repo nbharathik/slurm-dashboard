@@ -25,23 +25,20 @@ var Tabs = []Tab{
 	{TabStorage, "Storage"},
 }
 
-// alias is another name for a tab. GPUOnly says it also asks for the GPU
-// filter ("gpus" is Nodes with only GPU nodes).
+// alias is another name for a tab; GPUOnly also asks for the GPU filter.
 type alias struct {
 	tab     string
 	gpuOnly bool
 }
 
-// aliases are other names a tab answers to: "gpus" was the old name of
-// the GPU view (now Nodes) and "history" the old name of Usage.
+// aliases are old tab names: "gpus" (now Nodes) and "history" (now Usage).
 var aliases = map[string]alias{
 	"gpus":    {TabNodes, true},
 	"gpu":     {TabNodes, true},
 	"history": {TabUsage, false},
 }
 
-// ResolveTab returns the tab a name or alias stands for (case-insensitive),
-// and whether the name asks for GPU nodes only.
+// ResolveTab returns the tab for a name or alias (case-insensitive) and whether it wants GPU nodes only.
 func ResolveTab(name string) (tab string, gpuOnly, ok bool) {
 	name = strings.ToLower(strings.TrimSpace(name))
 	if a, found := aliases[name]; found {

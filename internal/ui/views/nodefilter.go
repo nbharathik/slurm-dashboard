@@ -8,10 +8,8 @@ import (
 	"github.com/nbharathik/slurm-dashboard/internal/state"
 )
 
-// NodeFilter is a parsed Nodes filter: space-separated terms that must all
-// match. state:idle,mixed, part:gpu, feat:ib, gpu:h200 (a type) or gpu:>0
-// (free GPUs), cpu:>=16 (free CPUs), and bare words that match the node
-// name or its GPU type.
+// NodeFilter is a parsed Nodes filter: space-separated terms that must all match
+// (state:, part:, feat:, gpu:, cpu:, or bare words on node name or GPU type).
 type NodeFilter struct {
 	Raw   string
 	terms []nodeTerm

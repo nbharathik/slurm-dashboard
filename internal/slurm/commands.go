@@ -1,3 +1,4 @@
+// Package slurm builds the exact Slurm command lines and detects version features; it never runs them.
 package slurm
 
 import (
@@ -90,8 +91,7 @@ func (c Commands) Sstat(id string) []string {
 	return []string{"sstat", "-a", "-n", "-P", "-j", id, "-o", sstatFields}
 }
 
-// SstatJobs samples several running jobs in one call. Callers pass plain
-// job IDs (digits): sstat cannot tell the tasks of an array apart.
+// SstatJobs samples several running jobs in one call; pass plain digit IDs (sstat cannot split array tasks).
 func (c Commands) SstatJobs(ids []string) []string {
 	return []string{"sstat", "-a", "-n", "-P", "-j", strings.Join(ids, ","), "-o", sstatFields}
 }
@@ -105,8 +105,7 @@ func (c Commands) History(days int) []string {
 	}
 }
 
-// HistoryJob is one job's accounting record (with steps), for jobs that
-// have left the queue.
+// HistoryJob is one job's accounting record, with steps.
 func (c Commands) HistoryJob(id string) []string {
 	return []string{"sacct", "-n", "-P", "--delimiter=" + parse.Sep, "-j", id, "-o", historyFields}
 }
@@ -116,8 +115,7 @@ func (c Commands) Fairshare() []string {
 	return []string{"sshare", "-U", "-n", "-P", "-o", shareFields}
 }
 
-// AssocMgr prints the limits of the user's associations and of the QOS
-// (read-only; a site may hide it, or have no accounting).
+// AssocMgr prints the user's association and QOS limits (read-only; sites may hide it).
 func (c Commands) AssocMgr() []string {
 	return []string{"scontrol", "show", "assoc_mgr", "users=" + c.User, "flags=assoc,qos"}
 }
@@ -133,14 +131,12 @@ func (c Commands) BatchScript(id string) []string {
 	return []string{"scontrol", "write", "batch_script", id, "-"}
 }
 
-// SacctBatchScript prints a finished job's batch script where the site
-// stores scripts in accounting.
+// SacctBatchScript prints a finished job's script where accounting stores scripts.
 func (c Commands) SacctBatchScript(id string) []string {
 	return []string{"sacct", "-j", id, "--batch-script"}
 }
 
-// SubmitLine is the command line a job was submitted with and its
-// working directory (SubmitLine needs Slurm 23.02 or later).
+// SubmitLine is a job's submit command line and WorkDir (Slurm 23.02+).
 func (c Commands) SubmitLine(id string) []string {
 	return []string{"sacct", "-n", "-P", "--delimiter=" + parse.Sep, "-X", "-j", id, "-o", "SubmitLine,WorkDir"}
 }

@@ -12,12 +12,10 @@ import (
 	"github.com/nbharathik/slurm-dashboard/internal/slurm/parse"
 )
 
-// RerunArgv0 starts every rerun command; options follow as --name=value.
-// The script always arrives on stdin, so no file path can be smuggled in.
+// RerunArgv0 starts every rerun; the script arrives on stdin so no file path can be smuggled in.
 var RerunArgv0 = []string{"sbatch", "--parsable"}
 
-// Value patterns for the sbatch options a rerun may pass. Anything else
-// from the original command line is shown as "not carried over".
+// Value patterns for the sbatch options a rerun may pass.
 var (
 	reName   = regexp.MustCompile(`^[A-Za-z0-9_.][A-Za-z0-9_.,-]*$`)
 	reCount  = regexp.MustCompile(`^[1-9][0-9]{0,5}$`)
@@ -85,8 +83,7 @@ func CheckOpt(o Opt) error {
 	return nil
 }
 
-// RerunArgv builds "sbatch --parsable --name=value ..." after checking
-// every option.
+// RerunArgv builds "sbatch --parsable --name=value ..." after checking every option.
 func RerunArgv(opts []Opt) ([]string, error) {
 	argv := slices.Clone(RerunArgv0)
 	for _, o := range opts {
@@ -133,8 +130,7 @@ func checkScript(script, dir string) error {
 	return nil
 }
 
-// Rerun pipes a confirmed script to argv (built by RerunArgv) from dir.
-// The grant covers exactly that argv.
+// Rerun pipes a confirmed script to argv (from RerunArgv) in dir; the grant covers exactly that argv.
 func Rerun(ctx context.Context, r execx.Runner, argv []string, script, dir string) (Submitted, error) {
 	if err := checkScript(script, dir); err != nil {
 		return Submitted{}, err
@@ -157,8 +153,7 @@ func Rerun(ctx context.Context, r execx.Runner, argv []string, script, dir strin
 	return Submitted{JobID: id, Cluster: cluster}, nil
 }
 
-// Estimate asks "sbatch --test-only" when the script would start with the
-// given options, without submitting it (read-only).
+// Estimate asks "sbatch --test-only" when the script would start (read-only).
 func Estimate(ctx context.Context, r execx.Runner, script, dir string, opts []Opt) (parse.Estimate, error) {
 	if err := checkScript(script, dir); err != nil {
 		return parse.Estimate{}, err

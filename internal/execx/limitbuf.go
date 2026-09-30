@@ -5,9 +5,7 @@ import (
 	"sync"
 )
 
-// capBuffer collects up to limit bytes. Once the limit is passed it keeps
-// accepting (and discarding) writes so the child never blocks on a full
-// pipe, records the overflow, and calls onOverflow once.
+// capBuffer keeps up to limit bytes, then discards writes (so the child never blocks) and calls onOverflow once.
 type capBuffer struct {
 	mu         sync.Mutex
 	buf        bytes.Buffer

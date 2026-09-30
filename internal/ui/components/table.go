@@ -1,3 +1,4 @@
+// Package components holds reusable UI pieces that render from their own state and the theme and never run commands.
 package components
 
 import (
@@ -19,9 +20,7 @@ type Row struct {
 	Cells  map[string]string
 	Indent int // child rows of a group are indented
 	Muted  bool
-	// Heading marks a group's own row (a partition, a state): it has cells
-	// like any row, laid out in the same columns, but it is not an item, so
-	// it is left out of counts and scroll positions.
+	// Heading marks a group's own row; it is not an item, so counts and scroll positions skip it.
 	Heading bool
 	// Gap is a blank line between groups: never selected, never counted,
 	// and the cursor steps over it.

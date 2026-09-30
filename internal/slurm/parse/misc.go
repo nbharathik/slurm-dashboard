@@ -15,9 +15,7 @@ import (
 
 var versionRe = regexp.MustCompile(`(\d+)\.(\d+)\.(\d+)`)
 
-// Version parses "sinfo --version", which prints "slurm 23.11.4" or, on
-// Debian/Ubuntu packages, "slurm-wlm 23.11.4". It fills the version fields
-// and the version-derived capabilities (--me and --overlap need 20.11+).
+// Version parses "sinfo --version" ("slurm 23.11.4" or "slurm-wlm 23.11.4" on Debian).
 func Version(raw []byte) (model.Capabilities, error) {
 	s := strings.TrimSpace(string(raw))
 	m := versionRe.FindStringSubmatch(s)
@@ -42,55 +40,45 @@ func ClusterName(raw []byte) (string, error) {
 // ClusterInfo is what sdash reads from "scontrol show config".
 type ClusterInfo struct {
 	Name string
-	// PrivateData lists what the site hides from other users, lower
-	// case: "jobs", "usage", "accounts", ... Empty when nothing is.
+	// PrivateData lists what the site hides, lower case ("jobs", "usage", ...).
 	PrivateData []string
-	// Settings holds the raw value of each configuration line sdash
-	// checks for features (see siteSettings), for lines that were present.
+	// Settings holds the raw value of each present siteSettings line.
 	Settings map[string]string
 }
 
-// siteSettings are the lines of "scontrol show config" that say what the
-// cluster can do.
+// siteSettings are the config lines that say what the cluster can do.
 var siteSettings = []string{"AccountingStorageType", "AccountingStoreFlags", "PriorityType", "JobAcctGatherType"}
 
 // HidesJobs reports whether other users' jobs are hidden.
 func (c ClusterInfo) HidesJobs() bool { return slices.Contains(c.PrivateData, "jobs") }
 
-// The methods below are true only when the configuration positively says a
-// feature is absent. A cluster whose lines could not be read has all of
-// them, so sdash never hides something it merely could not check.
+// The methods below are true only when the config positively says a feature is absent, so unreadable config hides nothing.
 
-// AccountingOff reports AccountingStorageType=accounting_storage/none: no
-// job history, efficiency or fairshare data.
+// AccountingOff reports AccountingStorageType=accounting_storage/none.
 func (c ClusterInfo) AccountingOff() bool {
 	v, ok := c.Settings["AccountingStorageType"]
 	return ok && (strings.HasSuffix(v, "/none") || v == "none")
 }
 
-// NoJobScripts reports a cluster that does not keep batch scripts in
-// accounting (AccountingStoreFlags lacks job_script).
+// NoJobScripts reports AccountingStoreFlags lacking job_script.
 func (c ClusterInfo) NoJobScripts() bool {
 	v, ok := c.Settings["AccountingStoreFlags"]
 	return ok && !strings.Contains(strings.ToLower(v), "job_script")
 }
 
-// BasicPriority reports PriorityType=priority/basic: no fairshare or
-// priority factors.
+// BasicPriority reports PriorityType=priority/basic.
 func (c ClusterInfo) BasicPriority() bool {
 	v, ok := c.Settings["PriorityType"]
 	return ok && strings.HasSuffix(v, "/basic")
 }
 
-// NoUsageGather reports JobAcctGatherType=jobacct_gather/none: CPU and
-// memory use of jobs are not recorded.
+// NoUsageGather reports JobAcctGatherType=jobacct_gather/none.
 func (c ClusterInfo) NoUsageGather() bool {
 	v, ok := c.Settings["JobAcctGatherType"]
 	return ok && (strings.HasSuffix(v, "/none") || v == "none")
 }
 
-// ClusterConfig parses the ClusterName and PrivateData lines of
-// "scontrol show config".
+// ClusterConfig parses "scontrol show config".
 func ClusterConfig(raw []byte) (ClusterInfo, error) {
 	var c ClusterInfo
 	for _, line := range strings.Split(string(raw), "\n") {

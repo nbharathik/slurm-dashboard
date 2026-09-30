@@ -61,8 +61,7 @@ type TypeHours struct {
 	Hours float64
 }
 
-// Waste is what completed jobs asked for and did not use. Each figure
-// counts only the jobs whose usage is known, and says how many that is.
+// Waste is what completed jobs asked for and did not use, over jobs with known usage.
 type Waste struct {
 	CPUJobs      int
 	CPUHeld      float64 // CPU-hours held by those jobs
@@ -176,9 +175,7 @@ func Summarise(jobs []model.HistoryJob, days int, uid string) Summary {
 	return s
 }
 
-// JobIdle returns the idle CPU-hours and GPU-hours of one completed job,
-// and whether either could be worked out (a job whose usage is unknown, or
-// that did not complete, has no figure).
+// JobIdle returns a completed job's idle CPU- and GPU-hours, and whether either is known.
 func JobIdle(j model.HistoryJob) (cpu, gpu float64, ok bool) {
 	if j.State != model.StateCompleted {
 		return 0, 0, false

@@ -8,12 +8,9 @@ import (
 	"github.com/nbharathik/slurm-dashboard/internal/slurm/units"
 )
 
-// setGPUs fills a node's GPU groups and totals from scontrol's Gres,
-// GresUsed, CfgTRES and AllocTRES. Whole GPUs and MIG slices are counted
-// apart: a node with 4 x 1g.33gb and 7 x 1g.16gb slices has no whole GPUs
-// and 11 slices. Allocation comes from GresUsed (per type, as the node
-// reports it), else from the typed AllocTRES entries; an untyped remainder
-// is spread over the groups, whole GPUs first.
+// setGPUs fills a node's GPU groups from Gres, GresUsed, CfgTRES and AllocTRES.
+// Whole GPUs and MIG slices are counted apart. Allocation comes from GresUsed,
+// else typed AllocTRES; an untyped remainder goes to whole GPUs first.
 func setGPUs(n *model.Node, gres, gresUsed, cfgTRES, allocTRES string) {
 	total := units.GPUsByType(gres)
 	if len(total) == 0 {

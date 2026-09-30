@@ -1,3 +1,4 @@
+// Package views implements the tabs and full-screen viewers as pure functions of the store plus view state.
 package views
 
 import (

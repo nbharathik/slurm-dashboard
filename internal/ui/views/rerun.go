@@ -44,9 +44,7 @@ type RerunInput struct {
 	Suggest       map[string]string // right-size suggestions by option name
 }
 
-// RerunView is the rerun form: the job's resources with the right-size
-// suggestions, the options carried over from the original command line
-// and a preview of the stored script.
+// RerunView is the rerun form: resources with right-size suggestions, carried-over options and a script preview.
 type RerunView struct {
 	RerunInput
 	Unread       []string // words of Line that could not be read safely

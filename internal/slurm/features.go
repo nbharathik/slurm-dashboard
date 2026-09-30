@@ -15,17 +15,14 @@ const (
 	Unavailable
 )
 
-// Feature is one thing sdash can show, and whether this cluster allows it.
-// Note explains a feature that is Limited or Unavailable in one plain line.
+// Feature is one thing sdash can show; Note explains a Limited or Unavailable status.
 type Feature struct {
 	Name   string
 	Status FeatureStatus
 	Note   string
 }
 
-// Features lists what this cluster offers, from the probed capabilities and
-// the site configuration. It hides a feature only when one of them
-// positively says it is missing.
+// Features lists what this cluster offers; a feature is missing only when capabilities or config say so.
 func Features(caps model.Capabilities, info parse.ClusterInfo) []Feature {
 	var out []Feature
 	add := func(name string, st FeatureStatus, note string) { out = append(out, Feature{name, st, note}) }

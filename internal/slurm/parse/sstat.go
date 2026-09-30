@@ -54,8 +54,7 @@ func parseSstatRow(w *warnings, n int, line string) (sstatRow, bool) {
 	return r, true
 }
 
-// fold adds one step to a job's usage: tasks are summed, memory and CPU
-// take the largest step.
+// fold adds one step: tasks sum, memory and CPU take the max.
 func (s *sstatRow) foldInto(stat *model.JobStat) {
 	stat.NTasks += s.tasks
 	stat.MaxRSSMB = max(stat.MaxRSSMB, s.maxRSS)
@@ -67,9 +66,7 @@ func (s *sstatRow) foldInto(stat *model.JobStat) {
 	}
 }
 
-// Sstat parses "sstat -a -n -P -j <id> -o JobID,NTasks,MaxRSS,AveRSS,AveCPU,TRESUsageInTot"
-// and folds all steps into one JobStat: tasks are summed, memory and CPU
-// take the largest step. It returns nil when there are no steps.
+// Sstat parses "sstat -a -n -P -j <id>" into one JobStat, or nil without steps.
 func Sstat(raw []byte) (stat *model.JobStat, warns []model.ParseWarning) {
 	w := &warnings{source: "jobstat"}
 	defer func() { warns = w.list }()
@@ -88,9 +85,7 @@ func Sstat(raw []byte) (stat *model.JobStat, warns []model.ParseWarning) {
 	return stat, w.list
 }
 
-// SstatJobs parses the same output for several jobs at once ("sstat -j
-// 1,2,3") and folds each job's steps into one JobStat, keyed by job ID.
-// Jobs without steps are absent.
+// SstatJobs parses sstat output for several jobs, keyed by job ID.
 func SstatJobs(raw []byte) (stats map[string]*model.JobStat, warns []model.ParseWarning) {
 	w := &warnings{source: "jobstat"}
 	defer func() { warns = w.list }()

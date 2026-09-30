@@ -139,9 +139,7 @@ func Button(th theme.Theme, label string, focused, danger bool) string {
 	return th.Muted.Render(text)
 }
 
-// Sparkline draws vals as one cell each, scaled between the smallest and the
-// largest of them; NaN leaves a blank. A line that never changes is drawn
-// at mid height.
+// Sparkline draws vals one cell each, scaled min to max; NaN is blank, a flat line is mid height.
 func Sparkline(th theme.Theme, vals []float64) string {
 	steps := []rune(th.Sym.Spark)
 	if len(steps) == 0 || len(vals) == 0 {

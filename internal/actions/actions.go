@@ -1,3 +1,4 @@
+// Package actions is the only place that may authorise state-changing Slurm commands, for exactly the argv shown to the user.
 package actions
 
 import (
@@ -11,8 +12,7 @@ import (
 	"github.com/nbharathik/slurm-dashboard/internal/slurm/units"
 )
 
-// Args are action arguments. None of the current actions take any; the
-// type stays so an action can be added without changing callers.
+// Args are action arguments; none of the current actions take any.
 type Args map[string]string
 
 // Action is one thing sdash can do to jobs.
@@ -40,8 +40,7 @@ func (r *Registry) Get(id string) (Action, bool) {
 	return Action{}, false
 }
 
-// MaxJobs is the most jobs one action may touch without typing the count
-// to confirm.
+// MaxJobs is the most jobs one action may touch without typing the count.
 const MaxJobs = 10
 
 func active(j model.Job) bool { return j.State.IsActive() }
@@ -94,8 +93,7 @@ func scontrolList(verb string) func([]model.Job, Args) ([][]string, error) {
 	}
 }
 
-// jobIDs validates and returns the job IDs, rejecting anything that is not
-// a plain Slurm job reference.
+// jobIDs validates and returns the job IDs.
 func jobIDs(jobs []model.Job) ([]string, error) {
 	if len(jobs) == 0 {
 		return nil, errors.New("no jobs selected")
@@ -138,8 +136,7 @@ func (r Result) Summary(jobs int) string {
 	return fmt.Sprintf("%s %d %s", r.Action.Done, jobs, noun)
 }
 
-// Run executes the confirmed command lines of an action, granting
-// permission for exactly those argv lists.
+// Run executes the confirmed argvs, granting permission for exactly those.
 func Run(ctx context.Context, r execx.Runner, a Action, argvs [][]string) Result {
 	res := Result{Action: a, Argvs: argvs}
 	ctx = execx.WithMutation(ctx, a.ID, argvs...)

@@ -1,7 +1,4 @@
-// Package demo holds the scripted scenarios behind "sdash --demo": fictional
-// clusters used for trying sdash, snapshot tests and the README animation.
-// default.json is a small GPU cluster; hetero.json mixes CPU-only nodes,
-// several GPU models and a MIG node.
+// Package demo holds the fictional cluster scenarios (JSON) behind "sdash --demo".
 package demo
 
 import "embed"

@@ -7,14 +7,10 @@ import (
 	"github.com/nbharathik/slurm-dashboard/internal/textsafe"
 )
 
-// kvKey finds "Key=" tokens in scontrol's one-line output. Keys start with
-// an upper-case letter (every scontrol key does), which keeps values such as
-// "Command=train.py lr=0.1" intact.
+// kvKey finds "Key=" tokens; keys start upper-case so "lr=0.1" inside values stays intact.
 var kvKey = regexp.MustCompile(`(?:^|\s)([A-Z][A-Za-z0-9_:/.-]*)=`)
 
-// KV parses one line of "scontrol show ... -o" output. A value runs until
-// the next key and is trimmed, so values may contain spaces and '='. It
-// returns the values and the keys in order.
+// KV parses one "scontrol show ... -o" line into values and ordered keys; a value runs to the next key.
 func KV(line string) (map[string]string, []string) {
 	m := map[string]string{}
 	var order []string

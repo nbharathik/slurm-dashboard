@@ -10,10 +10,8 @@ import (
 // memory.
 const MaxHosts = 100000
 
-// ExpandHostlist expands a Slurm host list such as "gpu[01-04,07]" or
-// "a01,b[1-3]" into host names, keeping zero padding. Several bracket
-// groups in one name expand to their product. "None assigned", "(null)"
-// and empty give no hosts.
+// ExpandHostlist expands a host list such as "gpu[01-04,07]" keeping zero padding.
+// "None assigned", "(null)" and empty give no hosts.
 func ExpandHostlist(s string) ([]string, error) {
 	s = strings.TrimSpace(s)
 	switch strings.ToLower(s) {

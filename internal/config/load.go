@@ -1,3 +1,4 @@
+// Package config loads, validates and writes the TOML config; bad values warn and fall back to defaults.
 package config
 
 import (
@@ -223,9 +224,7 @@ func movedKey(key string) (string, bool) {
 	return "", false
 }
 
-// oldTables blanks the [refresh] and [notify] tables of an older config in
-// work, since their names are now plain settings, and warns about each
-// key. Lines and columns stay where they were.
+// oldTables blanks the old [refresh] and [notify] tables in work and warns per key.
 func oldTables(l layout, work []byte) []Issue {
 	var issues []Issue
 	for i, e := range l.exprs {

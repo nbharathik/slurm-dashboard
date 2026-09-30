@@ -18,9 +18,7 @@ const (
 	DuCacheTTL = time.Hour
 )
 
-// DuArgv is the analyser command for a directory: one level deep, one
-// filesystem, lowest CPU and I/O priority. withIonice is false where
-// ionice does not exist (macOS).
+// DuArgv is the low-priority du command for a directory (no ionice on macOS).
 func DuArgv(path string, withIonice bool) ([]string, error) {
 	if !filepath.IsAbs(path) || filepath.Clean(path) != path {
 		return nil, fmt.Errorf("%q is not a clean absolute path", path)

@@ -24,10 +24,7 @@ func (o SbatchOpt) String() string {
 	return "--" + o.Name + "=" + o.Value
 }
 
-// SbatchLine is an sbatch command line read without a shell: the options
-// read with certainty, the words that could not be (Unread), the script
-// path ("" when the script came on stdin or from --wrap) and the script's
-// own arguments.
+// SbatchLine is an sbatch command line read without a shell; Unread holds words that could not be read.
 type SbatchLine struct {
 	Opts       []SbatchOpt
 	Unread     []string
@@ -71,17 +68,12 @@ var freeText = map[string]bool{
 	"nodefile": true, "container": true, "extra": true, "bb": true, "bbf": true,
 }
 
-// SubmitLine reads sacct's SubmitLine field (Slurm 23.02 and later), for
-// example `sbatch -p gpu --mem 32G train.sh --epochs 3`.
+// SubmitLine reads sacct's SubmitLine field (Slurm 23.02+).
 //
-// Slurm stores the words joined by spaces without their quotes, so a
-// value that held a space looks like several words. Options whose value
-// is one word by nature (partition, time, memory, ...) are always read.
-// A free-text value (job name, output, comment, ...) is trusted only when
-// the next word is another option or the last word, or, for the job name,
-// when it equals jobName, the name Slurm recorded; otherwise that option
-// and every word after it go to Unread. --wrap ends the line: the stored
-// script holds the wrapped command.
+// Slurm drops quotes, so a spaced value looks like several words. Free-text
+// options are trusted only before another option, the last word, or a job
+// name equal to jobName; otherwise that option and the rest go to Unread.
+// --wrap ends the line.
 func SubmitLine(line, jobName string) (SbatchLine, error) {
 	words, err := SplitWords(line)
 	if err != nil {
@@ -229,10 +221,7 @@ func allShortFlags(s string) bool {
 	return s != ""
 }
 
-// SplitWords splits a command line into words the way a POSIX shell would
-// without expanding anything: blanks separate words, single quotes are
-// literal, double quotes allow \" \\ \$ and \`, and a backslash outside
-// quotes escapes the next character.
+// SplitWords splits a command line like a POSIX shell, without expansion.
 func SplitWords(s string) ([]string, error) {
 	var (
 		out   []string

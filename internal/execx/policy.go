@@ -13,8 +13,7 @@ import (
 type Class int
 
 const (
-	// Mutating commands change cluster or filesystem state. They need an
-	// authorisation from WithMutation. Unknown commands are Mutating.
+	// Mutating commands need a WithMutation grant; unknown commands are Mutating.
 	Mutating Class = iota
 	// ReadOnly commands only report state.
 	ReadOnly
@@ -27,9 +26,7 @@ func (c Class) String() string {
 	return "mutating"
 }
 
-// clusterTools are the executables sdash may run by default. Each is
-// classified by Classify. salloc, sacctmgr, sattach and every admin tool are
-// deliberately absent.
+// clusterTools are the default executables; salloc, sacctmgr, sattach and admin tools are deliberately absent.
 var clusterTools = map[string]bool{
 	// Slurm
 	"squeue": true, "sinfo": true, "scontrol": true, "sacct": true, "sstat": true,
@@ -40,15 +37,10 @@ var clusterTools = map[string]bool{
 	"id": true,
 }
 
-// localTools may run in any context: the disk-usage analyser's
-// "nice -n 19 ionice -c3 du ..." chain. Classify treats the chain as
-// read-only only when it ends in du, so nice and ionice cannot wrap
-// anything else.
+// localTools form the "nice ionice du" chain; read-only only when it ends in du.
 var localTools = map[string]bool{"nice": true, "ionice": true, "du": true}
 
-// verifyTools check the signature of a downloaded release ("sdash update").
-// Classify accepts them only as "cosign verify-blob ..." and
-// "gh attestation verify ...", which read files and change nothing.
+// verifyTools check release signatures; accepted only as "cosign verify-blob" and "gh attestation verify".
 var verifyTools = map[string]bool{"cosign": true, "gh": true}
 
 // slurmTools is the subset of clusterTools that talk to Slurm daemons.
@@ -58,29 +50,13 @@ var slurmTools = map[string]bool{
 	"salloc": true,
 }
 
-// IsSlurmTool reports whether name (a basename or path) is a Slurm client
-// command.
+// IsSlurmTool reports whether name (basename or path) is a Slurm client command.
 func IsSlurmTool(name string) bool {
 	return slurmTools[filepath.Base(name)]
 }
 
-// Classify reports whether argv is read-only. It fails closed: anything it
-// does not positively recognise as read-only is Mutating.
-//
-// Read-only forms:
-//
-//	squeue, sinfo, sacct, sstat, sshare, sprio, mmlsquota, quota, id  (any args)
-//	scontrol show ...
-//	scontrol --version | -V
-//	scontrol write batch_script <jobid> -     (stdout only; without "-" it writes a file)
-//	sbatch --test-only ...                    (--test-only must be the first argument)
-//	lfs quota ...
-//	beegfs-ctl --getquota ...
-//	cosign verify-blob ...
-//	gh attestation verify ...
-//
-// scancel, srun, salloc, every other scontrol verb (hold, release, requeue,
-// update, top, suspend, ...) and every other sbatch form are Mutating.
+// Classify reports whether argv is read-only; it fails closed (unrecognised means Mutating).
+// "scontrol write batch_script <id> -" is read-only only with "-"; "sbatch --test-only" only as the first argument.
 func Classify(argv []string) Class {
 	if len(argv) == 0 {
 		return Mutating
@@ -136,8 +112,7 @@ func Classify(argv []string) Class {
 	}
 }
 
-// classifyDu accepts "[nice -n N] [ionice -c C [-n N]] du ...": read-only
-// only when the chain ends in du (which never writes).
+// classifyDu accepts "[nice -n N] [ionice -c C [-n N]] du ..." as read-only.
 func classifyDu(argv []string) Class {
 	i := 0
 	num := func(s string) bool {
@@ -188,13 +163,8 @@ type mutationGrant struct {
 	argvs  [][]string
 }
 
-// WithMutation authorises exactly the given command lines to run in ctx.
-// action names the user action (e.g. "cancel") for the debug log.
-//
-// Only internal/actions may call this, after the user has seen and
-// confirmed the exact argv (golangci-lint enforces the restriction). A
-// runner compares argv element by element, so a grant for "scancel 812"
-// cannot run "scancel 813".
+// WithMutation authorises exactly the given argvs in ctx; action names the user action for the log.
+// Only internal/actions may call it, after the user confirmed the exact argv (lint-enforced).
 func WithMutation(ctx context.Context, action string, argvs ...[]string) context.Context {
 	grant := mutationGrant{action: action}
 	for _, a := range argvs {
@@ -203,8 +173,7 @@ func WithMutation(ctx context.Context, action string, argvs ...[]string) context
 	return context.WithValue(ctx, mutationKey{}, grant)
 }
 
-// MutationFrom returns the action name of the grant in ctx that authorises
-// argv, and whether one does.
+// MutationFrom returns the action of the grant in ctx that authorises argv.
 func MutationFrom(ctx context.Context, argv []string) (string, bool) {
 	grant, ok := ctx.Value(mutationKey{}).(mutationGrant)
 	if !ok {
@@ -218,23 +187,17 @@ func MutationFrom(ctx context.Context, argv []string) (string, bool) {
 	return "", false
 }
 
-// Policy decides whether a command may run. The zero value allows only
-// the default cluster tools and applies the test guard.
+// Policy decides whether a command may run; the zero value allows only the default cluster tools with the test guard.
 type Policy struct {
-	// ExtraReadOnly allows more executables, by basename, and treats them
-	// as read-only. Use it only for commands that cannot change state, such
-	// as a site quota command. It cannot reclassify a default cluster tool.
+	// ExtraReadOnly allows extra read-only executables by basename; it cannot reclassify a cluster tool.
 	ExtraReadOnly []string
-	// AllowClusterToolsInTests lets a test binary run real cluster tools.
-	// Only the Docker integration tests set it.
+	// AllowClusterToolsInTests lets a test binary run real cluster tools (Docker integration tests only).
 	AllowClusterToolsInTests bool
-	// NoTestGuard disables the test-binary guard entirely. FakeRunner sets
-	// it because it never executes anything.
+	// NoTestGuard disables the test-binary guard (FakeRunner never executes anything).
 	NoTestGuard bool
 }
 
-// Check validates argv against the policy and returns its class. It checks,
-// in order: argv shape, allowlist, test guard, and mutation authorisation.
+// Check validates argv (shape, allowlist, test guard, mutation grant) and returns its class.
 func (p Policy) Check(ctx context.Context, argv []string) (Class, error) {
 	if err := validateArgv(argv); err != nil {
 		return Mutating, err
@@ -250,8 +213,7 @@ func (p Policy) Check(ctx context.Context, argv []string) (Class, error) {
 			return class, fmt.Errorf("%s: %w", base, ErrClusterToolInTests)
 		}
 	case localTools[base]:
-		// Only the read-only du chain; no grant can make nice or ionice
-		// run anything else.
+		// Only the read-only du chain; no grant lets nice/ionice run anything else.
 		if class = Classify(argv); class != ReadOnly {
 			return class, fmt.Errorf("%s: %w (only as a wrapper around du)", Key(argv), ErrNotAllowed)
 		}
@@ -274,9 +236,7 @@ func (p Policy) Check(ctx context.Context, argv []string) (Class, error) {
 	return class, nil
 }
 
-// validateArgv rejects empty command lines, relative paths with a directory
-// part (which would run whatever is in the current directory), and bytes
-// that have no business in a command line.
+// validateArgv rejects empty argv, relative paths with a directory part, and NUL/newline bytes.
 func validateArgv(argv []string) error {
 	if len(argv) == 0 || argv[0] == "" {
 		return fmt.Errorf("%w: empty", ErrInvalidArgv)

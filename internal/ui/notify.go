@@ -180,10 +180,8 @@ func (a *App) deliver(events []notify.Event) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-// warnNotices announces each time-limit and idle-job alert once, with the
-// same message line, bell and desktop notice as a job end (when notify is
-// on). The alert itself stays on the Overview; this only makes sure it is
-// seen. It does not run notify_command, which is for job ends.
+// warnNotices announces each time-limit and idle-job alert once, like a job
+// end but without running notify_command.
 func (a *App) warnNotices() tea.Cmd {
 	var fresh []model.Alert
 	for _, al := range a.st.Alerts(a.now(), a.state.Dismissed) {

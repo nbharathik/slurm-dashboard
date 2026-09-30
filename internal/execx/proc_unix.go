@@ -9,19 +9,14 @@ import (
 	"syscall"
 )
 
-// setProcessGroup starts cmd in its own process group and makes context
-// cancellation kill the whole group, so helpers a command spawned cannot
-// outlive a timeout. It also detaches the command from the terminal's
-// foreground group, so a Ctrl+C in the TUI never reaches it directly.
+// setProcessGroup runs cmd in its own group and kills the whole group on cancel; Ctrl+C never reaches it.
 func setProcessGroup(cmd *exec.Cmd) {
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	cmd.Cancel = func() error {
 		if cmd.Process == nil {
 			return nil
 		}
-		// The group ID equals the leader's PID. The leader has not been
-		// reaped yet (Cancel runs before Wait returns), so the ID cannot
-		// have been reused.
+		// Group ID is the leader's PID, not yet reaped, so it cannot be reused.
 		err := syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
 		if errors.Is(err, syscall.ESRCH) {
 			return os.ErrProcessDone

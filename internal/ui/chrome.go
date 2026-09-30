@@ -81,9 +81,8 @@ func (a *App) freshness() string {
 	}
 }
 
-// topBar is the app name, all six tabs and, at the right, the cluster and
-// user, with a rule under it whose heavy stretch marks the open tab. Below
-// 60 columns the tabs collapse to "‹ 2/6 Jobs ›".
+// topBar is the app name, tabs and identity, with a rule marking the open tab.
+// Below 60 columns the tabs collapse to "‹ 2/6 Jobs ›".
 func (a *App) topBar(w int) (bar, rule string) {
 	th := a.th
 	ctx := a.ctx
@@ -253,9 +252,8 @@ func (a *App) footer(w int) string {
 	return layout.Pad(line, w, false, th.Sym.Ellipsis)
 }
 
-// statusRight is how fresh the visible tab's data is, with the refresh mode
-// before it when it is not the automatic one; a controller outage replaces
-// it. It shrinks to fit room cells, or is left out.
+// statusRight is the data freshness (plus refresh mode); an outage replaces it.
+// It shrinks to fit room cells, or is left out.
 func (a *App) statusRight(room int) string {
 	th := a.th
 	fresh := a.freshness()

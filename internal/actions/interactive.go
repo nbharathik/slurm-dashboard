@@ -15,8 +15,7 @@ import (
 	"github.com/nbharathik/slurm-dashboard/internal/textsafe"
 )
 
-// validNode matches Slurm node names. It rejects anything that could be
-// read as an option (a leading "-") or contains shell or path syntax.
+// validNode matches Slurm node names; no leading "-", shell or path syntax.
 var validNode = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$`)
 
 // validShell matches a login shell: a bare name or a clean absolute path.
@@ -30,10 +29,8 @@ func ValidateNode(n string) error {
 	return nil
 }
 
-// ShellArgv builds the command for an interactive shell inside a running
-// job. jobID is the job's own ID (a running array task has one
-// that differs from "812_3"); node is optional for srun and defaults to
-// the job's first node; shell is the user's $SHELL.
+// ShellArgv builds an interactive shell command inside a running job.
+// jobID is the job's own ID (a running array task differs from "812_3"); shell is $SHELL.
 func ShellArgv(j model.Job, jobID, node, method, shell string, caps model.Capabilities) ([]string, error) {
 	if j.State != model.StateRunning {
 		return nil, errors.New("a shell needs a running job")
@@ -74,9 +71,7 @@ func ShellArgv(j model.Job, jobID, node, method, shell string, caps model.Capabi
 	return nil, fmt.Errorf("unknown shell method %q (use srun or ssh)", method)
 }
 
-// Shell returns the shell command ready for tea.Exec. srun is authorised
-// for exactly argv, the same way confirmed actions are; ssh is a user
-// program and needs no grant.
+// Shell returns the command for tea.Exec; srun is granted for exactly argv, ssh needs no grant.
 func Shell(ctx context.Context, p execx.Policy, argv []string) (*execx.Interactive, error) {
 	if len(argv) > 0 && argv[0] == "ssh" {
 		return execx.NewInteractive("", argv...)
@@ -84,8 +79,7 @@ func Shell(ctx context.Context, p execx.Policy, argv []string) (*execx.Interacti
 	return execx.NewInteractiveChecked(execx.WithMutation(ctx, "shell", argv), p, "", argv...)
 }
 
-// GPUSampleArgv builds the one-shot nvidia-smi query inside a running job.
-// It creates a job step, which shows up in sacct.
+// GPUSampleArgv builds the nvidia-smi query for a running job (creates a job step visible in sacct).
 func GPUSampleArgv(j model.Job, jobID, node string) ([]string, error) {
 	if j.State != model.StateRunning {
 		return nil, errors.New("GPU sampling needs a running job")
@@ -118,8 +112,7 @@ type GPUSample struct {
 	MemTotalMiB int
 }
 
-// SampleGPUs runs the GPU query with a grant for exactly argv and parses
-// its CSV output.
+// SampleGPUs runs the GPU query, granted for exactly argv, and parses its CSV.
 func SampleGPUs(ctx context.Context, r execx.Runner, argv []string) ([]GPUSample, error) {
 	ctx = execx.WithMutation(ctx, "gpu", argv)
 	res, err := r.Run(execx.WithLabel(ctx, "action-gpu"), argv...)

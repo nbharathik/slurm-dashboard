@@ -1,3 +1,4 @@
+// Package layout picks the breakpoint and drops or sizes table columns to fit the terminal.
 package layout
 
 import (
@@ -84,11 +85,8 @@ type Fitted struct {
 	Width int
 }
 
-// Fit chooses columns and widths so the table fits in width w with gap
-// spaces between columns. Columns are kept while fixed columns get their
-// preferred width and flexible columns their minimum; otherwise the
-// lowest-priority column (rightmost first) is dropped. Priority-1 columns
-// are never dropped.
+// Fit chooses columns and widths to fit width w with gap spaces between them.
+// Lowest-priority (rightmost first) columns drop first; priority-1 never do.
 func Fit(cols []Column, w, gap int) []Fitted {
 	active := append([]Column(nil), cols...)
 	need := func(cs []Column) int {
@@ -257,9 +255,7 @@ func FirstLine(s string) string {
 	return l
 }
 
-// Wrap word-wraps each line of s at w cells. Lines that already fit, and
-// indented lines (commands, code), are kept as they are. Below 10 cells
-// nothing is wrapped.
+// Wrap word-wraps s at w cells, keeping indented lines as is; no-op below 10.
 func Wrap(s string, w int) []string {
 	var out []string
 	for _, line := range strings.Split(s, "\n") {

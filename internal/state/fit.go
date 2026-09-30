@@ -32,10 +32,8 @@ type Fit struct {
 	At         time.Time
 }
 
-// FitResult answers "where can I run?". Now lists nodes that fit at once;
-// when none (or too few) do, Soonest is the node that frees up first by
-// the end times of its running jobs. Jobs waiting ahead of this one are
-// not taken into account.
+// FitResult answers "where can I run?": Now fits at once, else Soonest frees up
+// first by running jobs' end times (queued jobs ahead are ignored).
 type FitResult struct {
 	Now     []Fit
 	Soonest *Fit

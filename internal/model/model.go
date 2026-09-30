@@ -1,3 +1,4 @@
+// Package model defines the domain types shared by parsers, views and the CLI (memory in MB, nil duration = unlimited).
 package model
 
 import (
@@ -8,8 +9,7 @@ import (
 // JobState is a Slurm job state such as "RUNNING" or "OUT_OF_MEMORY".
 type JobState string
 
-// Job states sdash treats specially. Any other string is kept as is and
-// rendered neutrally.
+// Job states sdash treats specially; others render neutrally.
 const (
 	StatePending     JobState = "PENDING"
 	StateRunning     JobState = "RUNNING"
@@ -113,11 +113,9 @@ type JobStat struct {
 	MaxRSSMB int64
 	AveRSSMB int64
 	AveCPU   time.Duration
-	// TotalCPU is the CPU time used so far: each step's average per task
-	// times its tasks, added up.
+	// TotalCPU is the CPU time so far: per-step average times tasks, summed.
 	TotalCPU time.Duration
-	// GPUUtil is the GPU utilisation so far (0..1) when the site records
-	// gres/gpuutil; HasGPUUtil says whether it does.
+	// GPUUtil is GPU utilisation (0..1) when the site records gres/gpuutil (see HasGPUUtil).
 	GPUUtil    float64
 	HasGPUUtil bool
 	At         time.Time
@@ -170,9 +168,7 @@ type GPUGroup struct {
 // HasGPUs reports whether the node has whole GPUs or MIG slices.
 func (n Node) HasGPUs() bool { return n.GPUTotal > 0 || n.MIGTotal > 0 }
 
-// MemTracked reports whether Slurm tracks the node's memory: with jobs
-// running but no allocated memory, jobs were not asked for memory and the
-// node's memory is not "free".
+// MemTracked reports whether Slurm tracks the node's memory (running jobs with none allocated means untracked).
 func (n Node) MemTracked() bool { return n.MemAllocMB != 0 || n.CPUAlloc == 0 }
 
 // HasFlag reports whether the node carries flag (e.g. "DRAIN").
@@ -275,8 +271,7 @@ type PriorityFactors struct {
 	QOS       int64
 }
 
-// Limit is one limit that an association or QOS sets. Max and Used are
-// numbers in Unit; Used is -1 when Slurm reports no usage for it.
+// Limit is one association or QOS limit; Max and Used are in Unit, Used is -1 if unreported.
 type Limit struct {
 	Name string  // "GrpTRES cpu", "MaxJobs", "MaxWall"
 	Unit string  // "" (a count), "min" or "MB"
@@ -284,8 +279,7 @@ type Limit struct {
 	Used float64 // current usage, -1 when unknown
 }
 
-// LimitScope is the limits of one association (yours, or an account above
-// it) or of a QOS. Only limits that are set are listed.
+// LimitScope is the set limits of one association or QOS.
 type LimitScope struct {
 	Kind   string // "user", "account" or "qos"
 	Name   string // "research", "normal"
@@ -312,9 +306,7 @@ type Quota struct {
 	At                time.Time
 }
 
-// QuotaUsage is how full a storage location is, in whole percent rounded
-// down. It is computed in one place so that every view, command and alert
-// shows the same number for the same data.
+// QuotaUsage is how full a location is, in whole percent rounded down; computed once so all views agree.
 type QuotaUsage struct {
 	BlocksPct int    // space used against the soft limit (else hard); -1 without a limit
 	FilesPct  int    // files used against the soft limit (else hard); -1 without a limit
@@ -417,11 +409,8 @@ type ParseWarning struct {
 	Msg    string `json:"msg"`
 }
 
-// ComputeEfficiency fills Eff from the job's usage: CPU is
-// TotalCPU / (Elapsed × AllocCPUs), memory is PeakMem / AllocMem
-// (estimated), time is Elapsed / TimeLimit, and GPU-hours is GPUs × Elapsed.
-// gpuUtil is the accounted GPU utilisation in 0..1, or -1 when the site does
-// not account it.
+// ComputeEfficiency fills Eff: CPU = TotalCPU/(Elapsed×AllocCPUs), memory = PeakMem/AllocMem,
+// time = Elapsed/TimeLimit. gpuUtil is 0..1, or -1 when not accounted.
 func (h *HistoryJob) ComputeEfficiency(gpuUtil float64) {
 	h.Eff = Efficiency{CPU: -1, Mem: -1, Time: -1, GPUUtil: gpuUtil}
 	elapsed := h.Elapsed.Seconds()

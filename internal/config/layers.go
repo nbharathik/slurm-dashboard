@@ -13,13 +13,8 @@ import (
 // user's own file is read on top of it.
 const SiteFile = "/etc/sdash/config.toml"
 
-// LoadLayers reads config files in order, lowest first (the site file,
-// then the user's). A file others can change loses its commands (see
-// TrustIssues). Each file is checked on its own, so issues name their
-// file; then the keys each file sets are merged: tables merge key by key,
-// while values and arrays (and so [[storage]] as a whole) are replaced by
-// the later file. Missing files are skipped. The error is for a file that
-// exists but cannot be read; the Config is usable even then.
+// LoadLayers merges config files, lowest first. Tables merge by key, values and
+// arrays are replaced; untrusted files lose their commands (see TrustIssues).
 func LoadLayers(paths []string, getenv func(string) string) (Config, []Issue, error) {
 	merged := map[string]any{}
 	var issues []Issue

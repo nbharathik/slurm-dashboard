@@ -336,9 +336,7 @@ func (a *app) recordTrends(l *insights.Log, quotas []model.Quota) {
 	}
 }
 
-// statAge is how long a job must have run before it is sampled for the
-// idle-job warning (the warning itself waits for insights.IdleAfter, so a
-// sample is ready when it is judged).
+// statAge is the minimum runtime before a job is sampled for the idle-job warning.
 const statAge = 25 * time.Minute
 
 // maxSampled bounds how many jobs the idle-job warning samples.

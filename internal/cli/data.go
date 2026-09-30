@@ -320,10 +320,7 @@ func renderGPUs(w io.Writer, doc report.GPUsDoc, now time.Time) error {
 	return tw.Flush()
 }
 
-// loadExtras loads what status needs beyond jobs and nodes: partitions and
-// reservations (maintenance alerts), the default week of history (failure
-// and efficiency alerts) and fairshare. Missing optional commands are
-// skipped.
+// loadExtras loads partitions, reservations, a week of history and fairshare; missing commands are skipped.
 func (rt *slurmRuntime) loadExtras(ctx context.Context, a *app) {
 	st := rt.store
 	var err error

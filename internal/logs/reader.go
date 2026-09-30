@@ -1,6 +1,4 @@
-// Package logs tails job log files and prepares their text for display:
-// an incremental reader (stat polling, never inotify), a bounded line
-// buffer that collapses progress bars, highlighting and search.
+// Package logs tails job logs (stat polling, never inotify) and prepares them for display.
 package logs
 
 import (

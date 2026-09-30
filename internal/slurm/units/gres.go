@@ -5,9 +5,7 @@ import (
 	"strings"
 )
 
-// ParseTRES splits "cpu=4,mem=8G,gres/gpu=1" into a map. A GPU entry
-// written "gres/gpu:1g.33gb:1" is read as "gres/gpu:1g.33gb" = "1"; other
-// entries without '=' are ignored.
+// ParseTRES splits "cpu=4,mem=8G,gres/gpu=1" into a map; "gres/gpu:1g.33gb:1" reads as key "gres/gpu:1g.33gb".
 func ParseTRES(s string) map[string]string {
 	m := map[string]string{}
 	s = strings.TrimSpace(s)
@@ -28,9 +26,7 @@ func ParseTRES(s string) map[string]string {
 	return m
 }
 
-// GPUsFromTRES returns the GPU count and type from a TRES map. An untyped
-// "gres/gpu" total wins; otherwise typed entries ("gres/gpu:a100") are
-// summed. Entries such as gres/gpumem and gres/gpuutil are not GPU counts.
+// GPUsFromTRES returns the GPU count and type from a TRES map; the untyped total wins, else typed entries sum.
 func GPUsFromTRES(m map[string]string) (int, string) {
 	if v, ok := m["gres/gpu"]; ok {
 		n, _ := strconv.Atoi(v)
@@ -56,13 +52,8 @@ func typesFromTRES(m map[string]string) string {
 	return joinSorted(types)
 }
 
-// ParseGRES returns the GPU count and type from a GRES or TRES-style GPU
-// request. Accepted forms, possibly comma-separated:
-//
-//	gpu:h200:4(S:0-1)  gpu:4  gpu  gres:gpu:2  gres/gpu=2  gres/gpu:h200=2
-//	gres/gpu:2  gres/gpu:tesla:2  N/A  (null)
-//
-// Non-GPU resources in the list are ignored.
+// ParseGRES returns the GPU count and type from a GRES or TRES-style request
+// such as "gpu:h200:4(S:0-1)" or "gres/gpu=2"; non-GPU resources are ignored.
 func ParseGRES(s string) (int, string) {
 	s = strings.TrimSpace(s)
 	switch s {

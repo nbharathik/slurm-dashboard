@@ -2,9 +2,7 @@ package insights
 
 import "github.com/nbharathik/slurm-dashboard/internal/model"
 
-// LiveUse is how much of what a running job asked for it has used so far,
-// as fractions (memory is the peak so far). A figure that cannot be told
-// is -1.
+// LiveUse is the fraction of its request a running job has used (memory is peak); -1 when unknown.
 type LiveUse struct {
 	CPU, Mem, GPU float64
 }

@@ -120,9 +120,7 @@ func (s *Scheduler) Start(ctx context.Context) {
 	}
 }
 
-// SetManual switches manual refresh on or off. With it on, each collector
-// runs once, then only on Refresh; turning it off resumes the schedule
-// and catches up on anything that became due.
+// SetManual switches manual refresh: each collector runs once, then only on Refresh.
 func (s *Scheduler) SetManual(manual bool) {
 	s.mu.Lock()
 	changed := s.manual != manual
@@ -193,9 +191,7 @@ func (s *Scheduler) Idle() bool {
 	return s.idle
 }
 
-// Refresh runs the named collectors now (all when none are named). A
-// source that is already queued or running, or was refreshed less than a
-// second ago, is left alone.
+// Refresh runs the named collectors now (all if none); busy or just-refreshed ones are skipped.
 func (s *Scheduler) Refresh(names ...string) {
 	now := s.clock.Now()
 	s.mu.Lock()

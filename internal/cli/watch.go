@@ -14,10 +14,7 @@ import (
 // minWatch is the shortest --watch redraw period.
 const minWatch = 2 * time.Second
 
-// watchStatus keeps status up to date with the dashboard's own scheduler
-// and collectors (as if the Overview were open), so it polls Slurm exactly
-// as gently. It redraws at most every period: in place on a terminal, as
-// one JSON document per line with asJSON.
+// watchStatus redraws status every period using the dashboard's scheduler (same polling load).
 func (a *app) watchStatus(ctx context.Context, w io.Writer, rt *slurmRuntime, every time.Duration, asJSON bool) error {
 	vs := &viewState{historyDays: 7}
 	sched := state.NewScheduler(state.RealClock{}, uint64(time.Now().UnixNano()))

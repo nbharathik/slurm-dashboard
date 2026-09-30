@@ -1,9 +1,12 @@
+// Package execx is the only subprocess gateway: argv only, allowlisted, mutation-guarded, time-limited and output-capped.
 package execx
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -19,35 +22,26 @@ type Result struct {
 	Duration time.Duration
 }
 
-// Runner runs one command described by argv and captures its output.
-//
-// Run returns a nil error only when the command ran and exited with status
-// 0. A non-zero exit returns the populated Result together with an
-// *ExitError.
+// Runner runs one command by argv; a non-zero exit returns the Result plus *ExitError.
 type Runner interface {
 	Run(ctx context.Context, argv ...string) (Result, error)
 }
 
-// Sentinel errors. Use errors.Is to test for them.
+// Sentinel errors; test with errors.Is.
 var (
-	// ErrNotFound means the executable is not installed or not in PATH.
+	// ErrNotFound means the executable is not in PATH.
 	ErrNotFound = errors.New("command not found")
-	// ErrTimeout means the command exceeded its deadline and its process
-	// group was killed. errors.Is(err, context.DeadlineExceeded) also holds.
+	// ErrTimeout means the deadline passed and the process group was killed.
 	ErrTimeout = errors.New("command timed out")
-	// ErrOutputTooLarge means stdout exceeded the runner's cap and the
-	// command was killed.
+	// ErrOutputTooLarge means stdout exceeded the cap.
 	ErrOutputTooLarge = errors.New("command output too large")
-	// ErrInvalidArgv means argv was empty or contained forbidden bytes.
+	// ErrInvalidArgv means argv was empty or had forbidden bytes.
 	ErrInvalidArgv = errors.New("invalid command line")
-	// ErrNotAllowed means the executable is not on the allowlist.
+	// ErrNotAllowed means the executable is not allowlisted.
 	ErrNotAllowed = errors.New("command not allowed")
-	// ErrMutationNotAuthorized means a command that changes cluster state
-	// was attempted without an authorisation from WithMutation for that
-	// exact argv.
+	// ErrMutationNotAuthorized means a state-changing argv lacked WithMutation.
 	ErrMutationNotAuthorized = errors.New("state-changing command not authorised")
-	// ErrClusterToolInTests means a test binary tried to run a real cluster
-	// tool through a runner that did not opt in.
+	// ErrClusterToolInTests means a test ran a real cluster tool without opting in.
 	ErrClusterToolInTests = errors.New("real cluster tools are disabled in tests; use FakeRunner")
 	// ErrNoFixture means a FakeRunner has no response for the argv.
 	ErrNoFixture = errors.New("no fixture for command")
@@ -67,8 +61,7 @@ func (e *ExitError) Error() string {
 	return fmt.Sprintf("%s: exit status %d: %s", e.Name, e.Code, e.Stderr)
 }
 
-// FirstLine returns the first non-empty, trimmed line of b. It is used for
-// short error messages from stderr.
+// FirstLine returns the first non-empty, trimmed line of b.
 func FirstLine(b []byte) string {
 	for _, line := range strings.Split(string(b), "\n") {
 		if s := strings.TrimSpace(textsafe.Field(line)); s != "" {
@@ -78,9 +71,66 @@ func FirstLine(b []byte) string {
 	return ""
 }
 
-// Key returns a readable, stable string for argv, used for fixture lookup
-// and logs. The ASCII unit separator is shown as "␟". Key is not injective
-// for arguments containing spaces; never use it for authorisation.
+// Key returns a readable string for argv (fixtures, logs). Not injective; never use for authorisation.
 func Key(argv []string) string {
 	return strings.ReplaceAll(strings.Join(argv, " "), "\x1f", "␟")
 }
+
+type labelKey struct{}
+
+// WithLabel attaches a short source name (e.g. "myjobs") to ctx for history, logs and fixtures.
+func WithLabel(ctx context.Context, label string) context.Context {
+	return context.WithValue(ctx, labelKey{}, label)
+}
+
+// Label returns the label attached with WithLabel, or "".
+func Label(ctx context.Context) string {
+	s, _ := ctx.Value(labelKey{}).(string)
+	return s
+}
+
+// LookPath reports where an executable is in PATH; it only inspects the filesystem.
+func LookPath(name string) (string, error) {
+	p, err := exec.LookPath(name)
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", name, ErrNotFound)
+	}
+	return p, nil
+}
+
+// MaxStdin bounds the data a command may receive on stdin.
+const MaxStdin = 1 << 20
+
+// RunOpts are per-call options: stdin data and a working directory.
+type RunOpts struct {
+	Stdin []byte
+	Dir   string // absolute; "" means the current directory
+}
+
+type inputKey struct{}
+
+// RunWith runs argv with stdin data and a working directory; options travel in ctx so wrappers pass them on.
+func RunWith(ctx context.Context, r Runner, opts RunOpts, argv ...string) (Result, error) {
+	if err := opts.validate(); err != nil {
+		return Result{Argv: argv, ExitCode: -1}, err
+	}
+	return r.Run(context.WithValue(ctx, inputKey{}, opts), argv...)
+}
+
+// InputFrom returns the options RunWith attached to ctx.
+func InputFrom(ctx context.Context) (RunOpts, bool) {
+	o, ok := ctx.Value(inputKey{}).(RunOpts)
+	return o, ok
+}
+
+func (o RunOpts) validate() error {
+	if len(o.Stdin) > MaxStdin {
+		return fmt.Errorf("%w: stdin larger than %d bytes", ErrInvalidArgv, MaxStdin)
+	}
+	if o.Dir != "" && (!filepath.IsAbs(o.Dir) || filepath.Clean(o.Dir) != o.Dir) {
+		return fmt.Errorf("%w: working directory %q must be a clean absolute path", ErrInvalidArgv, o.Dir)
+	}
+	return nil
+}
+
+var errNoDir = errors.New("working directory does not exist")

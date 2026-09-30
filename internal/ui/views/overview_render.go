@@ -15,9 +15,7 @@ import (
 	"github.com/nbharathik/slurm-dashboard/internal/ui/theme"
 )
 
-// Render implements View: Alerts (only when there are some), Cluster,
-// Your jobs and Storage, stacked in one column at every width. Each section
-// is a heading and its lines; there are no boxes.
+// Render implements View: Alerts (if any), Cluster, Your jobs and Storage in one column.
 func (v *Overview) Render(ctx *Context, w, h int) string {
 	alertsB := block{min: min(len(v.alerts), 2) + 2, want: min(len(v.alerts), 4) + 2, render: v.alertsPanel(ctx)}
 	clusterB := block{min: 3, want: max(len(v.parts), 1) + 2, render: v.clusterPanel(ctx)}
@@ -46,9 +44,7 @@ func spaced(b block) block {
 	}}
 }
 
-// heading is a section's title line: bold, in the accent colour when the
-// section has the focus, with what it counts at the right. A click on it
-// focuses the section.
+// heading is a section's title line, accented when focused; a click focuses the section.
 func (v *Overview) heading(ctx *Context, p, title, extra string, w int) string {
 	th := ctx.Theme
 	style := th.Bold
@@ -146,10 +142,7 @@ func (v *Overview) clusterPanel(ctx *Context) func(w, h int) string {
 	}
 }
 
-// partitionLines renders one line per partition, "gpu*  ███░░  68/128 CPUs
-// GPUs 1/8 H200 NVL  MIG 7/11  5 waiting  1 down", every part padded to the
-// widest in its column so the columns line up; a column nothing uses is left
-// out.
+// partitionLines renders one aligned line per partition; unused columns are left out.
 func partitionLines(ctx *Context, parts []state.PartSummary) []string {
 	th := ctx.Theme
 	const cols = 6 // name, CPUs, GPUs, MIG, waiting, note

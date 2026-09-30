@@ -10,9 +10,7 @@ import (
 	"github.com/nbharathik/slurm-dashboard/internal/meta"
 )
 
-// WriteCrash records a recovered panic in cacheDir/crash-<timestamp>.log
-// and returns the file's path. The terminal must already be restored before
-// the path is shown to the user.
+// WriteCrash records a recovered panic in cacheDir/crash-<timestamp>.log and returns its path.
 func WriteCrash(cacheDir string, recovered any, stack []byte) (string, error) {
 	if err := os.MkdirAll(cacheDir, 0o700); err != nil {
 		return "", err

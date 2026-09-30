@@ -1,3 +1,4 @@
+// Package parse turns raw Slurm output into model types; parsers are pure, skip bad lines with warnings and never panic.
 package parse
 
 import (
@@ -13,8 +14,7 @@ import (
 	"github.com/nbharathik/slurm-dashboard/internal/textsafe"
 )
 
-// Sep is the ASCII unit separator used as the field delimiter wherever a
-// Slurm tool allows one, because job names can contain '|'.
+// Sep is the field delimiter (ASCII unit separator), as job names can contain '|'.
 const Sep = "\x1f"
 
 // warnings collects parse warnings for one source.
@@ -31,8 +31,7 @@ func (w *warnings) add(line int, raw, format string, args ...any) {
 	w.list = append(w.list, model.ParseWarning{Source: w.source, Line: line, Raw: raw, Msg: fmt.Sprintf(format, args...)})
 }
 
-// recover turns a panic inside a parser into a warning, so a parser bug
-// degrades one source instead of crashing sdash.
+// recover turns a parser panic into a warning.
 func (w *warnings) recover() {
 	if r := recover(); r != nil {
 		w.add(0, "", "parser bug: %v\n%s", r, debug.Stack())
@@ -58,10 +57,8 @@ func lines(raw []byte, w *warnings, fn func(n int, line string)) {
 	}
 }
 
-// cleanFields cleans every field of a record. Job names, comments,
-// reasons and user names are written by other users, so they must not
-// reach the terminal with control sequences. It runs after splitting,
-// because the separator itself is a control character.
+// cleanFields strips control sequences from every field (other users write them).
+// Run it after splitting, as Sep is itself a control character.
 func cleanFields(f []string) []string {
 	for i := range f {
 		f[i] = textsafe.Field(f[i])

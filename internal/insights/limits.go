@@ -25,9 +25,7 @@ type LimitLine struct {
 // Near reports whether the limit is close to being hit.
 func (l LimitLine) Near() bool { return l.Frac >= NearLimit }
 
-// Limits turns parsed associations and QOS into lines, in the order Slurm
-// lists them. A per-job cap reads "up to X"; a limit whose usage Slurm did
-// not report reads "limit X".
+// Limits turns associations and QOS into lines in Slurm's order; per-job caps read "up to X".
 func Limits(scopes []model.LimitScope) []LimitLine {
 	var out []LimitLine
 	for _, sc := range scopes {

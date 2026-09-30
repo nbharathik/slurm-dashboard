@@ -9,9 +9,8 @@ import (
 	"github.com/nbharathik/slurm-dashboard/internal/model"
 )
 
-// Filter is a parsed table filter: space-separated terms that
-// must all match. state:R or state:PD,R, part:gpu, user:alice, gpu:>0,
-// name:~regex, id:812, and bare words that fuzzy-match the name.
+// Filter is a parsed table filter: space-separated terms that must all match
+// (state:, part:, user:, gpu:, name:~regex, id:, or bare fuzzy words).
 type Filter struct {
 	Raw   string
 	terms []filterTerm

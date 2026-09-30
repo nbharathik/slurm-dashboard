@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/nbharathik/slurm-dashboard/internal/execx"
@@ -16,10 +17,7 @@ import (
 // CacheTTL is how long probed capabilities and the cluster name are reused.
 const CacheTTL = 24 * time.Hour
 
-// Probe determines the Slurm version and which optional features work.
-// Version probes do not contact the controller. The other probes are
-// cheap queries that fail when the feature is missing: accounting for
-// sacct, priority/multifactor for sshare and sprio.
+// Probe determines the Slurm version and which optional features work (cheap queries that fail when missing).
 func Probe(ctx context.Context, r execx.Runner, user string) (model.Capabilities, error) {
 	res, err := r.Run(execx.WithLabel(ctx, "version"), Version()...)
 	if err != nil {
@@ -50,8 +48,7 @@ type capsCache struct {
 	Caps     model.Capabilities `json:"caps"`
 }
 
-// CachedProbe is Probe with a 24-hour cache in cacheDir, keyed by the
-// Slurm version string, so the feature probes run at most once a day.
+// CachedProbe is Probe with a 24-hour cache in cacheDir, keyed by Slurm version.
 func CachedProbe(ctx context.Context, r execx.Runner, user, cacheDir string, now time.Time) (model.Capabilities, error) {
 	res, err := r.Run(execx.WithLabel(ctx, "version"), Version()...)
 	if err != nil {
@@ -71,8 +68,7 @@ func CachedProbe(ctx context.Context, r execx.Runner, user, cacheDir string, now
 	return caps, nil
 }
 
-// infoCacheVersion goes up when infoCache gains fields, so an older cache
-// file is read again instead of reporting missing features.
+// infoCacheVersion goes up when infoCache gains fields, so older caches are refetched.
 const infoCacheVersion = 2
 
 type infoCache struct {
@@ -83,8 +79,7 @@ type infoCache struct {
 	SetAt       time.Time         `json:"set_at"`
 }
 
-// ClusterInfo reads the cluster name and PrivateData from "scontrol show
-// config", cached for 24 hours in cacheDir.
+// ClusterInfo reads the cluster name and PrivateData from "scontrol show config", cached 24 hours.
 func ClusterInfo(ctx context.Context, r execx.Runner, cacheDir string, now time.Time) (parse.ClusterInfo, error) {
 	path := cachePath(cacheDir, "clusterinfo.json")
 	var c infoCache
@@ -103,8 +98,7 @@ func ClusterInfo(ctx context.Context, r execx.Runner, cacheDir string, now time.
 	return info, nil
 }
 
-// cachePath is a file in cacheDir; empty when there is no cache
-// directory, so nothing is read from or written to the working directory.
+// cachePath is a file in cacheDir, or "" without one (never touches the working directory).
 func cachePath(cacheDir, name string) string {
 	if cacheDir == "" {
 		return ""
@@ -149,4 +143,19 @@ func writeJSON(path string, v any) error {
 		return err
 	}
 	return os.Rename(tmp.Name(), path)
+}
+
+// User returns $USER, else "id -un"; never os/user, which misses LDAP/SSSD accounts in a static binary.
+func User(ctx context.Context, getenv func(string) string, r execx.Runner) (string, error) {
+	if u := strings.TrimSpace(getenv("USER")); u != "" {
+		return u, nil
+	}
+	res, err := r.Run(execx.WithLabel(ctx, "user"), "id", "-un")
+	if err != nil {
+		return "", err
+	}
+	if u := strings.TrimSpace(string(res.Stdout)); u != "" {
+		return u, nil
+	}
+	return "", errors.New("cannot determine the user name: $USER is empty and id -un printed nothing")
 }

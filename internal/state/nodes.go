@@ -12,10 +12,7 @@ import (
 // NodeSorts are the orders SortNodes knows, in the order s cycles them.
 var NodeSorts = []string{"free", "name", "state", "cpu", "gpu", "load"}
 
-// SortNodes orders node usage. "free" puts free GPUs first, then free
-// CPUs; "cpu" and "gpu" sort by free CPUs or free GPUs (MIG slices break
-// ties); "load" puts the busiest first. Ties always fall back to the name,
-// so the order is stable between refreshes.
+// SortNodes orders node usage by NodeSorts key; ties fall back to name for stability.
 func SortNodes(list []NodeUsage, by string, desc bool) {
 	freeCPU := func(u NodeUsage) int {
 		if !Available(u.Node) {
@@ -47,9 +44,7 @@ func SortNodes(list []NodeUsage, by string, desc bool) {
 	})
 }
 
-// NodeStateLabel is a node's state in one short word: "idle", "mixed",
-// "alloc", "drained", "draining", "down", "maint", with "*" for a node
-// that is not responding.
+// NodeStateLabel is a node's state in one short word ("*" if not responding).
 func NodeStateLabel(n model.Node) string {
 	s := strings.ToLower(n.State)
 	switch {
@@ -82,9 +77,7 @@ const (
 	LoadOver
 )
 
-// LoadLevel rates a node's CPU load: LoadOver when the load exceeds the
-// node's CPUs by a quarter, LoadHigh when it is well above what the
-// allocated CPUs explain (jobs running more threads than they asked for).
+// LoadLevel rates CPU load: LoadOver above 125% of CPUs, LoadHigh well above allocated CPUs.
 func LoadLevel(n model.Node) int {
 	switch {
 	case n.CPUTotal == 0:
@@ -182,10 +175,8 @@ func PartitionSummaries(parts []model.Partition, usage []NodeUsage, pending map[
 	return out
 }
 
-// PendingByPartition counts pending jobs per partition from everyone's
-// jobs when loaded, else from the queue-rank query (which only covers the
-// partitions of the user's pending jobs). known marks the partitions whose
-// count is complete.
+// PendingByPartition counts pending jobs per partition (all jobs, else queue-rank);
+// known marks partitions whose count is complete.
 func PendingByPartition(st *Store) (pending map[string]int, known map[string]bool) {
 	pending, known = map[string]int{}, map[string]bool{}
 	switch {

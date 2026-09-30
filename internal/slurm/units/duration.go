@@ -1,3 +1,4 @@
+// Package units parses Slurm's small value formats (durations, times, memory, job IDs, hosts, GRES, states) without panicking.
 package units
 
 import (
@@ -19,9 +20,7 @@ const (
 	DurUnknown
 )
 
-// ParseDuration parses Slurm durations: MM:SS, HH:MM:SS, D-HH, D-HH:MM,
-// D-HH:MM:SS, each with an optional .mmm fraction (TotalCPU), and a bare
-// number of minutes.
+// ParseDuration parses Slurm durations (MM:SS, HH:MM:SS, D-HH[:MM[:SS]], optional .mmm, bare minutes).
 func ParseDuration(s string) (time.Duration, DurKind, error) {
 	s = strings.TrimSpace(s)
 	switch strings.ToUpper(s) {

@@ -1,3 +1,4 @@
+// Package ui is the Bubble Tea full-screen interface; views request actions and never run commands.
 package ui
 
 import (

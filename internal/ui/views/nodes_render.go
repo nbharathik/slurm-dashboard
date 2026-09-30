@@ -153,9 +153,7 @@ func (v *Nodes) reservationLine(ctx *Context) string {
 	return th.Muted.Render("reservation " + text)
 }
 
-// groupRow is a partition's heading. It is a row like the nodes under it:
-// its numbers are the totals of those nodes, in the same columns and the same
-// free/total form, so the eye can run down a column across the groups.
+// groupRow is a partition's heading row: totals of its nodes in the same free/total columns.
 func (v *Nodes) groupRow(ctx *Context, s state.PartSummary, members []state.NodeUsage, folded bool) components.Row {
 	th := ctx.Theme
 	p := s.Partition

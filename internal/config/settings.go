@@ -10,21 +10,17 @@ import (
 	"github.com/nbharathik/slurm-dashboard/internal/model"
 )
 
-// Setting is one top-level key of the config file. The list in Settings
-// drives validation, the Settings screen, "sdash config" and the docs
-// check, so adding a setting means adding one entry here.
+// Setting is one top-level config key; Settings drives validation, the UI and docs.
 type Setting struct {
 	Key     string
 	Label   string   // on the Settings screen
 	Help    string   // one line for "sdash config" and docs/config.md
 	Choices []string // allowed values of a text setting; empty = free text
-	// Alias maps an older or alternative spelling to a choice, before the
-	// value is checked (start_tab = "history" means "usage").
+	// Alias maps an older spelling to a choice before checking.
 	Alias func(string) string
 	Min   int // range of a number setting
 	Max   int
-	// Screen is true for settings the Settings screen can change. Commands
-	// are never among them: they come only from a file you edit.
+	// Screen is true if the Settings screen may change it (never commands).
 	Screen bool
 	// Group is the heading the Settings screen puts the row under.
 	Group string
@@ -191,9 +187,7 @@ func (s Setting) tomlValue(c *Config) (string, error) {
 	return "[" + strings.Join(parts, ", ") + "]", nil
 }
 
-// Step moves a choice, on/off or number setting one step forwards (d = 1)
-// or backwards (d = -1); a number stays within Min and Max. Text and list
-// settings are unchanged.
+// Step moves a choice, bool or number setting by d (+1 or -1); text and lists are unchanged.
 func (s Setting) Step(c *Config, d int) {
 	switch {
 	case s.Str != nil && len(s.Choices) > 0:

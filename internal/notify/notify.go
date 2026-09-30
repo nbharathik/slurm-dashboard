@@ -1,6 +1,4 @@
-// Package notify tells the user when their jobs start or end: a flash
-// line, the terminal bell, desktop notifications through OSC 9 / OSC 777
-// (wrapped for tmux), and an optional hook command.
+// Package notify tells the user when jobs start or end: flash line, bell, OSC desktop alerts and an optional hook.
 package notify
 
 import (
@@ -70,9 +68,8 @@ func clean(s string) string {
 	return strings.ReplaceAll(textsafe.Field(s), ";", ",")
 }
 
-// Sequences returns the terminal bytes for the configured methods: "bell",
-// "osc9" and "osc777". Inside tmux the OSC sequences are wrapped in DCS
-// passthrough (tmux needs "set -g allow-passthrough on").
+// Sequences returns terminal bytes for "bell", "osc9" and "osc777"; in tmux, OSC is
+// DCS-wrapped (needs allow-passthrough on).
 func Sequences(methods []string, e Event, inTmux bool) string {
 	title, body := Message(e)
 	return NoticeSequences(methods, title, body, inTmux)

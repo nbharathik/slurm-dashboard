@@ -10,14 +10,8 @@ import (
 	"slices"
 )
 
-// Interactive is a command that takes over the terminal, such as the
-// user's editor or pager. Its method set matches Bubble Tea's ExecCommand
-// interface, so the TUI can suspend itself, run it, and resume without
-// importing os/exec.
-//
-// It runs with the user's unmodified environment (so their editor keeps its
-// locale and settings), in the terminal's process group, and without the
-// runner's timeout.
+// Interactive is a terminal-owning command (editor, pager) matching Bubble Tea's ExecCommand.
+// It runs with the user's unmodified environment and no timeout.
 type Interactive struct {
 	argv   []string
 	dir    string
@@ -26,10 +20,7 @@ type Interactive struct {
 	stderr io.Writer
 }
 
-// NewInteractive prepares argv to run in dir ("" means the current
-// directory). It is for programs the user chose, such as $EDITOR or $PAGER.
-// Slurm commands are refused here: they must go through a Runner so the
-// allowlist and mutation guard apply.
+// NewInteractive prepares a user-chosen program ($EDITOR, $PAGER); Slurm tools are refused, they need a Runner.
 func NewInteractive(dir string, argv ...string) (*Interactive, error) {
 	if err := validateArgv(argv); err != nil {
 		return nil, err
@@ -46,11 +37,7 @@ func NewInteractive(dir string, argv ...string) (*Interactive, error) {
 	}, nil
 }
 
-// NewInteractiveChecked prepares a cluster command that takes over the
-// terminal, such as "srun --pty" for a shell inside a job. Unlike
-// NewInteractive it accepts Slurm tools, but only after the policy check a
-// Runner applies: the allowlist, the test guard, and for state-changing
-// commands a WithMutation grant for exactly this argv in ctx.
+// NewInteractiveChecked prepares a Slurm command that owns the terminal (e.g. srun --pty) after the Runner's policy check, including any WithMutation grant.
 func NewInteractiveChecked(ctx context.Context, p Policy, dir string, argv ...string) (*Interactive, error) {
 	if _, err := p.Check(ctx, argv); err != nil {
 		return nil, err

@@ -19,17 +19,13 @@ type expr struct {
 	Key    string // "refresh", "notify.on", "storage[2]"
 }
 
-// layout records where keys and expressions are in a config file, so
-// validation errors can name their line and type errors can be isolated to
-// one expression.
+// layout records where keys and expressions sit in a config file.
 type layout struct {
 	keys  map[string]pos // "refresh.myjobs", "storage[2].path", "storage[2]" (header)
 	exprs []expr         // in file order
 }
 
-// indexLayout walks the file once with go-toml's parser. It returns
-// whatever it indexed before a syntax error; syntax errors themselves are
-// reported by the decoder.
+// indexLayout indexes the file with go-toml's parser, stopping at a syntax error.
 func indexLayout(data []byte) layout {
 	l := layout{keys: map[string]pos{}}
 	var p unstable.Parser
@@ -104,9 +100,7 @@ func (l layout) exprAt(line int) (int, bool) {
 	return idx, idx >= 0
 }
 
-// blankExpr overwrites expression i, up to the line before the next
-// expression, with spaces. Newlines are kept so every other line and
-// column stays where it was.
+// blankExpr overwrites expression i with spaces, keeping newlines so positions hold.
 func (l layout) blankExpr(data []byte, i int) {
 	start := lineOffset(data, l.exprs[i].Line)
 	end := len(data)

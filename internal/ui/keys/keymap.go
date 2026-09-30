@@ -1,6 +1,4 @@
-// Package keys defines every key binding in one place. The
-// footer hints, the help overlay and the palette all read from the same
-// bindings, so help can never drift from behaviour.
+// Package keys defines every key binding once; footer, help and palette all read from it.
 package keys
 
 import (

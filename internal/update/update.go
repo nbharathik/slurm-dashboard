@@ -1,10 +1,4 @@
-// Package update implements "sdash update": it finds the latest GitHub
-// release, downloads the archive for this platform, verifies it against the
-// release's checksums.txt (and its signature, when cosign or gh is
-// installed) and replaces the running binary.
-//
-// Release checks run only when requested; Slurm clients and configured
-// hooks may also use the network.
+// Package update implements "sdash update": fetch the latest release, verify its checksum and signature, replace the binary. Runs only on request.
 package update
 
 import (
@@ -154,11 +148,8 @@ func ArchiveName(tag, goos, goarch string) string {
 	return fmt.Sprintf("%s_%s_%s_%s.tar.gz", meta.AppName, strings.TrimPrefix(tag, "v"), goos, goarch)
 }
 
-// Apply installs release tag over the running binary: it downloads the
-// archive and checksums.txt, verifies the SHA-256 and, when cosign or gh
-// is installed, the release signature; then it stages the binary
-// next to the destination and renames it into place. The running binary
-// is untouched if anything fails.
+// Apply verifies (SHA-256, plus signature if cosign or gh exists) and installs
+// release tag; the running binary is untouched on failure.
 func (u *Updater) Apply(ctx context.Context, tag string) (Result, error) {
 	if !tagPattern.MatchString(tag) {
 		return Result{}, fmt.Errorf("invalid version %q (expected e.g. v0.1.0)", tag)
@@ -218,9 +209,7 @@ func Method(_, version, build string) (method, hint string) {
 	return MethodRelease, meta.AppName + " update"
 }
 
-// Target resolves the binary Apply would replace. Only release installs
-// can update themselves: development builds and git checkouts are refused
-// with the command that updates them instead.
+// Target resolves the binary Apply would replace; dev builds and git checkouts are refused.
 func (u *Updater) Target() (string, error) {
 	exe := u.Executable
 	if exe == "" {

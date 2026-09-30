@@ -10,10 +10,7 @@ import (
 // shared Slurm controller; the scheduler enforces it again at run time.
 const MinRefresh = 5 * time.Second
 
-// Config is the parsed contents of config.toml: a few top-level settings
-// (see Settings) plus the tables [gpu_names], [[storage]] and [profiles].
-// Every field has a default (see Default), so a missing or partly invalid
-// file still yields a usable Config.
+// Config is the parsed config.toml; every field has a default (see Default).
 type Config struct {
 	Refresh        string             `toml:"refresh"` // fast | normal | slow | manual
 	StartTab       string             `toml:"start_tab"`

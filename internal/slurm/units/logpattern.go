@@ -17,9 +17,7 @@ type LogVars struct {
 	WorkDir    string // relative paths are joined to this
 }
 
-// ExpandLogPattern expands %j, %x, %u, %A, %a, %N and %% (with optional
-// zero-padding widths such as %4a) in an StdOut/StdErr path from scontrol,
-// and makes it absolute relative to WorkDir. Unknown specifiers are kept.
+// ExpandLogPattern expands %j %x %u %A %a %N %% (with widths like %4a) and makes the path absolute against WorkDir.
 func ExpandLogPattern(p string, v LogVars) string {
 	if strings.ContainsRune(p, '%') {
 		var b strings.Builder

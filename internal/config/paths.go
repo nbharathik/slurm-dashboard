@@ -16,10 +16,8 @@ type Paths struct {
 	CacheDir   string // $XDG_CACHE_HOME/sdash or ~/.cache/sdash
 }
 
-// ResolvePaths computes Paths from the environment. It reads $HOME and the
-// XDG variables only; it never looks users up in the password database,
-// which cannot see LDAP accounts in a static binary. Relative XDG values
-// are ignored, as the XDG specification requires.
+// ResolvePaths computes Paths from $HOME and XDG variables only (no passwd lookup,
+// which misses LDAP users in a static binary); relative XDG values are ignored.
 func ResolvePaths(getenv func(string) string) (Paths, error) {
 	home := getenv("HOME")
 	base := func(xdgVar, fallback string) (string, error) {

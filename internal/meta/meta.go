@@ -1,3 +1,4 @@
+// Package meta holds AppName and the version, commit and date injected with -ldflags "-X".
 package meta
 
 import (
@@ -33,9 +34,7 @@ type BuildInfo struct {
 	Platform  string `json:"platform"`
 }
 
-// Info returns the build identity. When the binary was built without
-// ldflags (for example with plain "go build" in a git checkout), commit and
-// date fall back to the VCS stamp the Go toolchain embeds.
+// Info returns the build identity; without ldflags, commit and date come from the embedded VCS stamp.
 func Info() BuildInfo {
 	info := BuildInfo{
 		Name:      AppName,

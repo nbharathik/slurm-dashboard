@@ -7,9 +7,8 @@ import (
 	"github.com/nbharathik/slurm-dashboard/internal/debuglog"
 )
 
-// crashPath is set when a panic inside the UI was written to a crash
-// report, so Run can tell the user where it is after the terminal has been
-// restored.
+// crashPath is the crash report written on a UI panic, shown after the
+// terminal is restored.
 var crashPath string
 
 // CrashError reports a UI panic that was saved to a crash report.

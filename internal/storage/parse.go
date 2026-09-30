@@ -48,9 +48,7 @@ func cleanGrace(s string) string {
 	return s
 }
 
-// parseLustre parses "lfs quota -q -u USER MOUNT": kbytes quota limit grace
-// files quota limit grace, possibly with the filesystem name on its own
-// line when it is long.
+// parseLustre parses "lfs quota -q -u USER MOUNT"; a long filesystem name wraps onto its own line.
 func parseLustre(out []byte) (usage, error) {
 	f := strings.Fields(string(out))
 	// The first field is the filesystem; the rest are the eight values,
@@ -78,9 +76,7 @@ func parseLustre(out []byte) (usage, error) {
 	return u, nil
 }
 
-// parseGPFS parses "mmlsquota -u USER -Y --block-size 1K": colon-separated
-// rows with a HEADER row naming the columns. It keeps the first USR row
-// whose filesystem or fileset matches one of names.
+// parseGPFS parses "mmlsquota -u USER -Y --block-size 1K", keeping the first USR row matching names.
 func parseGPFS(out []byte, names ...string) (usage, error) {
 	var header []string
 	for _, line := range strings.Split(string(out), "\n") {
@@ -145,9 +141,7 @@ func matchesAny(names []string, values ...string) bool {
 	return false
 }
 
-// parseBeeGFS parses "beegfs-ctl --getquota --uid USER --csv": a header
-// row, then name,id,size,hard,files,hard with sizes in bytes or
-// "unlimited". (Not yet verified on a live BeeGFS.)
+// parseBeeGFS parses "beegfs-ctl --getquota --uid USER --csv" (not yet verified on a live BeeGFS).
 func parseBeeGFS(out []byte) (usage, error) {
 	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
 	for _, line := range lines {

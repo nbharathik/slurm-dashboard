@@ -13,11 +13,8 @@ import (
 // FileName is the log inside the state directory.
 const FileName = "storage.jsonl"
 
-// Open reads the log at path, dropping samples older than Keep and lines it
-// cannot read (rewriting the file when it did), and returns a Log that
-// appends there. A missing file, or an unreadable one, gives an empty Log:
-// the trend is a convenience, never a reason to fail. An empty path gives a
-// Log that stays in memory.
+// Open reads the log at path, dropping old or unreadable lines (rewriting the file), and returns a Log that appends there.
+// A missing or unreadable file gives an empty Log; an empty path keeps it in memory.
 func Open(path string, now time.Time) *Log {
 	l := New(nil, now)
 	l.path = path
@@ -51,9 +48,7 @@ func Open(path string, now time.Time) *Log {
 	return l
 }
 
-// Persist appends samples to the file (created with mode 0600 in a 0700
-// directory). Errors are returned for the caller to log; the samples stay
-// in memory either way.
+// Persist appends samples to the file (mode 0600, dir 0700); samples stay in memory on error.
 func (l *Log) Persist(samples []Sample) error {
 	if l == nil || l.path == "" || len(samples) == 0 {
 		return nil

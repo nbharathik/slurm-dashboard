@@ -1,5 +1,4 @@
-// Package storage finds the user's storage locations, detects their
-// filesystems and reads quotas with the right backend.
+// Package storage finds storage locations, detects their filesystems and reads quotas.
 package storage
 
 import (
@@ -108,9 +107,7 @@ func BackendFor(fstype string) string {
 	return "statfs"
 }
 
-// Locate returns the configured locations, or detects them: $HOME, then
-// $SCRATCH, $WORK, $PROJECT and $DATA when set, then /scratch/$USER and
-// /work/$USER, keeping one location per mount point.
+// Locate returns the configured locations, or detects them (one per mount point).
 func Locate(entries []config.StorageEntry, env Env) []Location {
 	resolve := func(l *Location) {
 		l.Real = l.Path

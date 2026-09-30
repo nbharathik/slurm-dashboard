@@ -1,3 +1,4 @@
+// Package state collects, schedules and caches dashboard data with freshness tracking.
 package state
 
 import (
