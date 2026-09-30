@@ -1,0 +1,98 @@
+{
+  "items": [
+    {
+      "Name": "mig01",
+      "State": "MIXED",
+      "Flags": null,
+      "Reason": "",
+      "Partitions": [
+        "gpu-mig"
+      ],
+      "CPUTotal": 64,
+      "CPUAlloc": 8,
+      "CPULoad": 7.9,
+      "MemTotalMB": 515000,
+      "MemAllocMB": 32000,
+      "MemFreeMB": 400000,
+      "GPUTotal": 0,
+      "GPUAlloc": 0,
+      "GPUType": "",
+      "MIGTotal": 11,
+      "MIGAlloc": 1,
+      "GPUs": [
+        {
+          "Type": "1g.16gb",
+          "Total": 7,
+          "Alloc": 0,
+          "MIG": true
+        },
+        {
+          "Type": "1g.33gb",
+          "Total": 4,
+          "Alloc": 1,
+          "MIG": true
+        }
+      ],
+      "Features": [
+        "mig"
+      ],
+      "BootTime": "2026-09-18T08:00:00Z"
+    },
+    {
+      "Name": "h200-01",
+      "State": "MIXED",
+      "Flags": null,
+      "Reason": "",
+      "Partitions": [
+        "gpu"
+      ],
+      "CPUTotal": 64,
+      "CPUAlloc": 16,
+      "CPULoad": 15.2,
+      "MemTotalMB": 1031000,
+      "MemAllocMB": 128000,
+      "MemFreeMB": 850000,
+      "GPUTotal": 4,
+      "GPUAlloc": 2,
+      "GPUType": "nvidia_h200_nvl",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": [
+        {
+          "Type": "nvidia_h200_nvl",
+          "Total": 4,
+          "Alloc": 2,
+          "MIG": false
+        }
+      ],
+      "Features": [
+        "h200"
+      ],
+      "BootTime": "2026-09-20T09:30:00Z"
+    },
+    {
+      "Name": "cpu05",
+      "State": "ALLOCATED",
+      "Flags": null,
+      "Reason": "",
+      "Partitions": [
+        "compute"
+      ],
+      "CPUTotal": 32,
+      "CPUAlloc": 32,
+      "CPULoad": 32.5,
+      "MemTotalMB": 250000,
+      "MemAllocMB": 0,
+      "MemFreeMB": 200000,
+      "GPUTotal": 0,
+      "GPUAlloc": 0,
+      "GPUType": "",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": null,
+      "Features": null,
+      "BootTime": "0001-01-01T00:00:00Z"
+    }
+  ],
+  "warnings": null
+}

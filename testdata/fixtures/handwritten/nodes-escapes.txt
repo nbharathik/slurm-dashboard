@@ -1,0 +1,1 @@
+NodeName=gpu09 Arch=x86_64 CoresPerSocket=16 CPUAlloc=0 CPUEfctv=32 CPUTot=32 CPULoad=0.10 AvailableFeatures=h200 ActiveFeatures=h200 Gres=gpu:h200:4 NodeAddr=gpu09 NodeHostName=gpu09 RealMemory=512000 AllocMem=0 FreeMem=500000 State=IDLE+DRAIN Partitions=gpu CfgTRES=cpu=32,mem=500G,billing=32,gres/gpu=4 AllocTRES= Reason=]0;pwnedbad [31mDIMM[0m [root@2026-09-28T10:00:00]

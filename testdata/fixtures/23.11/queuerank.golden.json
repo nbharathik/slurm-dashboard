@@ -1,0 +1,40 @@
+{
+  "items": [
+    {
+      "ID": "20",
+      "Partition": "cpu",
+      "Priority": 2111
+    },
+    {
+      "ID": "17",
+      "Partition": "gpu",
+      "Priority": 2111
+    },
+    {
+      "ID": "13",
+      "Partition": "gpu",
+      "Priority": 2111
+    },
+    {
+      "ID": "22",
+      "Partition": "gpu",
+      "Priority": 2110
+    },
+    {
+      "ID": "8",
+      "Partition": "gpu",
+      "Priority": 2110
+    },
+    {
+      "ID": "21",
+      "Partition": "gpu",
+      "Priority": 0
+    },
+    {
+      "ID": "19",
+      "Partition": "short",
+      "Priority": 2111
+    }
+  ],
+  "warnings": null
+}

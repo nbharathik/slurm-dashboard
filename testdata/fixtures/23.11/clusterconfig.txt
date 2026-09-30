@@ -1,0 +1,7 @@
+ClusterName             = cluster1
+AccountingStorageType   = accounting_storage/slurmdbd
+AccountingStoreFlags    = job_script
+JobAcctGatherType       = jobacct_gather/linux
+PriorityType            = priority/multifactor
+PrivateData             = none
+SLURM_VERSION           = 23.11.4

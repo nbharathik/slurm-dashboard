@@ -1,0 +1,11 @@
+2020N/Acpunormalacct1PENDING0:002-12:00:002-12:00:00111000MN/ANodes required for job are DOWN, DRAINED or reserved for jobs in higher priority partitionsN/AN/A2026-09-28T12:52:412111(null)user1job1
+1414N/Acpunormalacct1RUNNING17:441:00:0042:16111000MN/ANonenode012026-09-28T12:53:422026-09-28T13:53:422026-09-28T12:52:412110(null)user1job2
+1717N/Agpunormalacct1PENDING0:001:00:001:00:00111000Mgres/gpu:2Resources2026-09-28T14:53:042026-09-28T15:53:042026-09-28T12:52:412111(null)user1job3
+13_[2-8%1]132-8%1gpunormalacct1PENDING0:001:00:001:00:00111000Mgres/gpu:1JobArrayTaskLimitN/AN/A2026-09-28T12:52:412111(null)user1job4
+2222N/Agpunormalacct1PENDING0:0010:0010:00111000MN/ABeginTime2026-09-28T15:52:412026-09-28T16:02:412026-09-28T12:52:412110(null)user1job5
+88N/Agpunormalacct1PENDING0:005:005:00111000MN/ADependencyNeverSatisfiedN/AN/A2026-09-28T12:52:412110afterok:7(failed)user1job6
+2121N/Agpunormalacct1PENDING0:0010:0010:00111000MN/AJobHeldUserN/AN/A2026-09-28T12:52:410(null)user1job7
+1111N/Agpunormalacct1RUNNING18:454:00:003:41:15148Ggres/gpu:1Nonenode012026-09-28T12:52:412026-09-28T16:52:412026-09-28T12:52:412111(null)user1job8
+13_1131gpunormalacct1RUNNING17:441:00:0042:16111000Mgres/gpu:1Nonenode012026-09-28T12:53:422026-09-28T13:53:422026-09-28T12:52:412110(null)user1job4
+1212N/Agpunormalacct1RUNNING18:222:00:001:41:38121000Mgres/gpu:1Nonenode012026-09-28T12:53:042026-09-28T14:53:042026-09-28T12:52:412110(null)user1job9
+1919N/Ashortnormalacct1PENDING0:001:00:001:00:00111000MN/APartitionTimeLimitN/AN/A2026-09-28T12:52:412111(null)user1job10

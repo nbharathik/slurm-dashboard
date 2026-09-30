@@ -1,0 +1,230 @@
+{
+  "items": [
+    {
+      "Name": "cpu01",
+      "State": "DOWN",
+      "Flags": [
+        "NOT_RESPONDING"
+      ],
+      "Reason": "Not responding [root@2026-09-28T12:52:55]",
+      "Partitions": [
+        "cpu"
+      ],
+      "CPUTotal": 32,
+      "CPUAlloc": 0,
+      "CPULoad": 0,
+      "MemTotalMB": 128000,
+      "MemAllocMB": 0,
+      "MemFreeMB": -1,
+      "GPUTotal": 0,
+      "GPUAlloc": 0,
+      "GPUType": "",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": null,
+      "Features": null,
+      "BootTime": "0001-01-01T00:00:00Z"
+    },
+    {
+      "Name": "cpu02",
+      "State": "DOWN",
+      "Flags": [
+        "DRAIN",
+        "NOT_RESPONDING"
+      ],
+      "Reason": "bad DIMM [root@2026-09-28T22:47:59]",
+      "Partitions": [
+        "cpu"
+      ],
+      "CPUTotal": 32,
+      "CPUAlloc": 0,
+      "CPULoad": 0,
+      "MemTotalMB": 128000,
+      "MemAllocMB": 0,
+      "MemFreeMB": -1,
+      "GPUTotal": 0,
+      "GPUAlloc": 0,
+      "GPUType": "",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": null,
+      "Features": null,
+      "BootTime": "0001-01-01T00:00:00Z"
+    },
+    {
+      "Name": "login01",
+      "State": "UNKNOWN",
+      "Flags": [
+        "NOT_RESPONDING"
+      ],
+      "Reason": "",
+      "Partitions": [
+        "login"
+      ],
+      "CPUTotal": 8,
+      "CPUAlloc": 0,
+      "CPULoad": 0,
+      "MemTotalMB": 16000,
+      "MemAllocMB": 0,
+      "MemFreeMB": -1,
+      "GPUTotal": 0,
+      "GPUAlloc": 0,
+      "GPUType": "",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": null,
+      "Features": null,
+      "BootTime": "0001-01-01T00:00:00Z"
+    },
+    {
+      "Name": "mig01",
+      "State": "UNKNOWN",
+      "Flags": [
+        "NOT_RESPONDING"
+      ],
+      "Reason": "",
+      "Partitions": [
+        "gpu"
+      ],
+      "CPUTotal": 64,
+      "CPUAlloc": 0,
+      "CPULoad": 0,
+      "MemTotalMB": 512000,
+      "MemAllocMB": 0,
+      "MemFreeMB": -1,
+      "GPUTotal": 0,
+      "GPUAlloc": 0,
+      "GPUType": "",
+      "MIGTotal": 11,
+      "MIGAlloc": 0,
+      "GPUs": [
+        {
+          "Type": "1g.16gb",
+          "Total": 7,
+          "Alloc": 0,
+          "MIG": true
+        },
+        {
+          "Type": "1g.33gb",
+          "Total": 4,
+          "Alloc": 0,
+          "MIG": true
+        }
+      ],
+      "Features": [
+        "mig"
+      ],
+      "BootTime": "0001-01-01T00:00:00Z"
+    },
+    {
+      "Name": "node01",
+      "State": "ALLOCATED",
+      "Flags": null,
+      "Reason": "",
+      "Partitions": [
+        "gpu",
+        "cpu",
+        "short"
+      ],
+      "CPUTotal": 16,
+      "CPUAlloc": 16,
+      "CPULoad": 0.77,
+      "MemTotalMB": 32000,
+      "MemAllocMB": 24384,
+      "MemFreeMB": 11377,
+      "GPUTotal": 2,
+      "GPUAlloc": 2,
+      "GPUType": "nvidia_h200_nvl",
+      "MIGTotal": 2,
+      "MIGAlloc": 2,
+      "GPUs": [
+        {
+          "Type": "nvidia_h200_nvl",
+          "Total": 2,
+          "Alloc": 2,
+          "MIG": false
+        },
+        {
+          "Type": "1g.16gb",
+          "Total": 2,
+          "Alloc": 2,
+          "MIG": true
+        }
+      ],
+      "Features": [
+        "h200",
+        "local"
+      ],
+      "BootTime": "2026-09-28T21:21:20Z"
+    },
+    {
+      "Name": "ws01",
+      "State": "UNKNOWN",
+      "Flags": [
+        "NOT_RESPONDING"
+      ],
+      "Reason": "",
+      "Partitions": [
+        "gpu"
+      ],
+      "CPUTotal": 32,
+      "CPUAlloc": 0,
+      "CPULoad": 0,
+      "MemTotalMB": 256000,
+      "MemAllocMB": 0,
+      "MemFreeMB": -1,
+      "GPUTotal": 1,
+      "GPUAlloc": 0,
+      "GPUType": "nvidia_rtx_pro_6000_blackwell_max-q_workstation_edition",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": [
+        {
+          "Type": "nvidia_rtx_pro_6000_blackwell_max-q_workstation_edition",
+          "Total": 1,
+          "Alloc": 0,
+          "MIG": false
+        }
+      ],
+      "Features": [
+        "rtxpro"
+      ],
+      "BootTime": "0001-01-01T00:00:00Z"
+    },
+    {
+      "Name": "ws02",
+      "State": "UNKNOWN",
+      "Flags": [
+        "NOT_RESPONDING"
+      ],
+      "Reason": "",
+      "Partitions": [
+        "gpu"
+      ],
+      "CPUTotal": 32,
+      "CPUAlloc": 0,
+      "CPULoad": 0,
+      "MemTotalMB": 256000,
+      "MemAllocMB": 0,
+      "MemFreeMB": -1,
+      "GPUTotal": 1,
+      "GPUAlloc": 0,
+      "GPUType": "nvidia_rtx_pro_6000_blackwell_max-q_workstation_edition",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": [
+        {
+          "Type": "nvidia_rtx_pro_6000_blackwell_max-q_workstation_edition",
+          "Total": 1,
+          "Alloc": 0,
+          "MIG": false
+        }
+      ],
+      "Features": [
+        "rtxpro"
+      ],
+      "BootTime": "0001-01-01T00:00:00Z"
+    }
+  ],
+  "warnings": null
+}

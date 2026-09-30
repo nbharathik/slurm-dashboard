@@ -1,0 +1,36 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage                               tundra · you · demo  
+─────────────────────────────────────────────────━━━━━━━━━──────────────────────────────────────────────────────────────
+                                                                                                                        
+  last 7 days  ([ ] changes) · 12 jobs · 5 failed · 28.8 GPU-h · median mem 17%                                         
+    ID     NAME        STATE       ELAPSED   CPU%  MEM%  IDLE  END                                                      
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
+    809    preproc     ✗ OOM       41m/1h     90%   99%     -  11:00                                                    
+    806    eval-bench  ✓ CD        38m/2h     83%   12%  0.7h  09:00                                                    
+  ▶ 804    tokenize    ✓ CD        1h10m/8h   22%    9%   29h  07:00                                                    
+    799    train-lora  ✗ TO        12h/12h    60%   70%     -  Sep 27                                                   
+    797    eval-bench  ✓ CD        35m/2h     80%   30%  0.8h  Sep 27                                                   
+    794    plot        ✓ CD        3m/1h      95%   22%     0  Sep 27                                                   
+    792    debug       ⊘ CA        14m/1h     10%    5%     -  Sep 26                                                   
+    788    convert     ✗ FAIL 127  2s/1h       0%     -     -  Sep 26                                                   
+    785    train-lora  ✓ CD        9h20m/1d   62%   68%   29h  Sep 25                                                   
+    781    segfaulty   ✗ FAIL      5m/1h       0%   40%     -  Sep 24                                                   
+    776    tokenize    ✓ CD        1h05m/8h   25%   10%   26h  Sep 23                                                   
+    770    preempt-me  ⊘ PR        3h/12h     50%   50%     -  Sep 22                                                   
+                                                                                                                        
+  ╭─ 804 tokenize [esc] ─────────────────────────────────────────────────────────────────────────────────────────────╮  
+  │ State:         COMPLETED                                                                                         │  
+  │ Nodes:         1 (cpu02)                                                                                         │  
+  │ Cores:         32                                                                                                │  
+  │ Elapsed:       01:10:00 of 08:00:00 (15%)                                                                        │  
+  │ CPU used:      08:12:48 (22%)                                                                                    │  
+  │ Memory:        5.8G of 64G (9%)                                                                                  │  
+  │ Directory:     /home/you/data                                                                                    │  
+  │                                                                                                                  │  
+  │ Right-sizing                                                                                                     │  
+  │ Memory: peak 5.8G of 64G (9%)                                                                                    │  
+  │   #SBATCH --mem=8G                                                                                               │  
+  │ Time: used 01:10:00 of 08:00:00 (15%)                                                                            │  
+  │   #SBATCH --time=01:45:00                                                                                        │  
+  ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯  
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  esc close · l logs · e stderr · , settings · ? help                                                   updated 0s ago  

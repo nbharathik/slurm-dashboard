@@ -1,0 +1,36 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage                               tundra · you · demo  
+───────────────────────━━━━━━━━─────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+  11 jobs · 3 running · 8 pending                                                                                       
+    ID         NAME        STATE   TIME       RESOURCES     WHERE                                                       
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
+    812        train-lora  ● RUN   5h46m/1d   1 GPU 8 CPU   gpu01                                                       
+    813        eval-bench  ● RUN   1h52m/2h   1 GPU 4 CPU   gpu01                                                       
+    816        preproc     ● RUN   30s/1h     16 CPU        cpu01                                                       
+  ▶ 815_[3-9]  sweep       ◌ PD    -/4h       1 GPU 8 CPU   #2/5 Resources                                              
+    818        big-sweep   ‖ HELD  -/12h      4 GPU 32 CPU  JobHeldUser                                                 
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+  ╭─ 815_[3-9] sweep [esc] ──────────────────────────────────────────────────────────────────────────────────────────╮  
+  │ ◌ PENDING · Resources · #2 of 5 in partition gpu                                                                 │  
+  │                                                                                                                  │  
+  │ You are next; waiting for enough free resources.                                                                 │  
+  │ Estimated start: today 14:04 (scheduler estimate, can change)                                                    │  
+  │ Tip: A shorter --time lets the backfill scheduler start it sooner.                                               │  
+  │ Priority 5120 = fairshare 3072 + partition 1000 + age 512 + QOS 280 + job size 256                               │  
+  │                                                                                                                  │  
+  │ Requested: 1 GPU, 8 CPUs, 32G, 4h                                                                                │  
+  │ Out  /home/you/runs/sweep/sweep-815.out [l]                                                                      │  
+  │ Err  /home/you/runs/sweep/sweep-815.err [e]                                                                      │  
+  │ Dir  /home/you/runs/sweep                                                                                        │  
+  │                                                                                                                  │  
+  │ [ Cancel ] [ Hold ] [ Script ]                                                                                   │  
+  │                                                                                                                  │  
+  ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯  
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  enter details · w why · c cancel · , settings · ? help                                                updated 0s ago  

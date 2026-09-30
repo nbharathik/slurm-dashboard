@@ -1,0 +1,36 @@
+ sdash · tundra · you · slurm 24.05 · demo                                                           updated 0s ago [r] 
+  1 Overview (6)   2 Jobs (5)   3 Queue   4 Nodes  [5 History]  6 Storage                                   last 7 days 
+╭─ Resubmit: 806 eval-bench ───────────────────╮╭─ Preview ────────────────────────────────────────────────────────────╮
+│ directory        /home/you/runs/eval         ││ #!/bin/bash                                                          │
+│ save as template -                           ││ #SBATCH --job-name=eval-bench                                        │
+│                                              ││ #SBATCH --partition=gpu                                              │
+│ [ Estimate (ctrl+t) ] [ Submit (ctrl+s) ]    ││ #SBATCH --time=2:00:00                                               │
+│ esc cancels                                  ││ #SBATCH --cpus-per-task=4                                            │
+│                                              ││ #SBATCH --mem=16G                                                    │
+│                                              ││ #SBATCH --gres=gpu:1                                                 │
+│                                              ││ #SBATCH --output=%x-%j.out                                           │
+│                                              ││ #SBATCH --error=%x-%j.err                                            │
+│                                              ││                                                                      │
+│                                              ││ set -euo pipefail                                                    │
+│                                              ││ module load cuda/12.4 python/3.12                                    │
+│                                              ││ source ~/venvs/ml/bin/activate                                       │
+│                                              ││                                                                      │
+│                                              ││ srun python eval_bench.py --config configs/eval-bench.yaml           │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+╰──────────────────────────────────────────────╯╰──────────────────────────────────────────────────────────────────────╯
+ ✓ Loading the batch script of 806…                                                                                     
+ tab next field · ctrl+t estimate · ctrl+s submit · esc close                                                           

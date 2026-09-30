@@ -1,0 +1,36 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage                               tundra · you · demo  
+─────────━━━━━━━━━━━━━━─────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+  Needs attention                                                                                             6 in all  
+  ──────────╭──────────────────────────────────────────────────────────────────────────────────────────────╮──────────  
+    ✗ 809 pr│  Keys                                                                                        │  [open]    
+    ✗ 799 tr│                                                                                              │  [open]    
+    ! Scratc│  Global                        Tables                        Jobs                            │  [open]    
+    ! 813 ev│  1-6          go to a tab      up/k         up               a            everyone's jobs    │  [open]    
+            │  tab          next section     down/j       down             c            cancel             │            
+  Cluster   │  :            command          pgup pgdn    page             h            hold               │ee / total  
+  ──────────│  r            refresh          home end     top / bottom     u            release            │──────────  
+    gpu   ██│  R            refresh all      enter        details          Q            requeue            │            
+    cpu*  ██│  p            pause            space        select           l            logs               │            
+            │  ,            settings         ctrl+a       select all       e            stderr             │            
+  Your jobs │  ?            help             s S          sort / reverse   o            pager              │iled today  
+    ID      │  esc          back             / f          filter           t            shell              │            
+  ──────────│  q/ctrl+c     quit             m            actions          g            gpu use            │──────────  
+  ▶ 812     │  ctrl+d       debug            y            copy id          w            why                │            
+    813     │                                ← →          fold / unfold    v            script             │            
+    816     │                                                                                              │            
+    815_[3-9│  Queue                         Overview                      Nodes                           │            
+    818     │  e            start estimate   enter        details          G            all/gpu/cpu        │            
+            │  v            what to show     x            dismiss          g            group              │            
+  Storage · │  g            group                                          enter        details            │            
+  ──────────│  enter        details                                                                        │──────────  
+    Home    │                                                                                              │            
+    Scratch │  Usage                         Storage                       Log viewer                      │            
+    Project │  [            shorter range    enter        details          F            follow             │            
+    Fairshar│  ]            longer range     a            analyse          w            wrap               │            
+            │  enter        details                                        /            search             │            
+            │  → lines 1-24 of 36 (j/k, pgup/pgdn scroll)                                                  │            
+            ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  enter open · tab next section · , settings · ? help                                                   updated 0s ago  

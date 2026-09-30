@@ -1,0 +1,30 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage             pine · you · demo  
+─────────────────────────────────────────────────━━━━━━━━━──────────────────────────────────────────
+                                                                                                    
+  last 7 days  ([ ] changes) · job accounting (sacct) is not available on this cluster              
+    ID     NAME      STATE  ELAPSED   CPU%  MEM%  IDLE  END                                         
+  ────────────────────────────────────────────────────────────────────────────────────────────────  
+    This cluster keeps no job accounting (no slurmdbd), so there is no history to show.             
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+────────────────────────────────────────────────────────────────────────────────────────────────────
+  enter details · [ shorter range · ] longer range · , settings · ? help             no accounting  

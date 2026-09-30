@@ -1,0 +1,36 @@
+ sdash · tundra · you · slurm 24.05 · demo                                                           updated 0s ago [r] 
+  1 Overview (6)  [2 Jobs (5)]  3 Queue   4 Nodes   5 History   6 Storage                                  filter: none 
+╭─ New job: Train on 1 GPU ────────────────────╮╭─ Preview ────────────────────────────────────────────────────────────╮
+│ name      gpu-single                         ││ Fix the highlighted fields to see the script.                        │
+│ partition gpu  ‹ ›                           ││                                                                      │
+│ gpus      19                                 ││                                              #!/bin/bash           … │
+│           must be at most 8                  ││ # sdash:name  Train on 1 GPU                                       … │
+│ cpus      8                                  ││ # sdash:var   partition  choice  default=gpu       choices=@partiti… │
+│ time      04:00:00                           ││ # sdash:var   gpus       int     default=1         min=1 max=8     … │
+│ mem       32G                                ││ # sdash:var   cpus       int     default=8         min=1 max=64    … │
+│ script    train.py                           ││ # sdash:var   time       dur     default=04:00:00                  … │
+│ directory /                                  ││ # sdash:var   mem        mem     default=32G                       … │
+│                                              ││ # sdash:var   script     path    default=train.py                  … │
+│ [ Estimate (ctrl+t) ] [ Submit (ctrl+s) ]    ││ #SBATCH --job-name={{.name}}                                       … │
+│ esc cancels                                  ││ #SBATCH --partition={{.partition}}                                 … │
+│                                              ││ #SBATCH --gres=gpu:{{.gpus}}                                       … │
+│                                              ││ #SBATCH --cpus-per-task={{.cpus}}                                  … │
+│                                              ││ #SBATCH --time={{.time}}                                           … │
+│                                              ││ #SBATCH --mem={{.mem}}                                             … │
+│                                              ││ #SBATCH --output=%x-%j.out                                         … │
+│                                              ││                                                                    … │
+│                                              ││ set -euo pipefail                                                  … │
+│                                              ││ srun python {{.script}}                                            … │
+│                                              ││                                                                    … │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+╰──────────────────────────────────────────────╯╰──────────────────────────────────────────────────────────────────────╯
+ ✗ gpus: must be at most 8                                                                                              
+ tab next field · ctrl+t estimate · ctrl+s submit · esc close                                                           

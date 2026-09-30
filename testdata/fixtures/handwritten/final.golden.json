@@ -1,0 +1,44 @@
+{
+  "items": [
+    {
+      "ID": "812",
+      "State": "COMPLETED",
+      "CancelledBy": "",
+      "ExitCode": 0,
+      "Signal": 0,
+      "Elapsed": 3600000000000
+    },
+    {
+      "ID": "813",
+      "State": "CANCELLED",
+      "CancelledBy": "1234",
+      "ExitCode": 0,
+      "Signal": 15,
+      "Elapsed": 60000000000
+    },
+    {
+      "ID": "814",
+      "State": "OUT_OF_MEMORY",
+      "CancelledBy": "",
+      "ExitCode": 0,
+      "Signal": 125,
+      "Elapsed": 30000000000
+    },
+    {
+      "ID": "815",
+      "State": "TIMEOUT",
+      "CancelledBy": "",
+      "ExitCode": 0,
+      "Signal": 0,
+      "Elapsed": 7200000000000
+    }
+  ],
+  "warnings": [
+    {
+      "source": "final",
+      "line": 5,
+      "raw": "bad",
+      "msg": "expected 4 fields, got 1"
+    }
+  ]
+}

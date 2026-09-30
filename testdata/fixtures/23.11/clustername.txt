@@ -1,0 +1,2 @@
+ClusterName             = cluster1
+SLURM_VERSION           = 23.11.4

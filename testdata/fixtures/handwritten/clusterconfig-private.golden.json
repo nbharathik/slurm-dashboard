@@ -1,0 +1,13 @@
+{
+  "items": {
+    "Name": "birch",
+    "PrivateData": [
+      "jobs",
+      "usage"
+    ],
+    "Settings": {
+      "AccountingStorageType": "accounting_storage/slurmdbd"
+    }
+  },
+  "warnings": null
+}

@@ -1,0 +1,30 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage           tundra · you · demo  
+─────────━━━━━━━━━━━━━━─────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Needs attention                                                                         6 in all  
+  ────────────────────────────────────────────────────────────────────────────────────────────────  
+    ✗ 809 preproc: OUT_OF_MEMORY (peak 31.8G of 32G)                                      [open]    
+    ✗ 799 train-lora: TIMEOUT                                                             [open]    
+    ! Scratch is at 91% of its space quota                                                [open]    
+    ! 813 eval-bench has 8m left: checkpoint or save now                                  [open]    
+     ╭────────────────────────────────────────────────────────────────────────────────────────╮     
+  Clu│  Welcome to sdash                                                                      │tal  
+  ───│                                                                                        │───  
+    g│  1-6  Overview, Jobs, Queue (everyone), Nodes, Usage, Storage                          │     
+    c│  /    filter a table        :  run a command (:help)                                   │     
+     │  ?    every key             ,  settings (refresh speed, theme, ...)                    │     
+  You│                                                                                        │day  
+    I│  sdash only runs Slurm commands you could run yourself, polls gently,                  │     
+  ───│  and shows the exact command before it changes a job.                                  │───  
+  ▶ 8│                                                                                        │     
+    8│  Press any key to start.                                                               │     
+    8╰────────────────────────────────────────────────────────────────────────────────────────╯     
+    815_[3-9]  sweep       ◌ PD    -/4h       1 GPU 8 CPU   #2/5 Resources                          
+    818        big-sweep   ‖ HELD  -/12h      4 GPU 32 CPU  JobHeldUser                             
+  Storage · fairshare                                                                               
+  ────────────────────────────────────────────────────────────────────────────────────────────────  
+    Home       ████████████░░░░░░░░  31G/50G                                                        
+    Scratch    ██████████████████░░  9.2T/10T                                                       
+    Project    █████░░░░░░░░░░░░░░░  1.2T/5T                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────
+  enter open · tab next section · , settings · ? help                               updated 0s ago  

@@ -1,0 +1,20 @@
+ sdash | < 2/6 Jobs >                   tundra | you | demo 
+-----------========-----------------------------------------
+ 11 jobs | 3 running | 8 pending                            
+   ID         NAME        STATE   TIME       RESOURCES      
+ ---------------------------------------------------------- 
+ > 812        train-lora  R RUN   5h46m/1d   1 GPU 8 CPU    
+   813        eval-bench  R RUN   1h52m/2h   1 GPU 4 CPU    
+   816        preproc     R RUN   30s/1h     16 CPU         
+   815_[3-9]  sweep       P PD    -/4h       1 GPU 8 CPU    
+   818        big-sweep   H HELD  -/12h      4 GPU 32 CPU   
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+------------------------------------------------------------
+ enter details | , settings | ? help         updated 0s ago 

@@ -1,0 +1,107 @@
+{
+  "items": [
+    {
+      "ID": {
+        "raw": "88",
+        "array_job_id": 88,
+        "het_offset": -1
+      },
+      "User": "user3",
+      "Partition": "cpu",
+      "NodeList": [
+        "node01"
+      ],
+      "EndTime": "2026-09-29T03:49:02Z",
+      "GPUs": 0,
+      "MIGSlices": 0,
+      "CPUs": 4,
+      "MemMB": 4000
+    },
+    {
+      "ID": {
+        "raw": "87",
+        "array_job_id": 87,
+        "het_offset": -1
+      },
+      "User": "user4",
+      "Partition": "gpu",
+      "NodeList": [
+        "node01"
+      ],
+      "EndTime": "2026-09-29T01:49:02Z",
+      "GPUs": 1,
+      "MIGSlices": 0,
+      "CPUs": 2,
+      "MemMB": 2000
+    },
+    {
+      "ID": {
+        "raw": "11",
+        "array_job_id": 11,
+        "het_offset": -1
+      },
+      "User": "user2",
+      "Partition": "gpu",
+      "NodeList": [
+        "node01"
+      ],
+      "EndTime": "2026-09-29T02:50:02Z",
+      "GPUs": 1,
+      "MIGSlices": 0,
+      "CPUs": 4,
+      "MemMB": 8192
+    },
+    {
+      "ID": {
+        "raw": "73",
+        "array_job_id": 73,
+        "het_offset": -1
+      },
+      "User": "user2",
+      "Partition": "gpu",
+      "NodeList": [
+        "node01"
+      ],
+      "EndTime": "2026-09-28T23:48:02Z",
+      "GPUs": 1,
+      "MIGSlices": 0,
+      "CPUs": 1,
+      "MemMB": 1000
+    },
+    {
+      "ID": {
+        "raw": "83",
+        "array_job_id": 83,
+        "het_offset": -1
+      },
+      "User": "user2",
+      "Partition": "gpu",
+      "NodeList": [
+        "node01"
+      ],
+      "EndTime": "2026-09-29T02:49:02Z",
+      "GPUs": 1,
+      "MIGSlices": 0,
+      "CPUs": 4,
+      "MemMB": 8192
+    },
+    {
+      "ID": {
+        "raw": "81",
+        "array_job_id": 81,
+        "het_offset": -1
+      },
+      "User": "user2",
+      "Partition": "gpu",
+      "NodeList": [
+        "node01"
+      ],
+      "EndTime": "2026-09-28T22:50:25Z",
+      "GPUs": 0,
+      "MIGSlices": 0,
+      "CPUs": 1,
+      "MemMB": 1000
+    }
+  ],
+  "warnings": null
+}

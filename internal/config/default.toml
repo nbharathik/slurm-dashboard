@@ -1,0 +1,43 @@
+# sdash settings
+#
+# Everything is optional: sdash works with no config file. Change the
+# common settings on the Settings screen (press , in sdash); it saves them
+# here and keeps your comments. Check this file with:  sdash config
+# Reference: docs/config.md
+#
+# The values below are the defaults.
+
+# refresh         = "normal"    # fast | normal | slow | manual (load once, then press r)
+# start_tab       = "overview"  # overview | jobs | queue | nodes | usage | storage
+# theme           = "auto"      # auto | dark | light | high-contrast
+# layout          = "clean"     # clean | detailed (extra columns and summary lines)
+# ascii           = false       # plain symbols for terminals without Unicode
+# mouse           = true
+# notify          = true        # a message, the bell and a desktop notice when your job ends
+# shell           = "srun"      # how t opens a shell in a job: srun | ssh
+# hide_partitions = []          # e.g. ["login"]
+# storage_warn    = 90          # percent of a quota that warns
+# storage_crit    = 97          # percent that is critical
+# warn_time_left  = "10m"       # warn this long before a job hits its time limit: off | 5m | 10m | 30m | 1h
+# warn_waste      = true        # after 30 minutes, note a running job that leaves most of what it asked for idle
+# cluster_name    = ""          # name in the header (default: Slurm's ClusterName)
+# notify_command  = ""          # also run this when your job ends, e.g.
+#                               # 'notify-send "$SDASH_JOB_NAME $SDASH_JOB_STATE"'
+
+# Short names for GPU types (Slurm's name = the name shown). sdash already
+# shortens common names, e.g. nvidia_h200_nvl to "H200 NVL".
+# [gpu_names]
+# nvidia_h200_nvl = "H200"
+
+# Storage locations. Without [[storage]] entries sdash finds $HOME,
+# $SCRATCH, $WORK, $PROJECT, $DATA, /scratch/$USER and /work/$USER.
+# [[storage]]
+# label   = "Project"
+# path    = "/proj/$USER"
+# backend = "auto"              # auto | lustre | gpfs | beegfs | quota | statfs | command
+# note    = "Files older than 30 days are purged"
+
+# Another cluster reachable from this login node: sdash --profile other
+# [profiles.other]
+# slurm_conf   = "/etc/slurm-other/slurm.conf"
+# cluster_name = "other"

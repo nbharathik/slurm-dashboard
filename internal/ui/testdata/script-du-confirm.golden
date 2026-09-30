@@ -1,0 +1,36 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage                               tundra · you · demo  
+──────────────────────────────────────────────────────────━━━━━━━━━━━───────────────────────────────────────────────────
+                                                                                                                        
+  3 locations · checked 14:00                                                                                           
+    LOCATION  SPACE              FILES     30 DAYS               PATH                                                   
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
+    Home      █████░░░ 31G/50G   212k/1M   ▁▁▂▃▄▅▅▆▇█ full ~6mo  /home/you                                              
+  ▶ Scratch   ███████░ 9.2T/10T  3.1M/5M   ▁▂▂▃▄▅▅▆▇█ full ~19d  /scratch/you                                           
+    Project   ██░░░░░░ 1.2T/5T   900k/10M  ▁▁▂▃▄▅▅▆▇█            /project/ml-lab                                        
+                                                                                                                        
+  ╭─ Scratch [esc] ──────────────────────────────────────────────────────────────────────────────────────────────────╮  
+  │ Path     /scratch/you                                                                                            │  
+  │ Backend  lustre  (lu╭──────────────────────────────────────────────────────────────────────╮                     │  
+  │ Note     purged afte│  Scan /scratch/you?                                                  │                     │  
+  │ Trend    ▁▁▂▂▂▂▂▂▃▃▃│                                                                      │                     │  
+  │          growing abo│  This is a lustre filesystem: walking it loads the shared metadata   │                     │  
+  │                     │  server that everyone uses.                                          │                     │  
+  │ Backend output      │  sdash runs du at the lowest priority, stops after 10 minutes, and   │                     │  
+  │ Disk quotas for usr │  esc cancels it.                                                     │                     │  
+  │   Filesystem  used  │                                                                      │                     │  
+  │   /scratch/you  9420│  Will run:                                                           │                     │  
+  │                     │    nice -n 19 ionice -c3 du -x -d1 -k -- /scratch/you                │                     │  
+  │ [ Analyse usage (a) │                                                                      │                     │  
+  │                     │                                      [ Scan (y) ]  [ Cancel (esc) ]  │                     │  
+  │                     ╰──────────────────────────────────────────────────────────────────────╯                     │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯  
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  esc back                                                                                                              

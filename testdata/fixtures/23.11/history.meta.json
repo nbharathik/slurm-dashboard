@@ -1,0 +1,21 @@
+{
+  "argv": [
+    "sacct",
+    "-n",
+    "-P",
+    "--delimiter=\u001f",
+    "-u",
+    "user1",
+    "-S",
+    "now-7days",
+    "-E",
+    "now",
+    "-o",
+    "JobID,JobIDRaw,JobName,Partition,State,ExitCode,Submit,Start,End,ElapsedRaw,TimelimitRaw,AllocCPUS,TotalCPU,ReqMem,MaxRSS,TRESUsageInTot,AllocTRES,NNodes,NodeList,WorkDir"
+  ],
+  "label": "history",
+  "exit_code": 0,
+  "duration_ms": 189,
+  "stderr": "",
+  "recorded_at": "2026-09-28T13:11:27.056660901Z"
+}

@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "sprio",
+    "-h",
+    "-u",
+    "user1",
+    "-o",
+    "%i\u001f%Y\u001f%A\u001f%F\u001f%J\u001f%P\u001f%Q"
+  ],
+  "label": "sprio",
+  "exit_code": 0,
+  "duration_ms": 4,
+  "stderr": "",
+  "recorded_at": "2026-09-28T13:11:27.066710036Z"
+}

@@ -1,0 +1,36 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage                               tundra · you · demo  
+─────────━━━━━━━━━━━━━━─────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+  Needs attention                                                                                             6 in all  
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
+    ✗ 809 preproc: OUT_OF_MEMORY (peak 31.8G of 32G)                                                          [open]    
+    ✗ 799 train-lora: TIMEOUT                                                                                 [open]    
+    ! Scratch is at 91% of its space quota                                                                    [open]    
+    ! 813 eval-bench has 8m left: checkpoint or save now                                                      [open]    
+                                                                                                                        
+  Cluster                                                                                                 free / total  
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
+    gpu   ██░░░╭────────────────────────────────────────────────────────────────────────────────────────╮               
+    cpu*  ████░│  Fairshare and priority                                                                │               
+               │                                                                                        │               
+  Your jobs    │  ml-lab       you        fairshare 0.620  usage  18.0%  shares  25.0%                  │ failed today  
+    ID         │  Fairshare falls as your usage grows past your shares; 1.0 is best.                    │               
+  ─────────────│                                                                                        │─────────────  
+    812        │  Pending jobs                                                                          │               
+    813        │  815        priority 5120 = fairshare 3072 + partition 1000 + age 512 + QOS 280 + job  │               
+    816        │  size 256                                                                              │               
+    815_[3-9]  │                                                                                        │               
+    818        │  esc closes                                                                            │               
+               ╰────────────────────────────────────────────────────────────────────────────────────────╯               
+  Storage · fairshare                                                                                                   
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
+    Home       ████████████░░░░░░░░  31G/50G                                                                            
+    Scratch    ██████████████████░░  9.2T/10T                                                                           
+    Project    █████░░░░░░░░░░░░░░░  1.2T/5T                                                                            
+  ▶ Fairshare  ████████████░░░░░░░░  0.62  usage 18% of 25% share                                                       
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  enter open · tab next section · , settings · ? help                                                   updated 0s ago  

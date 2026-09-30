@@ -1,0 +1,36 @@
+ sdash · tundra · you · slurm 24.05 · demo                                                           updated 0s ago [r] 
+  1 Overview (6)  [2 Jobs (5)]  3 Queue   4 Nodes   5 History   6 Storage                                  filter: none 
+╭─ Jobs 1-5 of 5 ──────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│  ID        NAME                           STATE  TIME            GPU NODE / REASON                      PART CPU  MEM│
+│▶ 812       train-lora                     ● RUN  5h46m/1d   █░░░   1 gpu01                              gpu    8  32G│
+│  813       eval-bench                     ● RUN  1h52m/2h   ████   1 gpu01                              gpu    4  16G│
+│  816       preproc                        ● RUN  30s/1h     █░░░   · cpu01                              cpu   16  32G│
+│  815_[3-9] sweep                          ◌ PD   -/4h              1 #2/5 Resources                     gpu    8  32G│
+│  818       big-sweep                      ‖ HELD -/12h             4 JobHeldUser                        gpu   32 128G│
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ ✓ Submitted job 1000 (@last)                                                                                           
+ enter details · c cancel · l logs · / filter · m actions · : command · ? help                                          

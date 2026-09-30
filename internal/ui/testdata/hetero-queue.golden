@@ -1,0 +1,40 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage                                                    birch · you · demo  
+───────────────────────────────━━━━━━━━━────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                                            
+  22 jobs · 11 running · 11 pending · waiting on Resources 9, Priority 2                                                                    
+    ID            USER   NAME         STATE      TIME       PART  RESOURCES       WHERE                                                     
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
+  ▶ ▾ running            11 jobs                                  13 GPU 264 CPU                                                            
+      4062        carol  md-sim       ● RUNNING  1d16h/3d   cpu   64 CPU          cpu01                                                     
+      4063        carol  md-sim       ● RUNNING  1d15h/3d   cpu   32 CPU          cpu06                                                     
+      4050        alice  pretrain     ● RUNNING  1d06h/2d   gpu   4 GPU 64 CPU    h200-02                                                   
+      4101        you    train-h200   ● RUNNING  6h15m/1d   gpu   2 GPU 16 CPU    h200-01                                                   
+      4072        erin   viz          ● RUNNING  5h05m/8h   ws    1 GPU 16 CPU    ws02                                                      
+      4061        bob    diffusion    ● RUNNING  4h05m/12h  gpu   1 GPU 16 CPU    h200-01                                                   
+      4070        dave   infer        ● RUNNING  2h05m/6h   mig   2 GPU 8 CPU     mig01                                                     
+      4104        you    align        ● RUNNING  2h05m/12h  cpu   32 CPU          cpu02                                                     
+      4102        you    notebook     ● RUNNING  1h25m/8h   mig   1 GPU 4 CPU     mig01                                                     
+      4071        dave   infer        ● RUNNING  1h05m/6h   mig   1 GPU 4 CPU     mig01                                                     
+      4105_1      you    sweep        ● RUNNING  1m/4h      gpu   1 GPU 8 CPU     h200-01                                                   
+                                                                                                                                            
+    ▾ pending            5 jobs                                   10 GPU 128 CPU                                                            
+      4081        bob    diffusion    ◌ PENDING  -/12h      gpu   4 GPU 32 CPU    Priority                                                  
+      4106        you    finetune-4x  ◌ PENDING  -/1d       gpu   4 GPU 32 CPU    Resources                                                 
+      4105_[2-8]  you    sweep        ◌ PENDING  -/4h       gpu   1 GPU 8 CPU     Resources                                                 
+      4082        alice  eval         ◌ PENDING  -/2h       ws    1 GPU 8 CPU     Resources                                                 
+      4080        erin   stats        ◌ PENDING  -/6h       cpu   48 CPU          Priority                                                  
+                                                                                                                                            
+                                                                                                                                            
+                                                                                                                                            
+                                                                                                                                            
+                                                                                                                                            
+                                                                                                                                            
+                                                                                                                                            
+                                                                                                                                            
+                                                                                                                                            
+                                                                                                                                            
+                                                                                                                                            
+                                                                                                                                            
+                                                                                                                                            
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  enter details · / filter · v what to show · , settings · ? help                                                           updated 0s ago  

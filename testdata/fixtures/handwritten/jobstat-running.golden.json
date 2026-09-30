@@ -1,0 +1,20 @@
+{
+  "items": {
+    "NTasks": 10,
+    "MaxRSSMB": 23245,
+    "AveRSSMB": 20480,
+    "AveCPU": 18600000000000,
+    "TotalCPU": 133800000000000,
+    "GPUUtil": 0,
+    "HasGPUUtil": false,
+    "At": "0001-01-01T00:00:00Z"
+  },
+  "warnings": [
+    {
+      "source": "jobstat",
+      "line": 4,
+      "raw": "bad",
+      "msg": "expected 6 fields, got 1"
+    }
+  ]
+}

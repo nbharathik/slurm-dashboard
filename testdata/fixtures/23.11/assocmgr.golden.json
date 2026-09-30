@@ -1,0 +1,89 @@
+{
+  "items": [
+    {
+      "Kind": "account",
+      "Name": "research",
+      "Limits": [
+        {
+          "Name": "GrpJobs",
+          "Unit": "",
+          "Max": 100,
+          "Used": 0
+        },
+        {
+          "Name": "GrpTRES cpu",
+          "Unit": "",
+          "Max": 256,
+          "Used": 0
+        }
+      ]
+    },
+    {
+      "Kind": "user",
+      "Name": "research",
+      "Limits": [
+        {
+          "Name": "GrpTRES cpu",
+          "Unit": "",
+          "Max": 64,
+          "Used": 0
+        },
+        {
+          "Name": "GrpTRES gres/gpu",
+          "Unit": "",
+          "Max": 4,
+          "Used": 0
+        },
+        {
+          "Name": "GrpTRESMins cpu",
+          "Unit": "min",
+          "Max": 100000,
+          "Used": 0
+        },
+        {
+          "Name": "MaxJobs",
+          "Unit": "",
+          "Max": 20,
+          "Used": 0
+        },
+        {
+          "Name": "MaxSubmitJobs",
+          "Unit": "",
+          "Max": 50,
+          "Used": 0
+        },
+        {
+          "Name": "MaxWall",
+          "Unit": "min",
+          "Max": 720,
+          "Used": -1
+        },
+        {
+          "Name": "MaxTRESPJ cpu",
+          "Unit": "",
+          "Max": 16,
+          "Used": -1
+        }
+      ]
+    },
+    {
+      "Kind": "qos",
+      "Name": "normal",
+      "Limits": [
+        {
+          "Name": "GrpTRES cpu",
+          "Unit": "",
+          "Max": 512,
+          "Used": 0
+        },
+        {
+          "Name": "MaxWall",
+          "Unit": "min",
+          "Max": 1440,
+          "Used": -1
+        }
+      ]
+    }
+  ],
+  "warnings": null
+}

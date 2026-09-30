@@ -1,0 +1,1 @@
+sbatch -J "my job" --mem 64G -p gpu -c 8 --gres=gpu:a100:2 -o 'logs/%x-%j.out' --dependency afterok:41 train.sh --lr 0.1/home/alice/proj

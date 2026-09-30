@@ -1,0 +1,39 @@
+{
+  "items": [
+    {
+      "Name": "gpu09",
+      "State": "IDLE",
+      "Flags": [
+        "DRAIN"
+      ],
+      "Reason": "bad DIMM [root@2026-09-28T10:00:00]",
+      "Partitions": [
+        "gpu"
+      ],
+      "CPUTotal": 32,
+      "CPUAlloc": 0,
+      "CPULoad": 0.1,
+      "MemTotalMB": 512000,
+      "MemAllocMB": 0,
+      "MemFreeMB": 500000,
+      "GPUTotal": 4,
+      "GPUAlloc": 0,
+      "GPUType": "h200",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": [
+        {
+          "Type": "h200",
+          "Total": 4,
+          "Alloc": 0,
+          "MIG": false
+        }
+      ],
+      "Features": [
+        "h200"
+      ],
+      "BootTime": "0001-01-01T00:00:00Z"
+    }
+  ],
+  "warnings": null
+}

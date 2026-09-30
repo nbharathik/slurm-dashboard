@@ -1,0 +1,28 @@
+11job13gpuCOMPLETED0:02026-09-28T12:51:472026-09-28T12:51:472026-09-28T12:52:082110100:00.00862.50Gbilling=1,cpu=1,gres/gpu=1,mem=32000M,node=11node01/tmp
+1.batch1.batchbatchCOMPLETED0:02026-09-28T12:51:472026-09-28T12:51:472026-09-28T12:52:0821100:00.0083340Kcpu=00:00:00,energy=0,fs/disk=8313,mem=3340K,pages=0,vmem=5528Kcpu=1,gres/gpu=1,mem=32000M,node=11node01
+22job14gpuCOMPLETED0:02026-09-28T12:52:412026-09-28T12:52:412026-09-28T12:52:5095100:00.0031000Mbilling=1,cpu=1,mem=1000M,node=11node01/tmp
+2.batch2.batchbatchCOMPLETED0:02026-09-28T12:52:412026-09-28T12:52:412026-09-28T12:52:509100:00.0033340Kcpu=00:00:00,energy=0,fs/disk=8357,mem=3340K,pages=0,vmem=5528Kcpu=1,mem=1000M,node=11node01
+33job15gpuCOMPLETED0:02026-09-28T12:52:412026-09-28T12:52:412026-09-28T12:53:022110400:19.7494000Mbilling=4,cpu=4,mem=4000M,node=11node01/tmp
+3.batch3.batchbatchCOMPLETED0:02026-09-28T12:52:412026-09-28T12:52:412026-09-28T12:53:0221400:19.7495224Kcpu=00:00:19,energy=0,fs/disk=12491,mem=5224K,pages=0,vmem=8352Kcpu=4,mem=4000M,node=11node01
+44job16gpuFAILED3:02026-09-28T12:52:412026-09-28T12:52:512026-09-28T12:52:5105100:00.0021000Mbilling=1,cpu=1,mem=1000M,node=11node01/tmp
+4.batch4.batchbatchFAILED3:02026-09-28T12:52:512026-09-28T12:52:512026-09-28T12:52:510100:00.002energy=0cpu=1,mem=1000M,node=11node01
+55job17gpuFAILED0:92026-09-28T12:52:412026-09-28T12:52:532026-09-28T12:52:5525100:00.0041000Mbilling=1,cpu=1,mem=1000M,node=11node01/tmp
+5.batch5.batchbatchCANCELLED0:92026-09-28T12:52:532026-09-28T12:52:532026-09-28T12:52:552100:00.004energy=0cpu=1,mem=1000M,node=11node01
+66job18gpuFAILED11:02026-09-28T12:52:412026-09-28T12:52:562026-09-28T12:52:5715100:00.0041000Mbilling=1,cpu=1,mem=1000M,node=11node01/tmp
+6.batch6.batchbatchFAILED11:02026-09-28T12:52:562026-09-28T12:52:562026-09-28T12:52:571100:00.004energy=0cpu=1,mem=1000M,node=11node01
+77job19gpuFAILED1:02026-09-28T12:52:412026-09-28T12:52:592026-09-28T12:53:0235100:00.0041000Mbilling=1,cpu=1,mem=1000M,node=11node01/tmp
+7.batch7.batchbatchFAILED1:02026-09-28T12:52:592026-09-28T12:52:592026-09-28T12:53:023100:00.004energy=0cpu=1,mem=1000M,node=11node01
+99job20gpuTIMEOUT0:02026-09-28T12:52:412026-09-28T12:53:042026-09-28T12:54:31871100:00.1601000Mbilling=1,cpu=1,mem=1000M,node=11node01/tmp
+9.batch9.batchbatchCANCELLED0:152026-09-28T12:53:042026-09-28T12:53:042026-09-28T12:54:3187100:00.1603596Kcpu=00:00:00,energy=0,fs/disk=360118,mem=3596K,pages=0,vmem=5528Kcpu=1,mem=1000M,node=11node01
+1010job21gpuCANCELLED by 00:02026-09-28T12:52:412026-09-28T12:52:442026-09-28T12:52:4405000:00:001000M1None assigned/tmp
+1111job8gpuRUNNING0:02026-09-28T12:52:412026-09-28T12:52:41Unknown1125240400:00:008Gbilling=4,cpu=4,gres/gpu=1,mem=8G,node=11node01/tmp
+11.batch11.batchbatchRUNNING0:02026-09-28T12:52:412026-09-28T12:52:41Unknown1125400:00:00cpu=4,gres/gpu=1,mem=8G,node=11node01
+1212job9gpuRUNNING0:02026-09-28T12:52:412026-09-28T12:53:04Unknown1102120200:00:002000Mbilling=2,cpu=2,gres/gpu=1,mem=2000M,node=11node01/tmp
+12.batch12.batchbatchRUNNING0:02026-09-28T12:53:042026-09-28T12:53:04Unknown1102200:00:00cpu=2,gres/gpu=1,mem=2000M,node=11node01
+1414job2cpuRUNNING0:02026-09-28T12:52:412026-09-28T12:53:42Unknown106460100:00:001000Mbilling=1,cpu=1,mem=1000M,node=11node01/tmp
+14.batch14.batchbatchRUNNING0:02026-09-28T12:53:422026-09-28T12:53:42Unknown1064100:00:00cpu=1,mem=1000M,node=11node01
+1717job3gpuPENDING0:02026-09-28T12:52:41UnknownUnknown060000:00:001000M1None assigned/tmp
+1919job10shortPENDING0:02026-09-28T12:52:41UnknownUnknown060000:00:001000M1None assigned/tmp
+2020job1cpuPENDING0:02026-09-28T12:52:41UnknownUnknown03600000:00:001000M1None assigned/tmp
+13_125job4gpuRUNNING0:02026-09-28T12:52:412026-09-28T12:53:42Unknown106460100:00:001000Mbilling=1,cpu=1,gres/gpu=1,mem=1000M,node=11node01/tmp
+13_1.batch25.batchbatchRUNNING0:02026-09-28T12:53:422026-09-28T12:53:42Unknown1064100:00:00cpu=1,gres/gpu=1,mem=1000M,node=11node01

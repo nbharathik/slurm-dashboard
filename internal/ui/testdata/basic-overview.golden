@@ -1,0 +1,30 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage             pine · you · demo  
+─────────━━━━━━━━━━━━━━─────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Needs attention                                                                                   
+  ────────────────────────────────────────────────────────────────────────────────────────────────  
+    ! Home is at 90% of its space quota                                                   [open]    
+                                                                                                    
+  Cluster                                                                             free / total  
+  ────────────────────────────────────────────────────────────────────────────────────────────────  
+    batch*  ███░░ 116/288 CPUs             n06: IB link down                                        
+    bigmem  █████ 8/96 CPUs     1 waiting  n06: IB link down                                        
+    debug   █░░░░ 44/48 CPUs                                                                        
+                                                                                                    
+  Your jobs                                                               ● 2 running  ◌ 1 pending  
+    ID     NAME         STATE  TIME       RESOURCES  WHERE                                          
+  ────────────────────────────────────────────────────────────────────────────────────────────────  
+  ▶ 2201   mesh-refine  ● RUN  3h01m/12h  32 CPU     n02                                            
+    2202   post         ● RUN  21m/1h     4 CPU      n01                                            
+    2203   big-mesh     ◌ PD   -/1d       48 CPU     #1/1 Resources                                 
+                                                                                                    
+  Storage                                                                                           
+  ────────────────────────────────────────────────────────────────────────────────────────────────  
+    Home       ██████████████████░░  18G/20G                                                        
+    Scratch    ███░░░░░░░░░░░░░░░░░  800G/5T                                                        
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+────────────────────────────────────────────────────────────────────────────────────────────────────
+  enter open · tab next section · , settings · ? help                               updated 0s ago  

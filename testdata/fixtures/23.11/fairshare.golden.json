@@ -1,0 +1,14 @@
+{
+  "items": [
+    {
+      "Account": "acct1",
+      "User": "user1",
+      "RawShares": 1,
+      "NormShares": 0.333333,
+      "RawUsage": 6721,
+      "EffectiveUsage": 0.796355,
+      "FairShare": 0.2
+    }
+  ],
+  "warnings": null
+}

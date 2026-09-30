@@ -1,0 +1,30 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage             pine · you · demo  
+───────────────────────━━━━━━━━─────────────────────────────────────────────────────────────────────
+                                                                                                    
+  3 jobs · 2 running · 1 pending                                                                    
+    ID     NAME         STATE  TIME       RESOURCES  WHERE                                          
+  ────────────────────────────────────────────────────────────────────────────────────────────────  
+  ▶ 2201   mesh-refine  ● RUN  3h01m/12h  32 CPU     n02                                            
+    2202   post         ● RUN  21m/1h     4 CPU      n01                                            
+    2203   big-mesh     ◌ PD   -/1d       48 CPU     #1/1 Resources                                 
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+────────────────────────────────────────────────────────────────────────────────────────────────────
+  enter details · c cancel · l logs · , settings · ? help                           updated 0s ago  

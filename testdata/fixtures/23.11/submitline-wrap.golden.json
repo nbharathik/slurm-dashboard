@@ -1,0 +1,39 @@
+{
+  "items": {
+    "Line": "sbatch --parsable --hold -J sdash-test-wrap -p short -t 5 --wrap echo \"hi there\"",
+    "WorkDir": "/tmp",
+    "Parsed": {
+      "Opts": [
+        {
+          "Name": "parsable",
+          "Value": "",
+          "Flag": true
+        },
+        {
+          "Name": "hold",
+          "Value": "",
+          "Flag": true
+        },
+        {
+          "Name": "job-name",
+          "Value": "sdash-test-wrap",
+          "Flag": false
+        },
+        {
+          "Name": "partition",
+          "Value": "short",
+          "Flag": false
+        },
+        {
+          "Name": "time",
+          "Value": "5",
+          "Flag": false
+        }
+      ],
+      "Unread": null,
+      "Script": "",
+      "ScriptArgs": null
+    }
+  },
+  "warnings": null
+}

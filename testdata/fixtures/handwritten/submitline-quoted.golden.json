@@ -1,0 +1,52 @@
+{
+  "items": {
+    "Line": "sbatch -J \"my job\" --mem 64G -p gpu -c 8 --gres=gpu:a100:2 -o 'logs/%x-%j.out' --dependency afterok:41 train.sh --lr 0.1",
+    "WorkDir": "/home/alice/proj",
+    "Parsed": {
+      "Opts": [
+        {
+          "Name": "job-name",
+          "Value": "my job",
+          "Flag": false
+        },
+        {
+          "Name": "mem",
+          "Value": "64G",
+          "Flag": false
+        },
+        {
+          "Name": "partition",
+          "Value": "gpu",
+          "Flag": false
+        },
+        {
+          "Name": "cpus-per-task",
+          "Value": "8",
+          "Flag": false
+        },
+        {
+          "Name": "gres",
+          "Value": "gpu:a100:2",
+          "Flag": false
+        },
+        {
+          "Name": "output",
+          "Value": "logs/%x-%j.out",
+          "Flag": false
+        },
+        {
+          "Name": "dependency",
+          "Value": "afterok:41",
+          "Flag": false
+        }
+      ],
+      "Unread": null,
+      "Script": "train.sh",
+      "ScriptArgs": [
+        "--lr",
+        "0.1"
+      ]
+    }
+  },
+  "warnings": null
+}

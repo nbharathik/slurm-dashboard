@@ -1,0 +1,36 @@
+812812N/Agpunormalacct1RUNNING5:46:001-00:00:0018:14:001832Ggres/gpu:h200:1Nonegpu012026-09-28T08:00:002026-09-29T08:00:002026-09-28T07:59:005000(null)user1train-lora
+813813N/Agpunormalacct1RUNNING12:002:00:001:48:0021664000Mgpu:2Nonegpu[01-02]2026-09-28T13:48:002026-09-28T15:48:002026-09-28T13:47:005000(null)user1multi node | job ✓
+815_[3-9%2]8153-9%2gpunormalacct1PENDING0:004:00:004:00:001832Ggres/gpu:1Resources2026-09-28T14:05:002026-09-28T18:05:002026-09-28T13:00:004800(null)user1sweep [3-9]
+815_18151gpunormalacct1RUNNING30:004:00:003:30:001832Ggres/gpu:1Nonegpu032026-09-28T13:30:002026-09-28T17:30:002026-09-28T13:00:004800(null)user1sweep [3-9]
+900+0900N/Acpunormalacct1RUNNING1:00UNLIMITEDUNLIMITED140N/ANonecpu012026-09-28T14:00:00Unknown2026-09-28T13:59:00100(null)user1het leader
+900+1900N/Acpunormalacct1RUNNING1:00Partition_LimitINVALID144000MN/ANonecpu022026-09-28T14:00:00Unknown2026-09-28T13:59:00100(null)user1het member
+10001000N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/ANoneN/AN/A2026-09-28T12:00:003000(null)user1pend-None
+10011001N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/APriorityN/AN/A2026-09-28T12:00:002999(null)user1pend-Priority
+10021002N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/AResourcesN/AN/A2026-09-28T12:00:002998(null)user1pend-Resources
+10031003N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/ADependencyN/AN/A2026-09-28T12:00:002997afterok:999(failed)user1pend-Dependency
+10041004N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/ADependencyNeverSatisfiedN/AN/A2026-09-28T12:00:002996afterok:999(failed)user1pend-DependencyNeverSatisfied
+10051005N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/AJobHeldUserN/AN/A2026-09-28T12:00:002995(null)user1pend-JobHeldUser
+10061006N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/AJobHeldAdminN/AN/A2026-09-28T12:00:002994(null)user1pend-JobHeldAdmin
+10071007N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/ABeginTimeN/AN/A2026-09-28T12:00:002993(null)user1pend-BeginTime
+10081008N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/AReqNodeNotAvail, Reserved for maintenanceN/AN/A2026-09-28T12:00:002992(null)user1pend-ReqNodeNotAvail
+10091009N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/APartitionTimeLimitN/AN/A2026-09-28T12:00:002991(null)user1pend-PartitionTimeLimit
+10101010N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/APartitionNodeLimitN/AN/A2026-09-28T12:00:002990(null)user1pend-PartitionNodeLimit
+10111011N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/APartitionDownN/AN/A2026-09-28T12:00:002989(null)user1pend-PartitionDown
+10121012N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/APartitionInactiveN/AN/A2026-09-28T12:00:002988(null)user1pend-PartitionInactive
+10131013N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/AQOSMaxGRESPerUserN/AN/A2026-09-28T12:00:002987(null)user1pend-QOSMaxGRESPerUser
+10141014N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/AQOSGrpGRESN/AN/A2026-09-28T12:00:002986(null)user1pend-QOSGrpGRES
+10151015N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/AAssocGrpGRESN/AN/A2026-09-28T12:00:002985(null)user1pend-AssocGrpGRES
+10161016N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/AAssocMaxJobsLimitN/AN/A2026-09-28T12:00:002984(null)user1pend-AssocMaxJobsLimit
+10171017N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/AReservationN/AN/A2026-09-28T12:00:002983(null)user1pend-Reservation
+10181018N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/ALicensesN/AN/A2026-09-28T12:00:002982(null)user1pend-Licenses
+10191019N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/ABadConstraintsN/AN/A2026-09-28T12:00:002981(null)user1pend-BadConstraints
+10201020N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/AInvalidAccountN/AN/A2026-09-28T12:00:002980(null)user1pend-InvalidAccount
+10211021N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/AInvalidQOSN/AN/A2026-09-28T12:00:002979(null)user1pend-InvalidQOS
+10221022N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/Alaunch failed requeued heldN/AN/A2026-09-28T12:00:002978(null)user1pend-launch failed requeued held
+10231023N/Agpunormalacct1PENDING0:001:00:001:00:00111000MN/ASomeFutureReasonN/AN/A2026-09-28T12:00:002977(null)user1pend-SomeFutureReason
+11001100N/Agpunormalacct1SUSPENDED1:001:00:0059:00111000MN/ANonegpu012026-09-28T13:00:002026-09-28T14:00:002026-09-28T12:59:0010(null)user1suspended
+11011101N/Agpunormalacct1COMPLETING59:591:00:000:01111000MN/ANonegpu012026-09-28T13:00:002026-09-28T14:00:002026-09-28T12:59:0010(null)user1completing
+11021102N/Agpunormalacct1WEIRD_NEW_STATE0:001:00:001:00:00111000MN/ANoneN/AN/A2026-09-28T12:59:0010(null)user1future state
+this is not a squeue line
+abcabcN/Agpunormalacct1RUNNING1:001:00:0059:00111000MN/ANonegpu01N/AN/AN/A10(null)user1bad id
+12001200N/Agpunormalacct1RUNNINGxx1:00:0059:00111000MN/ANonegpu01N/AN/AN/A10(null)user1bad duration

@@ -1,0 +1,36 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage                               tundra · you · demo  
+─────────────────────────────────────────────────━━━━━━━━━──────────────────────────────────────────────────────────────
+                                                                                                                        
+  ╭─ Rerun 806 eval-bench ──────────────────────────────────────╮╭─ Script (15 lines) ───────────────────────────────╮  
+  │ From /home/you/runs/eval                                    ││ #!/bin/bash                                       │  
+  │                                                             ││ #SBATCH --job-name=eval-bench                     │  
+  │ ▶ Job name       eval-bench                                 ││ #SBATCH --partition=gpu                           │  
+  │   Partition      gpu                                        ││ #SBATCH --time=2:00:00                            │  
+  │   CPUs per task  4                                          ││ #SBATCH --cpus-per-task=4                         │  
+  │   Memory         16G                     suggested 3G       ││ #SBATCH --mem=16G                                 │  
+  │   Time           2:00:00                 suggested 01:00:00 ││ #SBATCH --gres=gpu:1                              │  
+  │   GPUs           gpu:1                                      ││ #SBATCH --output=%x-%j.out                        │  
+  │                                                             ││ #SBATCH --error=%x-%j.err                         │  
+  │ Also passed: --account=ml-lab                               ││                                                   │  
+  │                                                             ││ set -euo pipefail                                 │  
+  │ [ Rerun (r) ]  esc closes                                   ││ module load cuda/12.4 python/3.12                 │  
+  │                                                             ││ source ~/venvs/ml/bin/activate                    │  
+  │                                                             ││                                                   │  
+  │                                                             ││ srun python eval_bench.py --config configs/eval-… │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  ╰─────────────────────────────────────────────────────────────╯╰───────────────────────────────────────────────────╯  
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  enter change · a use suggestions · s estimate · e edit script · r rerun · esc close                                   

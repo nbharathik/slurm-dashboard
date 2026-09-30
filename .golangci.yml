@@ -1,0 +1,74 @@
+version: "2"
+
+linters:
+  default: standard            # errcheck, govet, ineffassign, staticcheck, unused
+  enable:
+    - forbidigo
+    - gosec
+    - misspell
+    - revive
+  settings:
+    forbidigo:
+      analyze-types: true
+      forbid:
+        # Keep subprocesses behind the command policy.
+        - pattern: '.*'
+          pkg: '^os/exec$'
+          msg: run subprocesses through internal/execx (Runner or Interactive)
+        - pattern: '^os\.StartProcess$'
+          msg: run subprocesses through internal/execx
+        - pattern: '^syscall\.(ForkExec|StartProcess|Exec)$'
+          msg: run subprocesses through internal/execx
+        # os/user cannot see LDAP/SSSD accounts in a static (CGO_ENABLED=0) binary.
+        - pattern: '.*'
+          pkg: '^os/user$'
+          msg: use $USER (fallback "id -un" via execx); os/user cannot see LDAP users without cgo
+        # Only internal/actions may authorise state-changing Slurm commands,
+        # after the user has seen the exact argv.
+        - pattern: '^execx\.WithMutation$'
+          msg: only internal/actions may authorise state-changing commands
+        # User-written shell commands (site quota command, job-end hook)
+        # run only from the two features that are configured with them.
+        - pattern: '^execx\.RunUserShell$'
+          msg: only internal/storage and internal/notify may run user shell commands
+    gosec:
+      excludes:
+        # sdash reads and writes files the user names (config, templates,
+        # job logs, --out) or its own XDG files; that is its purpose.
+        - G304
+    misspell:
+      locale: UK               # the spec and docs use British spelling
+      ignore-rules:            # names defined by other systems keep US spelling
+        - color                # NO_COLOR, COLORTERM
+        - signaling            # Slurm job state SIGNALING
+  exclusions:
+    generated: strict
+    rules:
+      - path: ^internal/execx/
+        linters: [forbidigo]
+      - path: ^internal/actions/
+        text: execx\.WithMutation
+        linters: [forbidigo]
+      - path: ^internal/(storage|notify)/
+        text: execx\.RunUserShell
+        linters: [forbidigo]
+      # The subprocess gateway runs the argv it is given, after its own
+      # allowlist and mutation checks.
+      - path: ^internal/execx/(real|interactive)\.go$
+        text: G204
+        linters: [gosec]
+      # Tests write fixtures and fake binaries with ordinary modes.
+      - path: _test\.go$
+        linters: [gosec]
+      # Integration tests create and cancel their own sdash-test-* jobs on a
+      # throwaway cluster; they only build with -tags integration.
+      - path: ^internal/integration/
+        text: execx\.WithMutation
+        linters: [forbidigo]
+
+formatters:
+  enable:
+    - gofumpt
+  settings:
+    gofumpt:
+      module-path: github.com/nbharathik/slurm-dashboard

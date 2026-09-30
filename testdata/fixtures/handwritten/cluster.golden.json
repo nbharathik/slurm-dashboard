@@ -1,0 +1,133 @@
+{
+  "items": [
+    {
+      "ID": {
+        "raw": "812",
+        "array_job_id": 812,
+        "het_offset": -1
+      },
+      "User": "user1",
+      "Partition": "gpu",
+      "NodeList": [
+        "gpu01"
+      ],
+      "EndTime": "2026-09-29T08:00:00Z",
+      "GPUs": 1,
+      "MIGSlices": 0,
+      "CPUs": 8,
+      "MemMB": 32768
+    },
+    {
+      "ID": {
+        "raw": "813",
+        "array_job_id": 813,
+        "het_offset": -1
+      },
+      "User": "user1",
+      "Partition": "gpu",
+      "NodeList": [
+        "gpu01",
+        "gpu02"
+      ],
+      "EndTime": "2026-09-28T15:48:00Z",
+      "GPUs": 4,
+      "MIGSlices": 0,
+      "CPUs": 16,
+      "MemMB": 128000
+    },
+    {
+      "ID": {
+        "raw": "815_1",
+        "array_job_id": 815,
+        "task": "1",
+        "het_offset": -1
+      },
+      "User": "user1",
+      "Partition": "gpu",
+      "NodeList": [
+        "gpu03"
+      ],
+      "EndTime": "2026-09-28T17:30:00Z",
+      "GPUs": 1,
+      "MIGSlices": 0,
+      "CPUs": 8,
+      "MemMB": 32768
+    },
+    {
+      "ID": {
+        "raw": "700",
+        "array_job_id": 700,
+        "het_offset": -1
+      },
+      "User": "user2",
+      "Partition": "gpu",
+      "NodeList": [
+        "gpu01"
+      ],
+      "EndTime": "2026-09-28T16:05:00Z",
+      "GPUs": 1,
+      "MIGSlices": 0,
+      "CPUs": 4,
+      "MemMB": 16384
+    },
+    {
+      "ID": {
+        "raw": "701",
+        "array_job_id": 701,
+        "het_offset": -1
+      },
+      "User": "user3",
+      "Partition": "gpu",
+      "NodeList": [
+        "gpu02"
+      ],
+      "EndTime": "2026-09-28T14:05:00Z",
+      "GPUs": 3,
+      "MIGSlices": 0,
+      "CPUs": 32,
+      "MemMB": 512000
+    },
+    {
+      "ID": {
+        "raw": "702",
+        "array_job_id": 702,
+        "het_offset": -1
+      },
+      "User": "user3",
+      "Partition": "cpu",
+      "NodeList": [
+        "cpu01"
+      ],
+      "EndTime": "2026-09-30T00:00:00Z",
+      "GPUs": 0,
+      "MIGSlices": 0,
+      "CPUs": 64,
+      "MemMB": 204800
+    },
+    {
+      "ID": {
+        "raw": "703",
+        "array_job_id": 703,
+        "het_offset": -1
+      },
+      "User": "user4",
+      "Partition": "gpu",
+      "NodeList": [
+        "gpu03"
+      ],
+      "EndTime": "2026-09-28T19:00:00Z",
+      "GPUs": 0,
+      "MIGSlices": 0,
+      "CPUs": 0,
+      "MemMB": 0
+    }
+  ],
+  "warnings": [
+    {
+      "source": "cluster",
+      "line": 8,
+      "raw": "broken line",
+      "msg": "expected 7 fields, got 2"
+    }
+  ]
+}

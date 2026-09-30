@@ -1,0 +1,128 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test (go ${{ matrix.go }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ["1.26.x", "stable"]   # go.mod floor and the latest release
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: ${{ matrix.go }}
+      - run: go vet ./... && go vet -tags integration ./...
+      - run: go test -race ./...
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+      - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: v2.14.0
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Cross-compile release targets (CGO_ENABLED=0)
+        run: |
+          make cross VERSION=v0.0.0-ci
+          python3 .github/scripts/check-size.py dist/sdash_*
+      - name: Version information comes from ldflags
+        run: |
+          make build VERSION=v0.0.0-ci COMMIT=ci1234 DATE=2026-01-01T00:00:00Z
+          ./sdash version | tee version.txt
+          grep -q '^sdash v0.0.0-ci$' version.txt
+          grep -q 'commit:   ci1234' version.txt
+          grep -q 'built:    2026-01-01T00:00:00Z' version.txt
+      - name: config init writes a file that validates
+        run: |
+          XDG_CONFIG_HOME=$(mktemp -d)
+          export XDG_CONFIG_HOME
+          ./sdash config init
+          ./sdash config validate
+      - run: go mod tidy -diff
+      - run: go mod verify
+      - uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: check
+      - name: Check installer
+        run: shellcheck -s sh install.sh
+
+  packaging:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-latest, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    env:
+      GOTOOLCHAIN: local
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Build and validate native Linux package
+        run: |
+          make build VERSION=v0.0.0-ci
+          mkdir -p completions
+          ./sdash completion bash > completions/sdash.bash
+          python3 .github/scripts/check-size.py sdash --completion completions/sdash.bash
+          readelf -l sdash > "$RUNNER_TEMP/sdash-program.txt"
+          readelf -d sdash > "$RUNNER_TEMP/sdash-dynamic.txt"
+          if grep -q INTERP "$RUNNER_TEMP/sdash-program.txt" || grep -q NEEDED "$RUNNER_TEMP/sdash-dynamic.txt"; then
+            echo "Linux release must have no dynamic library dependencies" >&2
+            exit 1
+          fi
+          python3 .github/scripts/test-install.py ./sdash
+          SDASH_PACKAGING_BINARY="$PWD/sdash" go test -v ./internal/update -run TestPackagingUpdate
+      - name: Smoke-test without Go or system libraries installed
+        run: |
+          root=$(mktemp -d)
+          trap 'sudo rm -rf -- "$root"' EXIT
+          cp sdash "$root/sdash"
+          mkdir "$root/tmp"
+          sudo env HOME=/tmp USER=smoke chroot "$root" /sdash version
+          sudo env HOME=/tmp USER=smoke chroot "$root" /sdash --demo status --json
+
+  vuln:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+      - run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...

@@ -1,0 +1,87 @@
+{
+  "cluster": "birch",
+  "version": "24.11.5",
+  "user": "you",
+  "uid": 1000,
+  "account": "lab-you",
+  "loop": "10m",
+  "home": "/home/you",
+  "mem_untracked": true,
+  "nodes": [
+    {"name": "login01", "cpus": 16, "mem_gb": 64, "partitions": ["login"], "features": ["login"]},
+    {"name": "cpu01", "cpus": 64, "mem_gb": 512, "partitions": ["cpu", "debug"], "features": ["epyc"]},
+    {"name": "cpu02", "cpus": 64, "mem_gb": 512, "partitions": ["cpu"], "features": ["epyc"]},
+    {"name": "cpu03", "cpus": 64, "mem_gb": 512, "partitions": ["cpu"], "features": ["epyc"]},
+    {"name": "cpu04", "cpus": 64, "mem_gb": 512, "partitions": ["cpu"], "features": ["epyc"], "drain": "fan failure"},
+    {"name": "cpu05", "cpus": 32, "mem_gb": 256, "partitions": ["cpu"], "features": ["xeon"]},
+    {"name": "cpu06", "cpus": 32, "mem_gb": 256, "partitions": ["cpu"], "features": ["xeon"], "load_factor": 1.02},
+    {"name": "h200-01", "cpus": 96, "mem_gb": 1536, "gpus": 4, "gpu_type": "nvidia_h200_nvl", "partitions": ["gpu"], "features": ["h200", "ib"]},
+    {"name": "h200-02", "cpus": 96, "mem_gb": 1536, "gpus": 4, "gpu_type": "nvidia_h200_nvl", "partitions": ["gpu"], "features": ["h200", "ib"]},
+    {"name": "ws01", "cpus": 32, "mem_gb": 256, "gpus": 1, "gpu_type": "nvidia_rtx_pro_6000_blackwell_max-q_workstation_edition", "partitions": ["ws", "debug"], "features": ["rtxpro"]},
+    {"name": "ws02", "cpus": 32, "mem_gb": 256, "gpus": 1, "gpu_type": "nvidia_rtx_pro_6000_blackwell_max-q_workstation_edition", "partitions": ["ws"], "features": ["rtxpro"]},
+    {"name": "mig01", "cpus": 64, "mem_gb": 512, "mig": [{"type": "1g.33gb", "count": 4}, {"type": "1g.16gb", "count": 7}], "partitions": ["mig"], "features": ["mig"]}
+  ],
+  "partitions": [
+    {"name": "cpu", "nodes": "cpu[01-06]", "max_time": "7-00:00:00", "default": true},
+    {"name": "gpu", "nodes": "h200-[01-02]", "max_time": "2-00:00:00"},
+    {"name": "ws", "nodes": "ws[01-02]", "max_time": "1-00:00:00"},
+    {"name": "mig", "nodes": "mig01", "max_time": "12:00:00"},
+    {"name": "debug", "nodes": "cpu01,ws01", "max_time": "1:00:00"},
+    {"name": "login", "nodes": "login01", "max_time": "1:00:00"}
+  ],
+  "reservations": [
+    {"name": "gpu-maint", "start_in": "3d2h", "duration": "8h", "nodes": "h200-[01-02]", "flags": ["MAINT", "IGNORE_JOBS"]}
+  ],
+  "jobs": [
+    {"id": 4101, "user": "you", "name": "train-h200", "partition": "gpu", "cpus": 16, "mem_gb": 128, "gpus": 2, "nodes": ["h200-01"],
+     "limit": "1-00:00:00", "run_before": "6h10m", "workdir": "/home/you/runs/llm", "cpu_eff": 0.71, "mem_frac": 0.58, "gpu_util": 0.94, "log": "train"},
+    {"id": 4102, "user": "you", "name": "notebook", "partition": "mig", "cpus": 4, "mem_gb": 16, "gpus": 1, "gpu_type": "1g.16gb", "nodes": ["mig01"],
+     "limit": "8:00:00", "run_before": "1h20m", "workdir": "/home/you/notebooks", "cpu_eff": 0.12, "mem_frac": 0.3, "gpu_util": 0.2, "log": "eval"},
+    {"id": 4103, "user": "you", "name": "render", "partition": "ws", "cpus": 8, "mem_gb": 32, "gpus": 1, "nodes": ["ws01"],
+     "limit": "4:00:00", "run_before": "3h40m", "end_at": "5m", "final": "COMPLETED", "workdir": "/home/you/render",
+     "cpu_eff": 0.83, "mem_frac": 0.4, "gpu_util": 0.88, "log": "eval"},
+    {"id": 4104, "user": "you", "name": "align", "partition": "cpu", "cpus": 32, "mem_gb": 64, "nodes": ["cpu02"],
+     "limit": "12:00:00", "run_before": "2h", "workdir": "/home/you/genomes", "cpu_eff": 0.9, "mem_frac": 0.5, "log": "train"},
+    {"id": 4105, "user": "you", "name": "sweep", "partition": "gpu", "cpus": 8, "mem_gb": 64, "gpus": 1, "gpu_type": "nvidia_h200_nvl", "nodes": ["h200-01"],
+     "limit": "4:00:00", "array": "1-8", "array_start": "4m", "reason": "Resources", "priority": 5210, "submit_ago": "25m",
+     "est_start": "4m", "workdir": "/home/you/runs/sweep", "cpu_eff": 0.7, "mem_frac": 0.4, "gpu_util": 0.8, "log": "train"},
+    {"id": 4106, "user": "you", "name": "finetune-4x", "partition": "gpu", "cpus": 32, "mem_gb": 256, "gpus": 4, "gpu_type": "nvidia_h200_nvl",
+     "limit": "1-00:00:00", "reason": "Resources", "priority": 5400, "submit_ago": "35m", "est_start": "2h10m", "workdir": "/home/you/runs/ft"},
+
+    {"id": 4050, "user": "alice", "name": "pretrain", "partition": "gpu", "cpus": 64, "mem_gb": 1024, "gpus": 4, "nodes": ["h200-02"],
+     "limit": "2-00:00:00", "run_before": "30h", "account": "lab-nlp"},
+    {"id": 4061, "user": "bob", "name": "diffusion", "partition": "gpu", "cpus": 16, "mem_gb": 256, "gpus": 1, "nodes": ["h200-01"],
+     "limit": "12:00:00", "run_before": "4h", "account": "lab-vision"},
+    {"id": 4062, "user": "carol", "name": "md-sim", "partition": "cpu", "cpus": 64, "mem_gb": 300, "nodes": ["cpu01"],
+     "limit": "3-00:00:00", "run_before": "40h", "account": "lab-chem"},
+    {"id": 4063, "user": "carol", "name": "md-sim", "partition": "cpu", "cpus": 32, "mem_gb": 200, "nodes": ["cpu06"],
+     "limit": "3-00:00:00", "run_before": "39h", "account": "lab-chem"},
+    {"id": 4070, "user": "dave", "name": "infer", "partition": "mig", "cpus": 8, "mem_gb": 32, "gpus": 2, "gpu_type": "1g.33gb", "nodes": ["mig01"],
+     "limit": "6:00:00", "run_before": "2h", "account": "lab-rl"},
+    {"id": 4071, "user": "dave", "name": "infer", "partition": "mig", "cpus": 4, "mem_gb": 16, "gpus": 1, "gpu_type": "1g.16gb", "nodes": ["mig01"],
+     "limit": "6:00:00", "run_before": "1h", "account": "lab-rl"},
+    {"id": 4072, "user": "erin", "name": "viz", "partition": "ws", "cpus": 16, "mem_gb": 64, "gpus": 1, "nodes": ["ws02"],
+     "limit": "8:00:00", "run_before": "5h", "account": "lab-vision"},
+    {"id": 4080, "user": "erin", "name": "stats", "partition": "cpu", "cpus": 48, "mem_gb": 96, "reason": "Priority",
+     "priority": 3900, "limit": "6:00:00", "submit_ago": "15m", "account": "lab-vision"},
+    {"id": 4081, "user": "bob", "name": "diffusion", "partition": "gpu", "cpus": 32, "mem_gb": 512, "gpus": 4, "gpu_type": "nvidia_h200_nvl",
+     "reason": "Priority", "priority": 4800, "limit": "12:00:00", "submit_ago": "1h", "account": "lab-vision"},
+    {"id": 4082, "user": "alice", "name": "eval", "partition": "ws", "cpus": 8, "mem_gb": 32, "gpus": 1, "reason": "Resources",
+     "priority": 4100, "limit": "2:00:00", "submit_ago": "20m", "account": "lab-nlp", "est_start": "5m"}
+  ],
+  "history": [
+    {"id": 4040, "name": "align", "partition": "cpu", "state": "COMPLETED", "end_ago": "3h", "elapsed": "1h50m", "limit": "12:00:00", "cpus": 32, "mem_gb": 64, "peak_frac": 0.45, "cpu_eff": 0.88, "nodes": ["cpu02"], "workdir": "/home/you/genomes"},
+    {"id": 4031, "name": "train-h200", "partition": "gpu", "state": "TIMEOUT", "end_ago": "9h", "elapsed": "1d", "limit": "1-00:00:00", "cpus": 16, "mem_gb": 128, "gpus": 2, "gpu_type": "nvidia_h200_nvl", "peak_frac": 0.6, "cpu_eff": 0.7, "gpu_util": 0.93, "nodes": ["h200-01"], "workdir": "/home/you/runs/llm"},
+    {"id": 4022, "name": "notebook", "partition": "mig", "state": "CANCELLED", "cancelled_by": 1000, "end_ago": "20h", "elapsed": "3h", "limit": "8:00:00", "cpus": 4, "mem_gb": 16, "gpus": 1, "gpu_type": "1g.16gb", "peak_frac": 0.2, "cpu_eff": 0.05, "gpu_util": 0.1, "nodes": ["mig01"], "workdir": "/home/you/notebooks"},
+    {"id": 4018, "name": "render", "partition": "ws", "state": "COMPLETED", "end_ago": "1d4h", "elapsed": "3h20m", "limit": "4:00:00", "cpus": 8, "mem_gb": 32, "gpus": 1, "gpu_type": "nvidia_rtx_pro_6000_blackwell_max-q_workstation_edition", "peak_frac": 0.35, "cpu_eff": 0.8, "gpu_util": 0.9, "nodes": ["ws01"], "workdir": "/home/you/render"},
+    {"id": 4010, "name": "index", "partition": "cpu", "state": "OUT_OF_MEMORY", "exit": "0:125", "end_ago": "2d", "elapsed": "25m", "limit": "2:00:00", "cpus": 8, "mem_gb": 16, "peak_frac": 0.99, "cpu_eff": 0.6, "nodes": ["cpu05"], "workdir": "/home/you/genomes"},
+    {"id": 3998, "name": "convert", "partition": "debug", "state": "FAILED", "exit": "1:0", "end_ago": "3d", "elapsed": "4s", "limit": "1:00:00", "cpus": 1, "mem_gb": 2, "nodes": ["cpu01"], "workdir": "/home/you/code"},
+    {"id": 3960, "name": "train-h200", "partition": "gpu", "state": "COMPLETED", "end_ago": "6d", "elapsed": "14h", "limit": "1-00:00:00", "cpus": 16, "mem_gb": 128, "gpus": 2, "peak_frac": 0.55, "cpu_eff": 0.66, "gpu_util": 0.9, "nodes": ["h200-02"], "workdir": "/home/you/runs/llm"}
+  ],
+  "storage": [
+    {"label": "Home", "path": "/home/you", "fs": "nfs4", "backend": "statfs", "shared_fs": true, "used_gb": 60000, "hard_gb": 65536, "files": 41000000, "files_hard": 120000000, "growth_gb_day": 120},
+    {"label": "Scratch", "path": "/scratch/you", "fs": "lustre", "backend": "lustre", "used_gb": 2100, "soft_gb": 10240, "hard_gb": 11264, "files": 800000, "files_soft": 5000000, "files_hard": 6000000, "note": "purged after 30 days", "growth_gb_day": 25}
+  ],
+  "fairshare": {"raw_shares": 1, "norm_shares": 0.05, "raw_usage": 9120331, "effective_usage": 0.09, "fairshare": 0.48},
+  "limits": {"account_cpus": 256, "user_cpus": 96, "user_gpus": 4, "max_jobs": 20, "max_submit": 100, "max_wall_min": 2880}
+}

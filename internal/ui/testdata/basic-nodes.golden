@@ -1,0 +1,30 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage             pine · you · demo  
+────────────────────────────────────────━━━━━━━━━───────────────────────────────────────────────────
+                                                                                                    
+  6 nodes · 116/240 CPUs free                                                                       
+    NODE ▲        STATE    CPU FREE   MEM FREE  JOBS                                                
+  ────────────────────────────────────────────────────────────────────────────────────────────────  
+  ▶ ▾ batch* (6)  up        116/240  630G/1.1T  limit 3d                                            
+      n01         mixed       44/48  184G/192G  you 1                                               
+      n02         mixed       16/48  128G/192G  you 1                                               
+      n03         alloc        0/48   42G/192G  busy, jobs not visible                              
+      n04         idle        48/48  192G/192G                                                      
+      n05         mixed        8/48   84G/384G  busy, jobs not visible                              
+      n06         drained     48/48  384G/384G  "IB link down"                                      
+                                                                                                    
+    ▸ bigmem (2)  up           8/48   84G/384G  1 pending · limit 1d                                
+    ▸ debug (1)   up          44/48  184G/192G  limit 30m                                           
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+────────────────────────────────────────────────────────────────────────────────────────────────────
+  enter details · / filter · G all/gpu/cpu · , settings · ? help                    updated 0s ago  

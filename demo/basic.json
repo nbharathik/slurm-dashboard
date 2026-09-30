@@ -1,0 +1,46 @@
+{
+  "cluster": "pine",
+  "version": "22.05.11",
+  "user": "you",
+  "uid": 1000,
+  "account": "physics",
+  "loop": "10m",
+  "home": "/home/you",
+  "private_data": "jobs",
+  "no_accounting": true,
+  "priority": "basic",
+  "no_usage_gather": true,
+  "no_job_scripts": true,
+  "nodes": [
+    {"name": "n01", "cpus": 48, "mem_gb": 192, "partitions": ["batch", "debug"], "features": ["skylake"]},
+    {"name": "n02", "cpus": 48, "mem_gb": 192, "partitions": ["batch"], "features": ["skylake"]},
+    {"name": "n03", "cpus": 48, "mem_gb": 192, "partitions": ["batch"], "features": ["skylake"]},
+    {"name": "n04", "cpus": 48, "mem_gb": 192, "partitions": ["batch"], "features": ["skylake"]},
+    {"name": "n05", "cpus": 48, "mem_gb": 384, "partitions": ["batch", "bigmem"], "features": ["skylake", "bigmem"]},
+    {"name": "n06", "cpus": 48, "mem_gb": 384, "partitions": ["batch", "bigmem"], "features": ["skylake", "bigmem"], "drain": "IB link down"}
+  ],
+  "partitions": [
+    {"name": "batch", "nodes": "n[01-06]", "max_time": "3-00:00:00", "default": true},
+    {"name": "bigmem", "nodes": "n[05-06]", "max_time": "1-00:00:00"},
+    {"name": "debug", "nodes": "n01", "max_time": "30:00"}
+  ],
+  "reservations": [],
+  "jobs": [
+    {"id": 2201, "user": "you", "name": "mesh-refine", "partition": "batch", "cpus": 32, "mem_gb": 64, "nodes": ["n02"],
+     "limit": "12:00:00", "run_before": "3h", "workdir": "/home/you/cfd", "cpu_eff": 0.9, "mem_frac": 0.6, "log": "train"},
+    {"id": 2202, "user": "you", "name": "post", "partition": "batch", "cpus": 4, "mem_gb": 8, "nodes": ["n01"],
+     "limit": "1:00:00", "run_before": "20m", "end_at": "3m", "final": "COMPLETED", "workdir": "/home/you/cfd", "cpu_eff": 0.7, "mem_frac": 0.3, "log": "eval"},
+    {"id": 2203, "user": "you", "name": "big-mesh", "partition": "bigmem", "cpus": 48, "mem_gb": 350, "limit": "1-00:00:00",
+     "reason": "Resources", "priority": 3100, "submit_ago": "40m", "est_start": "5h", "workdir": "/home/you/cfd"},
+    {"id": 2150, "user": "frank", "name": "md", "partition": "batch", "cpus": 48, "mem_gb": 150, "nodes": ["n03"],
+     "limit": "3-00:00:00", "run_before": "30h"},
+    {"id": 2160, "user": "grace", "name": "fem", "partition": "bigmem", "cpus": 40, "mem_gb": 300, "nodes": ["n05"],
+     "limit": "1-00:00:00", "run_before": "10h"}
+  ],
+  "history": [],
+  "storage": [
+    {"label": "Home", "path": "/home/you", "fs": "nfs", "backend": "quota", "used_gb": 18, "soft_gb": 20, "hard_gb": 25, "files": 150000, "files_soft": 500000, "files_hard": 600000, "growth_gb_day": 0.02},
+    {"label": "Scratch", "path": "/scratch/you", "fs": "lustre", "backend": "lustre", "used_gb": 800, "soft_gb": 5120, "hard_gb": 6144, "files": 400000, "files_soft": 2000000, "files_hard": 2500000, "growth_gb_day": 6}
+  ],
+  "fairshare": {}
+}

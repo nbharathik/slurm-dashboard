@@ -1,0 +1,20 @@
+ sdash | < 5/6 Usage >                  tundra | you | demo 
+-----------=========----------------------------------------
+ last 7 days  ([ ] changes) | 12 jobs                       
+ Jobs     12 finished | 5 failed (42%), most often FAILED ~ 
+ Idle     CPU 84 h of 152 h (56%) | memory ~242 GB-h unuse~ 
+ Limits   your GPUs in use 2 of 8 (25%) +6 more             
+                                                            
+   ID     NAME        STATE       ELAPSED   CPU%  MEM%      
+ ---------------------------------------------------------- 
+ > 809    preproc     F OOM       41m/1h     90%   99%      
+   806    eval-bench  C CD        38m/2h     83%   12%      
+   804    tokenize    C CD        1h10m/8h   22%    9%      
+   799    train-lora  F TO        12h/12h    60%   70%      
+   797    eval-bench  C CD        35m/2h     80%   30%      
+   794    plot        C CD        3m/1h      95%   22%      
+   792    debug       X CA        14m/1h     10%    5%      
+   788    convert     F FAIL 127  2s/1h       0%     -      
+   785    train-lora  C CD        9h20m/1d   62%   68%      
+------------------------------------------------------------
+ enter details | , settings | ? help         updated 0s ago 

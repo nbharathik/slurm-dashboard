@@ -1,0 +1,44 @@
+{
+  "items": [
+    {
+      "Name": "maint",
+      "Start": "2026-09-30T08:00:00Z",
+      "End": "2026-09-30T14:00:00Z",
+      "Nodes": [
+        "gpu01",
+        "gpu02",
+        "gpu03",
+        "cpu07",
+        "cpu08",
+        "cpu09"
+      ],
+      "Flags": [
+        "MAINT",
+        "SPEC_NODES"
+      ],
+      "Users": [
+        "root"
+      ],
+      "Accounts": null,
+      "State": "INACTIVE"
+    },
+    {
+      "Name": "course",
+      "Start": "2026-09-28T09:00:00Z",
+      "End": "2026-10-02T17:00:00Z",
+      "Nodes": [
+        "gpu03"
+      ],
+      "Flags": [
+        "SPEC_NODES"
+      ],
+      "Users": null,
+      "Accounts": [
+        "acct2",
+        "acct3"
+      ],
+      "State": "ACTIVE"
+    }
+  ],
+  "warnings": null
+}

@@ -1,0 +1,30 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage             pine · you · demo  
+───────────────────────────────━━━━━━━━━────────────────────────────────────────────────────────────
+                                                                                                    
+  3 jobs · 2 running · 1 pending · waiting on Resources 1                                           
+    ID         USER   NAME         STATE  TIME       PART    RESOURCES  WHERE                       
+  ────────────────────────────────────────────────────────────────────────────────────────────────  
+  ▶ ▾ running         2 jobs                                 36 CPU                                 
+      2201     you    mesh-refine  ● RUN  3h01m/12h  batch   32 CPU     n02                         
+      2202     you    post         ● RUN  21m/1h     batch   4 CPU      n01                         
+                                                                                                    
+    ▾ pending         1 job                                  48 CPU                                 
+      2203     you    big-mesh     ◌ PD   -/1d       bigmem  48 CPU     Resources                   
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+────────────────────────────────────────────────────────────────────────────────────────────────────
+  enter details · / filter · v what to show · , settings · ? help                   updated 0s ago  

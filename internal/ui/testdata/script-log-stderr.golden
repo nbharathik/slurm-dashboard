@@ -1,0 +1,36 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage                               tundra · you · demo  
+───────────────────────━━━━━━━━─────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+  ╭─ stderr · 812 train-lora [esc] ──────────────────────────────────────────────────────────────────────────────────╮  
+  │  /home/you/venvs/ml/lib/python3.12/site-packages/torch/_utils.py:831: UserWarning: TypedStorage is deprecated.   │  
+  │▌ [00:30:00] WARNING: dataloader worker 1 was slow (3.5s); consider more --cpus-per-task                          │  
+  │▌ [01:00:00] WARNING: dataloader worker 2 was slow (4.5s); consider more --cpus-per-task                          │  
+  │▌ [01:30:00] WARNING: dataloader worker 3 was slow (5.5s); consider more --cpus-per-task                          │  
+  │▌ [02:00:00] WARNING: dataloader worker 4 was slow (6.5s); consider more --cpus-per-task                          │  
+  │▌ [02:30:00] WARNING: dataloader worker 5 was slow (2.5s); consider more --cpus-per-task                          │  
+  │▌ [03:00:00] WARNING: dataloader worker 6 was slow (3.5s); consider more --cpus-per-task                          │  
+  │▌ [03:30:00] WARNING: dataloader worker 7 was slow (4.5s); consider more --cpus-per-task                          │  
+  │▌ [04:00:00] WARNING: dataloader worker 0 was slow (5.5s); consider more --cpus-per-task                          │  
+  │▌ [04:30:00] WARNING: dataloader worker 1 was slow (6.5s); consider more --cpus-per-task                          │  
+  │▌ [05:00:00] WARNING: dataloader worker 2 was slow (2.5s); consider more --cpus-per-task                          │  
+  │▌ [05:30:00] WARNING: dataloader worker 3 was slow (3.5s); consider more --cpus-per-task                          │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │ /home/you/runs/lora/train-lora-812.err · lines 1-12 of 12 · following                                            │  
+  ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯  
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  esc close · F follow · e stdout/stderr · / search · ] next error · w wrap · o pager · : command · ? help              

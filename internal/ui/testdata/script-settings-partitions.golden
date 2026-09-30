@@ -1,0 +1,36 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage                               tundra · you · demo  
+─────────━━━━━━━━━━━━━━─────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+  Needs attention                                                                                             6 in all  
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
+    ✗ 809 preproc: OUT_OF_MEMORY (peak 31.8G of 32G)                                                          [open]    
+    ✗ 799 train-lora:╭────────────────────────────────────────────────────────────────────────────╮           [open]    
+    ! Scratch is at 9│  Settings                                                                  │           [open]    
+    ! 813 eval-bench │                                                                            │           [open]    
+                     │    Data                                                                    │                     
+  Cluster            │    Refresh               ‹ normal ›  my jobs 10s, cluster 30s              │       free / total  
+  ───────────────────│  ▶ Hide partitions       [x] gpu  [ ] cpu                                  │───────────────────  
+    cpu*  ████░ 144/5│    Look                                                                    │                     
+                     │    Theme                 ‹ auto ›                                          │                     
+  Your jobs          │    Layout                ‹ clean ›                                         │g  ✗ 2 failed today  
+    ID         NAME  │    Plain symbols         ‹ off ›                                           │                     
+  ───────────────────│    Mouse                 ‹ on ›                                            │───────────────────  
+  ▶ 812        train-│    Start on              ‹ overview ›                                      │                     
+    813        eval-b│    Alerts                                                                  │                     
+    816        prepro│    Job-end notices       ‹ on ›                                            │                     
+    815_[3-9]  sweep │    Time-limit warning    ‹ 10m ›                                           │                     
+    818        big-sw│    Idle-job warning      ‹ on ›                                            │                     
+                     │    Storage warning at    ‹ 90% ›                                           │                     
+  Storage · fairshare│    Storage critical at   ‹ 97% ›                                           │                     
+  ───────────────────│    Other                                                                   │───────────────────  
+    Home       ██████│    Shell in a job via    ‹ srun ›                                          │                     
+    Scratch    ██████│                                                                            │                     
+    Project    █████░│  changed for this session (not saved in the demo)                          │                     
+    Fairshare  ██████│  ↑↓ move · ‹› change · space toggles · esc closes                          │                     
+                     ╰────────────────────────────────────────────────────────────────────────────╯                     
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  esc back                                                                                                              

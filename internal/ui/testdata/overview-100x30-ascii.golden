@@ -1,0 +1,30 @@
+  sdash | 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage           tundra | you | demo  
+---------==============-----------------------------------------------------------------------------
+                                                                                                    
+  Needs attention                                                                         6 in all  
+  ------------------------------------------------------------------------------------------------  
+    x 809 preproc: OUT_OF_MEMORY (peak 31.8G of 32G)                                      [open]    
+    x 799 train-lora: TIMEOUT                                                             [open]    
+    ! Scratch is at 91% of its space quota                                                [open]    
+    ! 813 eval-bench has 8m left: checkpoint or save now                                  [open]    
+                                                                                                    
+  Cluster                                                                             free / total  
+  ------------------------------------------------------------------------------------------------  
+    gpu   ##... 68/128 CPUs   GPUs 0/8 H100  5 waiting                                              
+    cpu*  ####. 144/512 CPUs                            cpu04: bad DIMM                             
+                                                                                                    
+  Your jobs                                             R 3 running  P 2 pending  F 2 failed today  
+    ID         NAME        STATE   TIME       RESOURCES     WHERE                                   
+  ------------------------------------------------------------------------------------------------  
+  > 812        train-lora  R RUN   5h46m/1d   1 GPU 8 CPU   gpu01                                   
+    813        eval-bench  R RUN   1h52m/2h   1 GPU 4 CPU   gpu01                                   
+    816        preproc     R RUN   30s/1h     16 CPU        cpu01                                   
+    815_[3-9]  sweep       P PD    -/4h       1 GPU 8 CPU   #2/5 Resources                          
+    818        big-sweep   H HELD  -/12h      4 GPU 32 CPU  JobHeldUser                             
+  Storage | fairshare                                                                               
+  ------------------------------------------------------------------------------------------------  
+    Home       ############........  31G/50G                                                        
+    Scratch    ##################..  9.2T/10T                                                       
+    Project    #####...............  1.2T/5T                                                        
+----------------------------------------------------------------------------------------------------
+  enter open | tab next section | , settings | ? help                               updated 0s ago  

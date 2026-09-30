@@ -1,0 +1,36 @@
+ sdash · tundra · you · demo                                                                             updated 0s ago 
+  1 Overview !   2 Jobs  [3 Queue]  4 Nodes   5 Usage   6 Storage                           by state · filter: state:PD 
+╭─ Queue 18 jobs · state:PD 1-7 of 7 ──────────────────────────────────────────────────────────────────────────────────╮
+│ gpu R 4 PD 11 · cpu R 3 PD 0                                                                                         │
+│ Running most: bob 32 CPU 4 GPU · you 28 CPU 2 GPU · alice 16 CPU 2 GPU · carol 224 CPU                               │
+│ Waiting on: Resources 8 · Priority 2 · JobHeldUser 1                                                                 │
+│  all   running  [pending]  held   mine   GPU jobs                                                                    │
+│  ID          USER  NAME                                     STATE  TIME      GPU NODE / REASON               PART CPU│
+│▶ ▾ pending         4 jobs · 28 CPUs · 6 GPUs                                                                         │
+│    810       dave  rl-agent                                 ◌ PD   -/8h        2 Resources                   gpu    8│
+│    805       dave  rl-agent                                 ◌ PD   -/8h        2 Priority                    gpu    8│
+│    815_[3-9] you   sweep                                    ◌ PD   -/4h        1 Resources                   gpu    8│
+│    807       erin  embed                                    ◌ PD   -/2h        1 Priority                    gpu    4│
+│  ▾ held            1 job · 32 CPUs · 4 GPUs                                                                          │
+│    818       you   big-sweep                                ‖ HELD -/12h       4 JobHeldUser                 gpu   32│
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ enter details · / filter · S sort · , settings · ? help                                                                

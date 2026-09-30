@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "sinfo",
+    "--version"
+  ],
+  "label": "version",
+  "exit_code": 0,
+  "duration_ms": 3,
+  "stderr": "",
+  "recorded_at": "2026-09-28T13:11:26.817507007Z"
+}

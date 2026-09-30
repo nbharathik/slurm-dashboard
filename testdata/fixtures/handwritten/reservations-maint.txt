@@ -1,0 +1,2 @@
+ReservationName=maint StartTime=2026-09-30T08:00:00 EndTime=2026-09-30T14:00:00 Duration=06:00:00 Nodes=gpu[01-03],cpu[07-09] NodeCnt=6 CoreCnt=384 Features=(null) PartitionName=(null) Flags=MAINT,SPEC_NODES TRES=cpu=384 Users=root Groups=(null) Accounts=(null) Licenses=(null) State=INACTIVE BurstBuffer=(null) Watts=n/a MaxStartDelay=(null)
+ReservationName=course StartTime=2026-09-28T09:00:00 EndTime=2026-10-02T17:00:00 Duration=4-08:00:00 Nodes=gpu03 NodeCnt=1 CoreCnt=64 Flags=SPEC_NODES Users=(null) Groups=(null) Accounts=acct2,acct3 State=ACTIVE

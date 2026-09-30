@@ -1,0 +1,36 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage                               tundra · you · demo  
+───────────────────────━━━━━━━━─────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+  ╭─ stdout · 812 train-lora [esc] ──────────────────────────────────────────────────────────────────────────────────╮  
+  │  step  51660 | epoch 26 | loss 0.8901 | lr 3.0e-04 | 42.0k tok/s | gpu mem 57.8G                                 │  
+  │  step  51670 | epoch 26 | loss 0.8936 | lr 3.0e-04 | 42.0k tok/s | gpu mem 57.8G                                 │  
+  │  step  51680 | epoch 26 | loss 0.9219 | lr 3.0e-04 | 41.9k tok/s | gpu mem 57.8G                                 │  
+  │  step  51690 | epoch 26 | loss 0.8709 | lr 3.0e-04 | 41.7k tok/s | gpu mem 57.8G                                 │  
+  │  step  51700 | epoch 26 | loss 0.9282 | lr 3.0e-04 | 41.3k tok/s | gpu mem 57.8G                                 │  
+  │  step  51710 | epoch 26 | loss 0.8830 | lr 3.0e-04 | 40.9k tok/s | gpu mem 57.8G                                 │  
+  │  step  51720 | epoch 26 | loss 0.9015 | lr 3.0e-04 | 40.3k tok/s | gpu mem 57.8G                                 │  
+  │  step  51730 | epoch 26 | loss 0.9156 | lr 3.0e-04 | 39.8k tok/s | gpu mem 57.8G                                 │  
+  │  step  51740 | epoch 26 | loss 0.8735 | lr 3.0e-04 | 39.3k tok/s | gpu mem 57.8G                                 │  
+  │  eval: 100%|####################| 64/64                                                                          │  
+  │  eval  step  51750 | val_loss 0.9701 | ppl 2.64                                                                  │  
+  │  step  51750 | epoch 26 | loss 0.9301 | lr 3.0e-04 | 38.8k tok/s | gpu mem 57.8G                                 │  
+  │  step  51760 | epoch 26 | loss 0.8772 | lr 3.0e-04 | 38.4k tok/s | gpu mem 57.8G                                 │  
+  │  step  51770 | epoch 26 | loss 0.9094 | lr 3.0e-04 | 38.2k tok/s | gpu mem 57.8G                                 │  
+  │  step  51780 | epoch 26 | loss 0.9083 | lr 3.0e-04 | 38.0k tok/s | gpu mem 57.8G                                 │  
+  │  step  51790 | epoch 26 | loss 0.8779 | lr 3.0e-04 | 38.0k tok/s | gpu mem 57.8G                                 │  
+  │  step  51800 | epoch 26 | loss 0.9300 | lr 3.0e-04 | 38.2k tok/s | gpu mem 57.8G                                 │  
+  │  step  51810 | epoch 26 | loss 0.8730 | lr 3.0e-04 | 38.5k tok/s | gpu mem 57.8G                                 │  
+  │  step  51820 | epoch 26 | loss 0.9165 | lr 3.0e-04 | 38.9k tok/s | gpu mem 57.8G                                 │  
+  │  step  51830 | epoch 26 | loss 0.9005 | lr 3.0e-04 | 39.3k tok/s | gpu mem 57.8G                                 │  
+  │  step  51840 | epoch 26 | loss 0.8839 | lr 3.0e-04 | 39.9k tok/s | gpu mem 57.8G                                 │  
+  │  step  51850 | epoch 26 | loss 0.9278 | lr 3.0e-04 | 40.4k tok/s | gpu mem 57.8G                                 │  
+  │  step  51860 | epoch 26 | loss 0.8707 | lr 3.0e-04 | 40.9k tok/s | gpu mem 57.8G                                 │  
+  │  step  51870 | epoch 26 | loss 0.9226 | lr 3.0e-04 | 41.4k tok/s | gpu mem 57.8G                                 │  
+  │  step  51880 | epoch 26 | loss 0.8926 | lr 3.0e-04 | 41.7k tok/s | gpu mem 57.8G                                 │  
+  │  step  51890 | epoch 26 | loss 0.8911 | lr 3.0e-04 | 41.9k tok/s | gpu mem 57.8G                                 │  
+  │  step  51900 | epoch 26 | loss 0.9236 | lr 3.0e-04 | 42.0k tok/s | gpu mem 57.8G                                 │  
+  │  step  51910 | epoch 26 | loss 0.8705 | lr 3.0e-04 | 41.9k tok/s | gpu mem 57.8G                                 │  
+  │ /home/you/runs/lora/train-lora-812.out · lines 3139-3166 of 3166 · following                                     │  
+  ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯  
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  esc close · F follow · e stdout/stderr · / search · ] next error · w wrap · o pager · : command · ? help              

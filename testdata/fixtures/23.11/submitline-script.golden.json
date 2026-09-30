@@ -1,0 +1,40 @@
+{
+  "items": {
+    "Line": "sbatch --parsable --hold -p cpu --comment x y -o out %j.txt /tmp/sdash-test-rerun.sh one two words",
+    "WorkDir": "/tmp",
+    "Parsed": {
+      "Opts": [
+        {
+          "Name": "parsable",
+          "Value": "",
+          "Flag": true
+        },
+        {
+          "Name": "hold",
+          "Value": "",
+          "Flag": true
+        },
+        {
+          "Name": "partition",
+          "Value": "cpu",
+          "Flag": false
+        }
+      ],
+      "Unread": [
+        "--comment",
+        "x",
+        "y",
+        "-o",
+        "out",
+        "%j.txt",
+        "/tmp/sdash-test-rerun.sh",
+        "one",
+        "two",
+        "words"
+      ],
+      "Script": "",
+      "ScriptArgs": null
+    }
+  },
+  "warnings": null
+}

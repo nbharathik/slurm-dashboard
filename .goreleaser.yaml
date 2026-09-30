@@ -1,0 +1,89 @@
+version: 2
+
+project_name: sdash
+
+before:
+  hooks:
+    - go mod tidy -diff
+    - sh -c 'mkdir -p completions && for s in bash zsh fish; do go run ./cmd/sdash completion "$s" > "completions/sdash.$s"; done'
+
+builds:
+  - id: sdash
+    main: ./cmd/sdash
+    binary: sdash
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X github.com/nbharathik/slurm-dashboard/internal/meta.Version=v{{ .Version }}
+      - -X github.com/nbharathik/slurm-dashboard/internal/meta.Commit={{ .ShortCommit }}
+      - -X github.com/nbharathik/slurm-dashboard/internal/meta.Date={{ .CommitDate }}
+      - -X github.com/nbharathik/slurm-dashboard/internal/meta.Build=release
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    ignore:
+      - goos: darwin
+        goarch: amd64
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    hooks:
+      post:
+        - cmd: 'python3 .github/scripts/check-size.py "{{ .Path }}" --completion completions/sdash.bash'
+          output: true
+
+archives:
+  - formats: [tar.gz]
+    # sdash_0.1.0_linux_amd64.tar.gz; install.sh and "sdash update" rely on this name.
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+      - completions/*
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+
+report_sizes: true
+
+# SPDX SBOM for each archive.
+sboms:
+  - artifacts: archive
+
+# Sign checksums with the release workflow's identity.
+signs:
+  - cmd: cosign
+    artifacts: checksum
+    signature: "${artifact}.sigstore.json"
+    args: ["sign-blob", "--bundle=${signature}", "${artifact}", "--yes"]
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-snapshot.{{ .ShortCommit }}"
+
+changelog:
+  use: git
+  sort: asc
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\(.+\))??!?:.+$'
+      order: 0
+    - title: Bug fixes
+      regexp: '^.*?fix(\(.+\))??!?:.+$'
+      order: 1
+    - title: Other changes
+      order: 999
+  filters:
+    exclude:
+      - '^docs(\(.+\))?:'
+      - '^test(\(.+\))?:'
+      - '^chore(\(.+\))?:'
+
+release:
+  github:
+    owner: nbharathik
+    name: slurm-dashboard
+  footer: |
+    Install: `curl -fsSL https://raw.githubusercontent.com/nbharathik/slurm-dashboard/main/install.sh | sh`
+    Every archive is listed in `checksums.txt` (SHA-256), which is signed with cosign
+    (`checksums.txt.sigstore.json`); the archives also carry GitHub build provenance.

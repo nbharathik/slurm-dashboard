@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "scontrol",
+    "show",
+    "reservation",
+    "-o"
+  ],
+  "label": "reservations",
+  "exit_code": 0,
+  "duration_ms": 4,
+  "stderr": "",
+  "recorded_at": "2026-09-28T13:11:26.86741768Z"
+}

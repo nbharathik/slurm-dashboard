@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "squeue",
+    "-h",
+    "-t",
+    "PENDING",
+    "-p",
+    "cpu,gpu,short",
+    "-O",
+    "JobID:48,Partition:64,PriorityLong:24"
+  ],
+  "label": "queuerank",
+  "exit_code": 0,
+  "duration_ms": 6,
+  "stderr": "",
+  "recorded_at": "2026-09-28T13:11:26.85104032Z"
+}

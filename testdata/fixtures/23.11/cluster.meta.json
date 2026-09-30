@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "squeue",
+    "-h",
+    "-t",
+    "RUNNING",
+    "-O",
+    "JobID:48,UserName:48,Partition:64,NumNodes:8,NodeList:1024,EndTime:24,tres-alloc:1024"
+  ],
+  "label": "cluster",
+  "exit_code": 0,
+  "duration_ms": 6,
+  "stderr": "",
+  "recorded_at": "2026-09-28T13:11:26.844564485Z"
+}

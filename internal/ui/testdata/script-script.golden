@@ -1,0 +1,36 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage                               tundra · you · demo  
+───────────────────────━━━━━━━━─────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+  ╭─ batch script · 812 train-lora [esc] ────────────────────────────────────────────────────────────────────────────╮  
+  │  #!/bin/bash                                                                                                     │  
+  │  #SBATCH --job-name=train-lora                                                                                   │  
+  │  #SBATCH --partition=gpu                                                                                         │  
+  │  #SBATCH --time=1-00:00:00                                                                                       │  
+  │  #SBATCH --cpus-per-task=8                                                                                       │  
+  │  #SBATCH --mem=32G                                                                                               │  
+  │  #SBATCH --gres=gpu:1                                                                                            │  
+  │  #SBATCH --output=%x-%j.out                                                                                      │  
+  │  #SBATCH --error=%x-%j.err                                                                                       │  
+  │                                                                                                                  │  
+  │  set -euo pipefail                                                                                               │  
+  │  module load cuda/12.4 python/3.12                                                                               │  
+  │  source ~/venvs/ml/bin/activate                                                                                  │  
+  │                                                                                                                  │  
+  │  srun python train_lora.py --config configs/train-lora.yaml                                                      │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │                                                                                                                  │  
+  │ lines 1-15 of 15                                                                                                 │  
+  ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯  
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  esc close · / search · ] next error · w wrap · : command · ? help                                                     

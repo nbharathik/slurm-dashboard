@@ -1,0 +1,30 @@
+  sdash | 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage           tundra | you | demo  
+-------------------------------------------------=========------------------------------------------
+                                                                                                    
+  last 7 days  ([ ] changes) | 12 jobs                                                              
+  Jobs     12 finished | 5 failed (42%), most often FAILED | CPU 284 h | GPU 29 h                   
+  Idle     CPU 84 h of 152 h (56%) | memory ~242 GB-h unused | GPU 1.5 h of 11 h (14%)              
+  Limits   your GPUs in use 2 of 8 (25%) | your CPUs in use 28 of 192 (15%) +5 more                 
+                                                                                                    
+    ID     NAME        STATE       ELAPSED   CPU%  MEM%  IDLE  END                                  
+  ------------------------------------------------------------------------------------------------  
+  > 809    preproc     F OOM       41m/1h     90%   99%     -  11:00                                
+    806    eval-bench  C CD        38m/2h     83%   12%  0.7h  09:00                                
+    804    tokenize    C CD        1h10m/8h   22%    9%   29h  07:00                                
+    799    train-lora  F TO        12h/12h    60%   70%     -  Sep 27                               
+    797    eval-bench  C CD        35m/2h     80%   30%  0.8h  Sep 27                               
+    794    plot        C CD        3m/1h      95%   22%     0  Sep 27                               
+    792    debug       X CA        14m/1h     10%    5%     -  Sep 26                               
+    788    convert     F FAIL 127  2s/1h       0%     -     -  Sep 26                               
+    785    train-lora  C CD        9h20m/1d   62%   68%   29h  Sep 25                               
+    781    segfaulty   F FAIL      5m/1h       0%   40%     -  Sep 24                               
+    776    tokenize    C CD        1h05m/8h   25%   10%   26h  Sep 23                               
+    770    preempt-me  X PR        3h/12h     50%   50%     -  Sep 22                               
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+----------------------------------------------------------------------------------------------------
+  enter details | [ shorter range | ] longer range | , settings | ? help            updated 0s ago  

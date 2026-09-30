@@ -1,0 +1,21 @@
+{
+  "items": [
+    {
+      "JobID": "1001",
+      "Priority": 4800,
+      "Age": 100,
+      "FairShare": 2000,
+      "JobSize": 10,
+      "Partition": 2000,
+      "QOS": 0
+    }
+  ],
+  "warnings": [
+    {
+      "source": "sprio",
+      "line": 2,
+      "raw": "garbage",
+      "msg": "expected 7 fields, got 1"
+    }
+  ]
+}

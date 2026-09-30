@@ -1,0 +1,30 @@
+{
+  "items": [
+    {
+      "Account": "acct1",
+      "User": "user1",
+      "RawShares": 1,
+      "NormShares": 0.333333,
+      "RawUsage": 123456,
+      "EffectiveUsage": 0.25,
+      "FairShare": 0.625
+    },
+    {
+      "Account": "acct2",
+      "User": "user1",
+      "RawShares": -1,
+      "NormShares": 0.5,
+      "RawUsage": 0,
+      "EffectiveUsage": 0,
+      "FairShare": 0.91
+    }
+  ],
+  "warnings": [
+    {
+      "source": "fairshare",
+      "line": 3,
+      "raw": "bad|line",
+      "msg": "expected 7 fields, got 2"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "items": [
+    {
+      "Name": "gpu",
+      "State": "UP",
+      "Default": true,
+      "MaxTime": 172800000000000,
+      "Nodes": [
+        "gpu02",
+        "gpu03",
+        "node01"
+      ],
+      "TotalCPUs": 48,
+      "TotalGPUs": 12
+    },
+    {
+      "Name": "cpu",
+      "State": "UP",
+      "Default": false,
+      "MaxTime": 604800000000000,
+      "Nodes": [
+        "cpu01",
+        "cpu02",
+        "node01"
+      ],
+      "TotalCPUs": 80,
+      "TotalGPUs": 4
+    },
+    {
+      "Name": "short",
+      "State": "UP",
+      "Default": false,
+      "MaxTime": 1800000000000,
+      "Nodes": [
+        "node01"
+      ],
+      "TotalCPUs": 16,
+      "TotalGPUs": 4
+    }
+  ],
+  "warnings": null
+}

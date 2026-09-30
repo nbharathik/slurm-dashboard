@@ -1,0 +1,12 @@
+{
+  "argv": [
+    "scontrol",
+    "show",
+    "config"
+  ],
+  "label": "clustername",
+  "exit_code": 0,
+  "duration_ms": 6,
+  "stderr": "",
+  "recorded_at": "2026-09-28T13:11:26.824209696Z"
+}

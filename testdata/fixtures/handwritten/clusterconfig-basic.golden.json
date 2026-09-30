@@ -1,0 +1,13 @@
+{
+  "items": {
+    "Name": "pine",
+    "PrivateData": null,
+    "Settings": {
+      "AccountingStorageType": "accounting_storage/none",
+      "AccountingStoreFlags": "(null)",
+      "JobAcctGatherType": "jobacct_gather/none",
+      "PriorityType": "priority/basic"
+    }
+  },
+  "warnings": null
+}

@@ -1,0 +1,36 @@
+ sdash · tundra · you · slurm 24.05 · demo                                                           updated 0s ago [r] 
+  1 Overview (6)  [2 Jobs (5)]  3 Queue   4 Nodes   5 History   6 Storage                                  filter: none 
+╭─ New job: choose a template ─────────────────────────────────────────────────────────────────────────────────────────╮
+│ array-sweep      Parameter sweep (job array)                                                                         │
+│ cpu-basic        CPU job                                                                                             │
+│ gpu-multi        Multi-GPU training with torchrun                                                                    │
+│ gpu-single       Train on 1 GPU                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+                                                                                                                        
+ enter choose · esc close                                                                                               

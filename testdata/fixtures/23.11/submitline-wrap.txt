@@ -1,0 +1,1 @@
+sbatch --parsable --hold -J sdash-test-wrap -p short -t 5 --wrap echo "hi there"/tmp

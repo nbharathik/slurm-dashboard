@@ -1,0 +1,100 @@
+Current Association Manager state
+
+Association Records
+
+ClusterName=cluster1 Account=root UserName= Partition= Priority=0 ID=1
+    SharesRaw/Norm/Level/Factor=1/0.00/1/0.00
+    UsageRaw/Norm/Efctv=518696.85/1.00/1.00
+    ParentAccount= Lineage=/ DefAssoc=No
+    GrpJobs=N(0) GrpJobsAccrue=N(0)
+    GrpSubmitJobs=N(0) GrpWall=N(3359.63)
+    GrpTRES=cpu=N(0),mem=N(0),energy=N(0),node=N(0),billing=N(0),fs/disk=N(0),vmem=N(0),pages=N(0),gres/gpu=N(0),gres/gpumem=N(0),gres/gpuutil=N(0)
+    GrpTRESMins=cpu=N(0),mem=N(0),energy=N(0),node=N(0),billing=N(0),fs/disk=N(0),vmem=N(0),pages=N(0),gres/gpu=N(0),gres/gpumem=N(0),gres/gpuutil=N(0)
+    GrpTRESRunMins=cpu=N(0),mem=N(0),energy=N(0),node=N(0),billing=N(0),fs/disk=N(0),vmem=N(0),pages=N(0),gres/gpu=N(0),gres/gpumem=N(0),gres/gpuutil=N(0)
+    MaxJobs= MaxJobsAccrue= MaxSubmitJobs= MaxWallPJ=
+    MaxTRESPJ=
+    MaxTRESPN=
+    MaxTRESMinsPJ=
+    MinPrioThresh=
+    Comment=(null)
+ClusterName=cluster1 Account=root UserName=root(0) Partition= Priority=0 ID=2
+    SharesRaw/Norm/Level/Factor=1/0.33/3/1.00
+    UsageRaw/Norm/Efctv=39.76/0.00/0.00
+    ParentAccount= Lineage=/0-root/ DefAssoc=Yes
+    GrpJobs=N(0) GrpJobsAccrue=N(0)
+    GrpSubmitJobs=N(0) GrpWall=N(0.33)
+    GrpTRES=cpu=N(0),mem=N(0),energy=N(0),node=N(0),billing=N(0),fs/disk=N(0),vmem=N(0),pages=N(0),gres/gpu=N(0),gres/gpumem=N(0),gres/gpuutil=N(0)
+    GrpTRESMins=cpu=N(0),mem=N(0),energy=N(0),node=N(0),billing=N(0),fs/disk=N(0),vmem=N(0),pages=N(0),gres/gpu=N(0),gres/gpumem=N(0),gres/gpuutil=N(0)
+    GrpTRESRunMins=cpu=N(0),mem=N(0),energy=N(0),node=N(0),billing=N(0),fs/disk=N(0),vmem=N(0),pages=N(0),gres/gpu=N(0),gres/gpumem=N(0),gres/gpuutil=N(0)
+    MaxJobs= MaxJobsAccrue= MaxSubmitJobs= MaxWallPJ=
+    MaxTRESPJ=
+    MaxTRESPN=
+    MaxTRESMinsPJ=
+    MinPrioThresh=
+    Comment=(null)
+ClusterName=cluster1 Account=research UserName= Partition= Priority=0 ID=3
+    SharesRaw/Norm/Level/Factor=1/0.33/3/0.00
+    UsageRaw/Norm/Efctv=504738.73/0.97/0.97
+    ParentAccount=root(1) Lineage=/research/ DefAssoc=Yes
+    GrpJobs=100(0) GrpJobsAccrue=N(0)
+    GrpSubmitJobs=N(0) GrpWall=N(3301.32)
+    GrpTRES=cpu=256(0),mem=N(0),energy=N(0),node=N(0),billing=N(0),fs/disk=N(0),vmem=N(0),pages=N(0),gres/gpu=N(0),gres/gpumem=N(0),gres/gpuutil=N(0)
+    GrpTRESMins=cpu=N(0),mem=N(0),energy=N(0),node=N(0),billing=N(0),fs/disk=N(0),vmem=N(0),pages=N(0),gres/gpu=N(0),gres/gpumem=N(0),gres/gpuutil=N(0)
+    GrpTRESRunMins=cpu=N(0),mem=N(0),energy=N(0),node=N(0),billing=N(0),fs/disk=N(0),vmem=N(0),pages=N(0),gres/gpu=N(0),gres/gpumem=N(0),gres/gpuutil=N(0)
+    MaxJobs= MaxJobsAccrue= MaxSubmitJobs= MaxWallPJ=
+    MaxTRESPJ=
+    MaxTRESPN=
+    MaxTRESMinsPJ=
+    MinPrioThresh=
+    Comment=(null)
+ClusterName=cluster1 Account=research UserName=root(0) Partition= Priority=0 ID=7
+    SharesRaw/Norm/Level/Factor=1/0.33/3/0.60
+    UsageRaw/Norm/Efctv=0.00/0.00/0.00
+    ParentAccount= Lineage=/research/0-root/ DefAssoc=No
+    GrpJobs=N(0) GrpJobsAccrue=N(0)
+    GrpSubmitJobs=N(0) GrpWall=N(0.00)
+    GrpTRES=cpu=64(0),mem=N(0),energy=N(0),node=N(0),billing=N(0),fs/disk=N(0),vmem=N(0),pages=N(0),gres/gpu=4(0),gres/gpumem=N(0),gres/gpuutil=N(0)
+    GrpTRESMins=cpu=100000(0),mem=N(0),energy=N(0),node=N(0),billing=N(0),fs/disk=N(0),vmem=N(0),pages=N(0),gres/gpu=N(0),gres/gpumem=N(0),gres/gpuutil=N(0)
+    GrpTRESRunMins=cpu=N(0),mem=N(0),energy=N(0),node=N(0),billing=N(0),fs/disk=N(0),vmem=N(0),pages=N(0),gres/gpu=N(0),gres/gpumem=N(0),gres/gpuutil=N(0)
+    MaxJobs=20(0) MaxJobsAccrue= MaxSubmitJobs=50(0) MaxWallPJ=720
+    MaxTRESPJ=cpu=16
+    MaxTRESPN=
+    MaxTRESMinsPJ=
+    MinPrioThresh=
+    Comment=(null)
+ClusterName=cluster1 Account=teaching UserName= Partition= Priority=0 ID=4
+    SharesRaw/Norm/Level/Factor=1/0.33/3/0.00
+    UsageRaw/Norm/Efctv=13918.36/0.03/0.03
+    ParentAccount=root(1) Lineage=/teaching/ DefAssoc=Yes
+    GrpJobs=N(0) GrpJobsAccrue=N(0)
+    GrpSubmitJobs=N(0) GrpWall=N(57.97)
+    GrpTRES=cpu=N(0),mem=N(0),energy=N(0),node=N(0),billing=N(0),fs/disk=N(0),vmem=N(0),pages=N(0),gres/gpu=N(0),gres/gpumem=N(0),gres/gpuutil=N(0)
+    GrpTRESMins=cpu=N(0),mem=N(0),energy=N(0),node=N(0),billing=N(0),fs/disk=N(0),vmem=N(0),pages=N(0),gres/gpu=N(0),gres/gpumem=N(0),gres/gpuutil=N(0)
+    GrpTRESRunMins=cpu=N(0),mem=N(0),energy=N(0),node=N(0),billing=N(0),fs/disk=N(0),vmem=N(0),pages=N(0),gres/gpu=N(0),gres/gpumem=N(0),gres/gpuutil=N(0)
+    MaxJobs= MaxJobsAccrue= MaxSubmitJobs= MaxWallPJ=
+    MaxTRESPJ=
+    MaxTRESPN=
+    MaxTRESMinsPJ=
+    MinPrioThresh=
+    Comment=(null)
+
+QOS Records
+
+QOS=normal(1)
+    UsageRaw=518696.851448
+    GrpJobs=N(0) GrpJobsAccrue=N(0) GrpSubmitJobs=N(0) GrpWall=N(3359.68)
+    GrpTRES=cpu=512(0),mem=N(0),energy=N(0),node=N(0),billing=N(0),fs/disk=N(0),vmem=N(0),pages=N(0),gres/gpu=N(0),gres/gpumem=N(0),gres/gpuutil=N(0)
+    GrpTRESMins=cpu=N(0),mem=N(0),energy=N(0),node=N(0),billing=N(0),fs/disk=N(0),vmem=N(0),pages=N(0),gres/gpu=N(0),gres/gpumem=N(0),gres/gpuutil=N(0)
+    GrpTRESRunMins=cpu=N(0),mem=N(0),energy=N(0),node=N(0),billing=N(0),fs/disk=N(0),vmem=N(0),pages=N(0),gres/gpu=N(0),gres/gpumem=N(0),gres/gpuutil=N(0)
+    MaxWallPJ=1440
+    MaxTRESPJ=
+    MaxTRESPN=
+    MaxTRESMinsPJ=
+    MinPrioThresh= 
+    MinTRESPJ=
+    PreemptMode=OFF
+    Priority=0
+    Account Limits
+        No Accounts
+    User Limits
+        No Users

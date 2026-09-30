@@ -1,0 +1,13 @@
+{
+  "items": {
+    "NTasks": 1,
+    "MaxRSSMB": 3,
+    "AveRSSMB": 3,
+    "AveCPU": 0,
+    "TotalCPU": 0,
+    "GPUUtil": 0,
+    "HasGPUUtil": false,
+    "At": "0001-01-01T00:00:00Z"
+  },
+  "warnings": null
+}

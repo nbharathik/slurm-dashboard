@@ -1,0 +1,166 @@
+{
+  "items": [
+    {
+      "Name": "gpu01",
+      "State": "MIXED",
+      "Flags": null,
+      "Reason": "",
+      "Partitions": [
+        "gpu",
+        "debug"
+      ],
+      "CPUTotal": 64,
+      "CPUAlloc": 40,
+      "CPULoad": 37.12,
+      "MemTotalMB": 1000000,
+      "MemAllocMB": 300000,
+      "MemFreeMB": 650000,
+      "GPUTotal": 4,
+      "GPUAlloc": 3,
+      "GPUType": "h200",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": [
+        {
+          "Type": "h200",
+          "Total": 4,
+          "Alloc": 3,
+          "MIG": false
+        }
+      ],
+      "Features": [
+        "h200",
+        "ib"
+      ],
+      "BootTime": "2026-09-01T00:00:00Z"
+    },
+    {
+      "Name": "gpu02",
+      "State": "ALLOCATED",
+      "Flags": null,
+      "Reason": "",
+      "Partitions": [
+        "gpu"
+      ],
+      "CPUTotal": 64,
+      "CPUAlloc": 64,
+      "CPULoad": 63.9,
+      "MemTotalMB": 1000000,
+      "MemAllocMB": 900000,
+      "MemFreeMB": -1,
+      "GPUTotal": 4,
+      "GPUAlloc": 4,
+      "GPUType": "h200",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": [
+        {
+          "Type": "h200",
+          "Total": 4,
+          "Alloc": 4,
+          "MIG": false
+        }
+      ],
+      "Features": [
+        "h200"
+      ],
+      "BootTime": "0001-01-01T00:00:00Z"
+    },
+    {
+      "Name": "gpu03",
+      "State": "MIXED",
+      "Flags": [
+        "DRAIN"
+      ],
+      "Reason": "GPU 3 ECC errors [admin@2026-09-28T10:00:00]",
+      "Partitions": [
+        "gpu"
+      ],
+      "CPUTotal": 64,
+      "CPUAlloc": 8,
+      "CPULoad": 0,
+      "MemTotalMB": 512000,
+      "MemAllocMB": 32000,
+      "MemFreeMB": -1,
+      "GPUTotal": 8,
+      "GPUAlloc": 1,
+      "GPUType": "a100",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": [
+        {
+          "Type": "a100",
+          "Total": 8,
+          "Alloc": 1,
+          "MIG": false
+        }
+      ],
+      "Features": null,
+      "BootTime": "0001-01-01T00:00:00Z"
+    },
+    {
+      "Name": "cpu07",
+      "State": "IDLE",
+      "Flags": [
+        "DRAIN"
+      ],
+      "Reason": "bad DIMM [admin@2026-09-27T09:00:00]",
+      "Partitions": [
+        "cpu"
+      ],
+      "CPUTotal": 64,
+      "CPUAlloc": 0,
+      "CPULoad": 0,
+      "MemTotalMB": 512000,
+      "MemAllocMB": 0,
+      "MemFreeMB": 500000,
+      "GPUTotal": 0,
+      "GPUAlloc": 0,
+      "GPUType": "",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": null,
+      "Features": null,
+      "BootTime": "0001-01-01T00:00:00Z"
+    },
+    {
+      "Name": "cpu08",
+      "State": "IDLE",
+      "Flags": [
+        "NOT_RESPONDING"
+      ],
+      "Reason": "",
+      "Partitions": [
+        "cpu"
+      ],
+      "CPUTotal": 64,
+      "CPUAlloc": 0,
+      "CPULoad": 0.01,
+      "MemTotalMB": 512000,
+      "MemAllocMB": 0,
+      "MemFreeMB": -1,
+      "GPUTotal": 0,
+      "GPUAlloc": 0,
+      "GPUType": "",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": null,
+      "Features": null,
+      "BootTime": "0001-01-01T00:00:00Z"
+    }
+  ],
+  "warnings": [
+    {
+      "source": "nodes",
+      "line": 6,
+      "raw": "NodeName=cpu09 CoresPerSocket=32 CPUAlloc=zero CPUTot=64 State=IDLE Partitions=cpu",
+      "msg": "\"zero\" is not an integer"
+    },
+    {
+      "source": "nodes",
+      "line": 7,
+      "raw": "this line has no node name",
+      "msg": "no NodeName"
+    }
+  ]
+}

@@ -1,0 +1,159 @@
+{
+  "items": [
+    {
+      "Name": "cpu01",
+      "State": "DOWN",
+      "Flags": [
+        "NOT_RESPONDING"
+      ],
+      "Reason": "Not responding [root@2026-09-28T12:52:55]",
+      "Partitions": [
+        "cpu"
+      ],
+      "CPUTotal": 32,
+      "CPUAlloc": 0,
+      "CPULoad": 0,
+      "MemTotalMB": 128000,
+      "MemAllocMB": 0,
+      "MemFreeMB": -1,
+      "GPUTotal": 0,
+      "GPUAlloc": 0,
+      "GPUType": "",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": null,
+      "Features": null,
+      "BootTime": "0001-01-01T00:00:00Z"
+    },
+    {
+      "Name": "cpu02",
+      "State": "DOWN",
+      "Flags": [
+        "DRAIN",
+        "NOT_RESPONDING"
+      ],
+      "Reason": "bad DIMM : Not responding [root@2026-09-28T12:52:55]",
+      "Partitions": [
+        "cpu"
+      ],
+      "CPUTotal": 32,
+      "CPUAlloc": 0,
+      "CPULoad": 0,
+      "MemTotalMB": 128000,
+      "MemAllocMB": 0,
+      "MemFreeMB": -1,
+      "GPUTotal": 0,
+      "GPUAlloc": 0,
+      "GPUType": "",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": null,
+      "Features": null,
+      "BootTime": "0001-01-01T00:00:00Z"
+    },
+    {
+      "Name": "gpu02",
+      "State": "DOWN",
+      "Flags": [
+        "NOT_RESPONDING"
+      ],
+      "Reason": "Not responding [root@2026-09-28T12:52:55]",
+      "Partitions": [
+        "gpu"
+      ],
+      "CPUTotal": 16,
+      "CPUAlloc": 0,
+      "CPULoad": 0,
+      "MemTotalMB": 64000,
+      "MemAllocMB": 0,
+      "MemFreeMB": -1,
+      "GPUTotal": 4,
+      "GPUAlloc": 0,
+      "GPUType": "a100",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": [
+        {
+          "Type": "a100",
+          "Total": 4,
+          "Alloc": 0,
+          "MIG": false
+        }
+      ],
+      "Features": [
+        "a100"
+      ],
+      "BootTime": "0001-01-01T00:00:00Z"
+    },
+    {
+      "Name": "gpu03",
+      "State": "DOWN",
+      "Flags": [
+        "NOT_RESPONDING"
+      ],
+      "Reason": "Not responding [root@2026-09-28T12:52:55]",
+      "Partitions": [
+        "gpu"
+      ],
+      "CPUTotal": 16,
+      "CPUAlloc": 0,
+      "CPULoad": 0,
+      "MemTotalMB": 64000,
+      "MemAllocMB": 0,
+      "MemFreeMB": -1,
+      "GPUTotal": 4,
+      "GPUAlloc": 0,
+      "GPUType": "a100",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": [
+        {
+          "Type": "a100",
+          "Total": 4,
+          "Alloc": 0,
+          "MIG": false
+        }
+      ],
+      "Features": [
+        "a100"
+      ],
+      "BootTime": "0001-01-01T00:00:00Z"
+    },
+    {
+      "Name": "node01",
+      "State": "MIXED",
+      "Flags": null,
+      "Reason": "",
+      "Partitions": [
+        "gpu",
+        "cpu",
+        "short"
+      ],
+      "CPUTotal": 16,
+      "CPUAlloc": 14,
+      "CPULoad": 0.43,
+      "MemTotalMB": 32000,
+      "MemAllocMB": 18192,
+      "MemFreeMB": 14922,
+      "GPUTotal": 4,
+      "GPUAlloc": 4,
+      "GPUType": "tesla",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": [
+        {
+          "Type": "tesla",
+          "Total": 4,
+          "Alloc": 4,
+          "MIG": false
+        }
+      ],
+      "Features": [
+        "tesla",
+        "local"
+      ],
+      "BootTime": "2026-09-28T12:33:15Z"
+    }
+  ],
+  "warnings": null
+}

@@ -1,0 +1,30 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage           tundra · you · demo  
+─────────────────────────────────────────────────━━━━━━━━━──────────────────────────────────────────
+                                                                                                    
+  last 7 days  ([ ] changes) · 12 jobs                                                              
+  Jobs     12 finished · 5 failed (42%), most often FAILED · CPU 284 h · GPU 29 h                   
+  Idle     CPU 84 h of 152 h (56%) · memory ~242 GB-h unused · GPU 1.5 h of 11 h (14%)              
+  Limits   your GPUs in use 2 of 8 (25%) · your CPUs in use 28 of 192 (15%) +5 more                 
+  Priority fairshare 0.62 in ml-lab: under your share · 1 pending (:fairshare)                      
+  Wasteful 785 train-lora · 804 tokenize · 776 tokenize  (sort by IDLE)                             
+                                                                                                    
+    ID     NAME        STATE    EXIT  ELAPSED   CPU%  MEM%  GPU  IDLE  PART  END                    
+  ────────────────────────────────────────────────────────────────────────────────────────────────  
+  ▶ 809    preproc     ✗ OOM   0:125  41m/1h     90%   99%    ·     -  cpu   11:00                  
+    806    eval-bench  ✓ CD        0  38m/2h     83%   12%    1  0.7h  gpu   09:00                  
+    804    tokenize    ✓ CD        0  1h10m/8h   22%    9%    ·   29h  cpu   07:00                  
+    799    train-lora  ✗ TO        0  12h/12h    60%   70%    1     -  gpu   Sep 27                 
+    797    eval-bench  ✓ CD        0  35m/2h     80%   30%    1  0.8h  gpu   Sep 27                 
+    794    plot        ✓ CD        0  3m/1h      95%   22%    ·     0  cpu   Sep 27                 
+    792    debug       ⊘ CA        0  14m/1h     10%    5%    1     -  gpu   Sep 26                 
+    788    convert     ✗ FAIL    127  2s/1h       0%     -    ·     -  cpu   Sep 26                 
+    785    train-lora  ✓ CD        0  9h20m/1d   62%   68%    1   29h  gpu   Sep 25                 
+    781    segfaulty   ✗ FAIL   0:11  5m/1h       0%   40%    ·     -  cpu   Sep 24                 
+    776    tokenize    ✓ CD        0  1h05m/8h   25%   10%    ·   26h  cpu   Sep 23                 
+    770    preempt-me  ⊘ PR        0  3h/12h     50%   50%    2     -  gpu   Sep 22                 
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+────────────────────────────────────────────────────────────────────────────────────────────────────
+  enter details · [ shorter range · ] longer range · , settings · ? help            updated 0s ago  

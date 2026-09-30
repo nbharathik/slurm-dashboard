@@ -1,0 +1,36 @@
+ sdash · tundra · you · slurm 24.05 · demo                                                           updated 0s ago [r] 
+  1 Overview (6)  [2 Jobs (5)]  3 Queue   4 Nodes   5 History   6 Storage                                  filter: none 
+╭─ New job: Train on 1 GPU ────────────────────╮╭─ Preview ────────────────────────────────────────────────────────────╮
+│ name      gpu-single                         ││ #!/bin/bash                                                          │
+│ partition gpu  ‹ ›                           ││ # sdash:name  Train on 1 GPU                                         │
+│ gpus      1                                  ││ # sdash:var   partition  choice  default=gpu       choices=@partiti… │
+│ cpus      8                                  ││ # sdash:var   gpus       int     default=1         min=1 max=8       │
+│ time      04:00:00                           ││ # sdash:var   cpus       int     default=8         min=1 max=64      │
+│ mem       32G                                ││ # sdash:var   time       dur     default=04:00:00                    │
+│ script    train.py                           ││ # sdash:var   mem        mem     default=32G                         │
+│ directory /                                  ││ # sdash:var   script     path    default=train.py                    │
+│                                              ││ #SBATCH --job-name=gpu-single                                        │
+│ [ Estimate (ctrl+t) ] [ Submit (ctrl+s) ]    ││ #SBATCH --partition=gpu                                              │
+│ esc cancels                                  ││ #SBATCH --gres=gpu:1                                                 │
+│                                              ││ #SBATCH --cpus-per-task=8                                            │
+│                                              ││ #SBATCH --time=04:00:00                                              │
+│                                              ││ #SBATCH --mem=32G                                                    │
+│                                              ││ #SBATCH --output=%x-%j.out                                           │
+│                                              ││                                                                      │
+│                                              ││ set -euo pipefail                                                    │
+│                                              ││ srun python train.py                                                 │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+│                                              ││                                                                      │
+╰──────────────────────────────────────────────╯╰──────────────────────────────────────────────────────────────────────╯
+                                                                                                                        
+ tab next field · ctrl+t estimate · ctrl+s submit · esc close                                                           

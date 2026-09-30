@@ -1,0 +1,13 @@
+{
+  "items": {
+    "Name": "cluster1",
+    "PrivateData": null,
+    "Settings": {
+      "AccountingStorageType": "accounting_storage/slurmdbd",
+      "AccountingStoreFlags": "job_script",
+      "JobAcctGatherType": "jobacct_gather/linux",
+      "PriorityType": "priority/multifactor"
+    }
+  },
+  "warnings": null
+}

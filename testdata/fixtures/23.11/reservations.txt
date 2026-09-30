@@ -1,0 +1,1 @@
+ReservationName=maint StartTime=2026-09-30T12:45:55 EndTime=2026-09-30T18:45:55 Duration=06:00:00 Nodes=cpu[01-02],gpu[02-03],node01 NodeCnt=5 CoreCnt=112 Features=(null) PartitionName=(null) Flags=MAINT,IGNORE_JOBS,SPEC_NODES,ALL_NODES TRES=cpu=112 Users=root Groups=(null) Accounts=(null) Licenses=(null) State=INACTIVE BurstBuffer=(null) Watts=n/a MaxStartDelay=(null)

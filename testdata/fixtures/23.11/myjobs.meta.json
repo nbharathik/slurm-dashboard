@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "squeue",
+    "--me",
+    "-h",
+    "-o",
+    "%i\u001f%F\u001f%K\u001f%P\u001f%q\u001f%a\u001f%T\u001f%M\u001f%l\u001f%L\u001f%D\u001f%C\u001f%m\u001f%b\u001f%r\u001f%N\u001f%S\u001f%e\u001f%V\u001f%Q\u001f%E\u001f%u\u001f%j"
+  ],
+  "label": "myjobs",
+  "exit_code": 0,
+  "duration_ms": 5,
+  "stderr": "",
+  "recorded_at": "2026-09-28T13:11:26.829959376Z"
+}

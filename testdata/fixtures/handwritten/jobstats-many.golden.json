@@ -1,0 +1,35 @@
+{
+  "items": {
+    "1000_3": {
+      "NTasks": 1,
+      "MaxRSSMB": 10,
+      "AveRSSMB": 10,
+      "AveCPU": 1000000000,
+      "TotalCPU": 1000000000,
+      "GPUUtil": 0,
+      "HasGPUUtil": false,
+      "At": "0001-01-01T00:00:00Z"
+    },
+    "812": {
+      "NTasks": 2,
+      "MaxRSSMB": 2,
+      "AveRSSMB": 1,
+      "AveCPU": 720000000000,
+      "TotalCPU": 720000000000,
+      "GPUUtil": 0,
+      "HasGPUUtil": false,
+      "At": "0001-01-01T00:00:00Z"
+    },
+    "813": {
+      "NTasks": 8,
+      "MaxRSSMB": 1563,
+      "AveRSSMB": 1270,
+      "AveCPU": 7800000000000,
+      "TotalCPU": 60000000000000,
+      "GPUUtil": 0.12,
+      "HasGPUUtil": true,
+      "At": "0001-01-01T00:00:00Z"
+    }
+  },
+  "warnings": null
+}

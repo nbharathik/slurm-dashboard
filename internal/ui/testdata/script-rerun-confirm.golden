@@ -1,0 +1,36 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage                               tundra · you · demo  
+─────────────────────────────────────────────────━━━━━━━━━──────────────────────────────────────────────────────────────
+                                                                                                                        
+  ╭─ Rerun 806 eval-bench ──────────────────────────────────────╮╭─ Script (15 lines) ───────────────────────────────╮  
+  │ From /home/you/runs/eval                                    ││ #!/bin/bash                                       │  
+  │                                                             ││ #SBATCH --job-name=eval-bench                     │  
+  │ ▶ Job name       eval-bench                                 ││ #SBATCH --partition=gpu                           │  
+  │   Partition      gpu                                        ││ #SBATCH --time=2:00:00                            │  
+  │   CPUs per task  4                                          ││ #SBATCH --cpus-per-task=4                         │  
+  │   Memory         16G                     suggested 3G       ││ #SBATCH --mem=16G                                 │  
+  │   Time           2:00:00                 suggested 01:00:00 ││ #SBATCH --gres=gpu:1                              │  
+  │   GPUs           gpu:1                                      ││ #SBATCH --output=%x-%j.out                        │  
+  │                     ╭──────────────────────────────────────────────────────────────────────╮                     │  
+  │ Also passed: --accou│  Submit this rerun?                                                  │                     │  
+  │                     │                                                                      │                     │  
+  │ [ Rerun (r) ]  esc c│  Job:       rerun of 806 eval-bench                                  │3.12                 │  
+  │                     │  Directory: /home/you/runs/eval                                      │e                    │  
+  │                     │  Script:    15 lines on stdin (as in the preview)                    │                     │  
+  │                     │                                                                      │onfig configs/eval-… │  
+  │                     │  Will run:                                                           │                     │  
+  │                     │    sbatch --parsable --account=ml-lab                                │                     │  
+  │                     │                                                                      │                     │  
+  │                     │                              [ Submit (y) ]  [ Keep editing (esc) ]  │                     │  
+  │                     ╰──────────────────────────────────────────────────────────────────────╯                     │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  │                                                             ││                                                   │  
+  ╰─────────────────────────────────────────────────────────────╯╰───────────────────────────────────────────────────╯  
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  esc back                                                                                                              

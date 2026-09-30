@@ -1,0 +1,56 @@
+{
+  "items": [
+    {
+      "ID": {
+        "raw": "5001",
+        "array_job_id": 5001,
+        "het_offset": -1
+      },
+      "User": "alice",
+      "Partition": "gpu-mig",
+      "NodeList": [
+        "mig01"
+      ],
+      "EndTime": "2026-09-28T18:00:00Z",
+      "GPUs": 1,
+      "MIGSlices": 1,
+      "CPUs": 8,
+      "MemMB": 32000
+    },
+    {
+      "ID": {
+        "raw": "5002",
+        "array_job_id": 5002,
+        "het_offset": -1
+      },
+      "User": "bob",
+      "Partition": "gpu",
+      "NodeList": [
+        "h200-01"
+      ],
+      "EndTime": "2026-09-29T02:00:00Z",
+      "GPUs": 2,
+      "MIGSlices": 0,
+      "CPUs": 16,
+      "MemMB": 128000
+    },
+    {
+      "ID": {
+        "raw": "5003",
+        "array_job_id": 5003,
+        "het_offset": -1
+      },
+      "User": "carol",
+      "Partition": "compute",
+      "NodeList": [
+        "cpu05"
+      ],
+      "EndTime": "2026-09-28T20:00:00Z",
+      "GPUs": 0,
+      "MIGSlices": 0,
+      "CPUs": 32,
+      "MemMB": 0
+    }
+  ],
+  "warnings": null
+}

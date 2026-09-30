@@ -1,0 +1,28 @@
+{
+  "items": [
+    {
+      "Name": "maint",
+      "Start": "2026-09-30T12:45:55Z",
+      "End": "2026-09-30T18:45:55Z",
+      "Nodes": [
+        "cpu01",
+        "cpu02",
+        "gpu02",
+        "gpu03",
+        "node01"
+      ],
+      "Flags": [
+        "MAINT",
+        "IGNORE_JOBS",
+        "SPEC_NODES",
+        "ALL_NODES"
+      ],
+      "Users": [
+        "root"
+      ],
+      "Accounts": null,
+      "State": "INACTIVE"
+    }
+  ],
+  "warnings": null
+}

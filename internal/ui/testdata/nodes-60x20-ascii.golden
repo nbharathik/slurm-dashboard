@@ -1,0 +1,20 @@
+ sdash | < 4/6 Nodes >                  tundra | you | demo 
+-----------=========----------------------------------------
+ 6 nodes | 212/512 CPUs free | 0/8 GPUs free                
+ ! reservation maint | starts in 2d03h | all nodes | 6h     
+   NODE ^      STATE    CPU FREE  GPU FREE  JOBS            
+ ---------------------------------------------------------- 
+ > v gpu (2)   up         68/128       0/8  5 pending | li~ 
+     gpu01     alloc       36/64       0/4  you 2 | alice 1 
+     gpu02     alloc       32/64       0/4  bob 1           
+                                                            
+   v cpu* (4)  up        144/384            limit 7d        
+     cpu01     mixed      16/128            you 1 | carol 1 
+     cpu02     mixed      64/128            carol 1         
+     cpu03     mixed      64/128            carol 1         
+     cpu04     drained   128/128            "bad DIMM"      
+                                                            
+                                                            
+                                                            
+------------------------------------------------------------
+ enter details | , settings | ? help         updated 0s ago 

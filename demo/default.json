@@ -1,0 +1,78 @@
+{
+  "cluster": "tundra",
+  "version": "24.05.4",
+  "user": "you",
+  "uid": 1000,
+  "account": "ml-lab",
+  "loop": "10m",
+  "home": "/home/you",
+  "nodes": [
+    {"name": "gpu01", "cpus": 64, "mem_gb": 512, "gpus": 4, "gpu_type": "h100", "partitions": ["gpu"], "features": ["h100", "ib"]},
+    {"name": "gpu02", "cpus": 64, "mem_gb": 512, "gpus": 4, "gpu_type": "h100", "partitions": ["gpu"], "features": ["h100", "ib"]},
+    {"name": "cpu01", "cpus": 128, "mem_gb": 256, "partitions": ["cpu"], "features": ["epyc"]},
+    {"name": "cpu02", "cpus": 128, "mem_gb": 256, "partitions": ["cpu"], "features": ["epyc"]},
+    {"name": "cpu03", "cpus": 128, "mem_gb": 256, "partitions": ["cpu"], "features": ["epyc"]},
+    {"name": "cpu04", "cpus": 128, "mem_gb": 256, "partitions": ["cpu"], "features": ["epyc"], "drain": "bad DIMM"}
+  ],
+  "partitions": [
+    {"name": "gpu", "nodes": "gpu[01-02]", "max_time": "2-00:00:00"},
+    {"name": "cpu", "nodes": "cpu[01-04]", "max_time": "7-00:00:00", "default": true}
+  ],
+  "reservations": [
+    {"name": "maint", "start_in": "51h", "duration": "6h", "nodes": "cpu[01-04],gpu[01-02]", "flags": ["MAINT", "IGNORE_JOBS"]}
+  ],
+  "jobs": [
+    {"id": 812, "user": "you", "name": "train-lora", "partition": "gpu", "cpus": 8, "mem_gb": 32, "gpus": 1, "nodes": ["gpu01"],
+     "limit": "1-00:00:00", "run_before": "5h46m", "workdir": "/home/you/runs/lora", "cpu_eff": 0.64, "mem_frac": 0.71, "gpu_util": 0.93,
+     "log": "train"},
+    {"id": 813, "user": "you", "name": "eval-bench", "partition": "gpu", "cpus": 4, "mem_gb": 16, "gpus": 1, "nodes": ["gpu01"],
+     "limit": "2:00:00", "run_before": "1h52m", "end_at": "4m", "final": "COMPLETED", "workdir": "/home/you/runs/eval",
+     "cpu_eff": 0.81, "mem_frac": 0.18, "gpu_util": 0.55, "log": "eval"},
+    {"id": 815, "user": "you", "name": "sweep", "partition": "gpu", "cpus": 8, "mem_gb": 32, "gpus": 1, "nodes": ["gpu01"],
+     "limit": "4:00:00", "array": "3-9", "array_start": "4m", "reason": "Resources", "priority": 5120, "submit_ago": "25m",
+     "est_start": "4m", "workdir": "/home/you/runs/sweep", "cpu_eff": 0.7, "mem_frac": 0.4, "gpu_util": 0.8, "log": "train"},
+    {"id": 816, "user": "you", "name": "preproc", "partition": "cpu", "cpus": 16, "mem_gb": 32, "nodes": ["cpu01"],
+     "limit": "1:00:00", "run_before": "30s", "end_at": "90s", "final": "OUT_OF_MEMORY", "exit": "0:125", "peak_frac": 0.994,
+     "workdir": "/home/you/data", "cpu_eff": 0.92, "mem_frac": 0.97, "log": "oom"},
+    {"id": 818, "user": "you", "name": "big-sweep", "partition": "gpu", "cpus": 32, "mem_gb": 128, "gpus": 4, "nodes": ["gpu02"],
+     "limit": "12:00:00", "reason": "JobHeldUser", "priority": 0, "submit_ago": "2h", "workdir": "/home/you/runs/big"},
+
+    {"id": 790, "user": "alice", "name": "llm-finetune", "partition": "gpu", "cpus": 16, "mem_gb": 128, "gpus": 2, "nodes": ["gpu01"],
+     "limit": "2-00:00:00", "run_before": "20h", "account": "nlp"},
+    {"id": 795, "user": "bob", "name": "diffusion", "partition": "gpu", "cpus": 32, "mem_gb": 256, "gpus": 4, "nodes": ["gpu02"],
+     "limit": "12:00:00", "run_before": "9h46m", "account": "vision"},
+    {"id": 801, "user": "carol", "name": "md-sim", "partition": "cpu", "cpus": 96, "mem_gb": 180, "nodes": ["cpu01"],
+     "limit": "3-00:00:00", "run_before": "30h", "account": "chem"},
+    {"id": 802, "user": "carol", "name": "md-sim", "partition": "cpu", "cpus": 128, "mem_gb": 200, "nodes": ["cpu02", "cpu03"],
+     "limit": "3-00:00:00", "run_before": "28h", "account": "chem"},
+    {"id": 805, "user": "dave", "name": "rl-agent", "partition": "gpu", "cpus": 8, "mem_gb": 64, "gpus": 2, "reason": "Priority",
+     "priority": 4800, "limit": "8:00:00", "submit_ago": "40m", "account": "rl"},
+    {"id": 807, "user": "erin", "name": "embed", "partition": "gpu", "cpus": 4, "mem_gb": 32, "gpus": 1, "reason": "Priority",
+     "priority": 3900, "limit": "2:00:00", "submit_ago": "15m", "account": "nlp"},
+    {"id": 810, "user": "dave", "name": "rl-agent", "partition": "gpu", "cpus": 8, "mem_gb": 64, "gpus": 2, "reason": "Resources",
+     "priority": 6100, "limit": "8:00:00", "submit_ago": "1h", "account": "rl", "est_start": "30m"}
+  ],
+  "history": [
+    {"id": 809, "name": "preproc", "partition": "cpu", "state": "OUT_OF_MEMORY", "exit": "0:125", "end_ago": "3h", "elapsed": "41m", "limit": "1:00:00", "cpus": 16, "mem_gb": 32, "peak_frac": 0.994, "cpu_eff": 0.9, "nodes": ["cpu01"], "workdir": "/home/you/data"},
+    {"id": 806, "name": "eval-bench", "partition": "gpu", "state": "COMPLETED", "end_ago": "5h", "elapsed": "38m", "limit": "2:00:00", "cpus": 4, "mem_gb": 16, "gpus": 1, "peak_frac": 0.12, "cpu_eff": 0.83, "gpu_util": 0.5, "nodes": ["gpu01"], "workdir": "/home/you/runs/eval"},
+    {"id": 804, "name": "tokenize", "partition": "cpu", "state": "COMPLETED", "end_ago": "7h", "elapsed": "1h10m", "limit": "8:00:00", "cpus": 32, "mem_gb": 64, "peak_frac": 0.09, "cpu_eff": 0.22, "nodes": ["cpu02"], "workdir": "/home/you/data"},
+    {"id": 799, "name": "train-lora", "partition": "gpu", "state": "TIMEOUT", "end_ago": "20h", "elapsed": "12h", "limit": "12:00:00", "cpus": 8, "mem_gb": 32, "gpus": 1, "peak_frac": 0.7, "cpu_eff": 0.6, "gpu_util": 0.9, "nodes": ["gpu01"], "workdir": "/home/you/runs/lora"},
+    {"id": 797, "name": "eval-bench", "partition": "gpu", "state": "COMPLETED", "end_ago": "26h", "elapsed": "35m", "limit": "2:00:00", "cpus": 4, "mem_gb": 16, "gpus": 1, "peak_frac": 0.3, "cpu_eff": 0.8, "gpu_util": 0.45, "nodes": ["gpu01"], "workdir": "/home/you/runs/eval"},
+    {"id": 794, "name": "plot", "partition": "cpu", "state": "COMPLETED", "end_ago": "30h", "elapsed": "3m", "limit": "1:00:00", "cpus": 1, "mem_gb": 4, "peak_frac": 0.22, "cpu_eff": 0.95, "nodes": ["cpu03"], "workdir": "/home/you/runs"},
+    {"id": 792, "name": "debug", "partition": "gpu", "state": "CANCELLED", "cancelled_by": 1000, "end_ago": "2d2h", "elapsed": "14m", "limit": "1:00:00", "cpus": 4, "mem_gb": 16, "gpus": 1, "peak_frac": 0.05, "cpu_eff": 0.1, "nodes": ["gpu02"], "workdir": "/home/you/runs"},
+    {"id": 788, "name": "convert", "partition": "cpu", "state": "FAILED", "exit": "127:0", "end_ago": "2d5h", "elapsed": "2s", "limit": "1:00:00", "cpus": 1, "mem_gb": 2, "nodes": ["cpu01"], "workdir": "/home/you/data"},
+    {"id": 785, "name": "train-lora", "partition": "gpu", "state": "COMPLETED", "end_ago": "3d", "elapsed": "9h20m", "limit": "1-00:00:00", "cpus": 8, "mem_gb": 32, "gpus": 1, "peak_frac": 0.68, "cpu_eff": 0.62, "gpu_util": 0.91, "nodes": ["gpu01"], "workdir": "/home/you/runs/lora"},
+    {"id": 781, "name": "segfaulty", "partition": "cpu", "state": "FAILED", "exit": "0:11", "end_ago": "4d", "elapsed": "5m", "limit": "1:00:00", "cpus": 2, "mem_gb": 4, "peak_frac": 0.4, "nodes": ["cpu02"], "workdir": "/home/you/code"},
+    {"id": 776, "name": "tokenize", "partition": "cpu", "state": "COMPLETED", "end_ago": "5d", "elapsed": "1h5m", "limit": "8:00:00", "cpus": 32, "mem_gb": 64, "peak_frac": 0.1, "cpu_eff": 0.25, "nodes": ["cpu02"], "workdir": "/home/you/data"},
+    {"id": 770, "name": "preempt-me", "partition": "gpu", "state": "PREEMPTED", "end_ago": "6d", "elapsed": "3h", "limit": "12:00:00", "cpus": 8, "mem_gb": 32, "gpus": 2, "peak_frac": 0.5, "cpu_eff": 0.5, "nodes": ["gpu02"], "workdir": "/home/you/runs"},
+    {"id": 741, "name": "old-train", "partition": "gpu", "state": "COMPLETED", "end_ago": "12d", "elapsed": "20h", "limit": "2-00:00:00", "cpus": 8, "mem_gb": 64, "gpus": 2, "peak_frac": 0.55, "cpu_eff": 0.7, "gpu_util": 0.85, "nodes": ["gpu01"], "workdir": "/home/you/runs"},
+    {"id": 702, "name": "node-crash", "partition": "gpu", "state": "NODE_FAIL", "end_ago": "20d", "elapsed": "6h", "limit": "12:00:00", "cpus": 8, "mem_gb": 32, "gpus": 1, "peak_frac": 0.4, "cpu_eff": 0.6, "nodes": ["gpu02"], "workdir": "/home/you/runs"}
+  ],
+  "storage": [
+    {"label": "Home", "path": "/home/you", "fs": "nfs", "backend": "quota", "used_gb": 31, "soft_gb": 50, "hard_gb": 55, "files": 212000, "files_soft": 1000000, "files_hard": 1200000, "growth_gb_day": 0.1},
+    {"label": "Scratch", "path": "/scratch/you", "fs": "lustre", "backend": "lustre", "used_gb": 9420, "soft_gb": 10240, "hard_gb": 11264, "files": 3100000, "files_soft": 5000000, "files_hard": 6000000, "note": "purged after 60 days", "growth_gb_day": 41},
+    {"label": "Project", "path": "/project/ml-lab", "fs": "gpfs", "backend": "gpfs", "used_gb": 1230, "soft_gb": 5120, "hard_gb": 5120, "files": 900000, "files_soft": 0, "files_hard": 10000000, "growth_gb_day": 4}
+  ],
+  "fairshare": {"raw_shares": 100, "norm_shares": 0.25, "raw_usage": 4210331, "effective_usage": 0.18, "fairshare": 0.62},
+  "limits": {"account_cpus": 512, "user_cpus": 192, "user_gpus": 8, "max_jobs": 40, "max_submit": 200, "max_wall_min": 4320, "qos_wall_min": 10080}
+}

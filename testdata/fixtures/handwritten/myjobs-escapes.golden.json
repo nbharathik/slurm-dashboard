@@ -1,0 +1,35 @@
+{
+  "items": [
+    {
+      "ID": {
+        "raw": "900",
+        "array_job_id": 900,
+        "het_offset": -1
+      },
+      "Name": "evilexe.txt",
+      "User": "user1",
+      "Account": "acct1",
+      "Partition": "gpu",
+      "QOS": "normal",
+      "State": "PENDING",
+      "Reason": "Resources",
+      "Dependency": "",
+      "TimeUsed": 0,
+      "TimeLimit": 3600000000000,
+      "TimeLeft": 3600000000000,
+      "SubmitTime": "2026-09-28T13:00:00Z",
+      "StartTime": "0001-01-01T00:00:00Z",
+      "EndTime": "0001-01-01T00:00:00Z",
+      "Nodes": 1,
+      "NodeList": null,
+      "CPUs": 4,
+      "MemPerNodeMB": 8192,
+      "GPUs": 0,
+      "GPUType": "",
+      "Priority": 100,
+      "QueueRank": 0,
+      "QueueTotal": 0
+    }
+  ],
+  "warnings": null
+}

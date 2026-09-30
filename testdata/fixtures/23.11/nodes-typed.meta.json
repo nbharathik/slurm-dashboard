@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "scontrol",
+    "show",
+    "node",
+    "-o"
+  ],
+  "label": "nodes",
+  "exit_code": 0,
+  "duration_ms": 5,
+  "stderr": "",
+  "recorded_at": "2026-09-28T22:50:08.276356728Z"
+}

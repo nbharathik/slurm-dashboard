@@ -1,0 +1,17 @@
+700700finished-okgpuCOMPLETED0:02026-09-27T10:00:002026-09-27T10:00:052026-09-27T12:00:057200240814:24:0032Gbilling=8,cpu=8,gres/gpu=1,mem=32G,node=11gpu01/home/user1/runs/a
+700.batch700.batchbatchCOMPLETED0:02026-09-27T10:00:052026-09-27T10:00:052026-09-27T12:00:057200814:24:009728Mcpu=14:24:00,energy=0,fs/disk=1000,gres/gpumem=40G,gres/gpuutil=85,mem=9728M,pages=0,vmem=12Gcpu=8,gres/gpu=1,mem=32G,node=11gpu01
+700.extern700.externexternCOMPLETED0:02026-09-27T10:00:052026-09-27T10:00:052026-09-27T12:00:057200800:00:00512Kcpu=00:00:00,mem=512Kcpu=8,gres/gpu=1,mem=32G,node=11gpu01
+701701oom-jobgpuOUT_OF_MEMORY0:1252026-09-27T11:00:002026-09-27T11:00:002026-09-27T11:30:00180060401:50:008000Mnbilling=4,cpu=4,mem=8000M,node=11gpu02/home/user1/runs/b
+701.batch701.batchbatchOUT_OF_MEMORY0:1252026-09-27T11:00:002026-09-27T11:00:002026-09-27T11:30:001800401:50:007990Mcpu=01:50:00,mem=7990Mcpu=4,mem=8000M,node=11gpu02
+702702old-reqmemcpuCOMPLETED0:02026-09-26T09:00:002026-09-26T09:00:002026-09-26T09:10:00600UNLIMITED400:05:002000Mc1cpu07/home/user1
+702.0702.0pythonCOMPLETED0:02026-09-26T09:00:012026-09-26T09:00:012026-09-26T09:10:00599400:05:001500Mcpu=4,mem=8000M,node=11cpu07
+703703nodefailgpuNODE_FAIL1:02026-09-26T10:00:002026-09-26T10:00:002026-09-26T10:05:0030060800:00:0032Gbilling=8,cpu=8,gres/gpu=2,mem=32G,node=22gpu[01-02]/home/user1/x
+704704preemptedgpuPREEMPTED0:152026-09-26T10:00:002026-09-26T10:01:002026-09-26T10:31:001800120800:10:0032Gbilling=8,cpu=8,gres/gpu=1,mem=32G,node=11gpu03/home/user1/x
+705705cancelledgpuCANCELLED by 12340:02026-09-26T10:00:002026-09-26T10:01:002026-09-26T10:02:006060100:00:011Gbilling=1,cpu=1,mem=1G,node=11gpu03/home/user1/x
+706_3709array taskgpuTIMEOUT0:02026-09-26T10:00:002026-09-26T10:01:002026-09-26T11:01:00360060201:59:004Gbilling=2,cpu=2,mem=4G,node=11gpu03/home/user1/x
+706_3.batch709.batchbatchCANCELLED0:152026-09-26T10:01:002026-09-26T10:01:002026-09-26T11:01:003600201:59:003Gcpu=01:59:00,mem=3Gcpu=2,mem=4G,node=11gpu03
+707707still-runninggpuRUNNING0:02026-09-28T10:00:002026-09-28T10:00:00Unknown3600600200:00:004Gbilling=2,cpu=2,mem=4G,node=11gpu01/home/user1/x
+708708never-startedgpuPENDING0:02026-09-28T10:00:00UnknownUnknown060000:00:004G1None assigned/home/user1/x
+999.batch999.batchbatchCOMPLETED0:02026-09-20T10:00:002026-09-20T10:00:002026-09-20T10:00:011100:00:001M1gpu01
+bad|line
+710710bad exitgpuFAILEDx:y2026-09-26T10:00:002026-09-26T10:00:002026-09-26T10:00:0111100:00:001G1gpu01/x

@@ -1,0 +1,3 @@
+PartitionName=gpu AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL Default=YES MaxTime=2-00:00:00 Nodes=gpu[01-03] State=UP TotalCPUs=192 TotalNodes=3 TRES=cpu=192,mem=2500000M,node=3,billing=192,gres/gpu=16
+PartitionName=cpu Default=NO MaxTime=UNLIMITED Nodes=cpu[07-09] State=UP TotalCPUs=192 TotalNodes=3 TRES=cpu=192,mem=1500G,node=3,billing=192
+PartitionName=debug Default=NO MaxTime=00:30:00 Nodes=gpu01 State=DOWN TotalCPUs=64 TotalNodes=1 TRES=cpu=64,mem=1000000M,node=1,billing=64,gres/gpu=4

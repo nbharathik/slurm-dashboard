@@ -1,0 +1,5 @@
+812.batch|1|2048K|1024K|00:12:00|cpu=00:12:00,energy=0,fs/disk=8317,mem=2048K,pages=0,vmem=5528K
+812.extern|1|0|0|00:00:00|cpu=00:00:00,energy=0,fs/disk=0,mem=0,pages=0,vmem=0
+813.batch|4|1500000K|1200000K|02:00:00|cpu=08:00:00,energy=0,fs/disk=1,mem=1500000K,pages=0,vmem=2000000K,gres/gpumem=2048M,gres/gpuutil=7
+813.0|4|1600000K|1300000K|02:10:00|cpu=08:40:00,energy=0,fs/disk=1,mem=1600000K,pages=0,vmem=2100000K,gres/gpumem=2048M,gres/gpuutil=12
+1000_3.batch|1|10240K|10240K|00:00:01|cpu=00:00:01,energy=0,fs/disk=1,mem=10240K,pages=0,vmem=20480K

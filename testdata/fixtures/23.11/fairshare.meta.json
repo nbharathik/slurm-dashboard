@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "sshare",
+    "-U",
+    "-n",
+    "-P",
+    "-o",
+    "Account,User,RawShares,NormShares,RawUsage,EffectvUsage,FairShare"
+  ],
+  "label": "fairshare",
+  "exit_code": 0,
+  "duration_ms": 4,
+  "stderr": "",
+  "recorded_at": "2026-09-28T13:11:27.062275157Z"
+}

@@ -1,0 +1,36 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage                               tundra · you · demo  
+────────────────────────────────────────━━━━━━━━━───────────────────────────────────────────────────────────────────────
+                                                                                                                        
+  4 nodes · 144/384 CPUs free · CPU-only nodes                                                                          
+  ! reservation maint · starts in 2d03h · all nodes · 6h                                                                
+    NODE ▲      STATE    CPU FREE   MEM FREE  JOBS                                                                      
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
+  ▶ ▾ cpu* (4)  up        144/384  356G/768G  limit 7d                                                                  
+      cpu01     mixed      16/128   44G/256G  you 1 · carol 1                                                           
+      cpu02     mixed      64/128  156G/256G  carol 1                                                                   
+      cpu03     mixed      64/128  156G/256G  carol 1                                                                   
+      cpu04     drained   128/128  256G/256G  "bad DIMM"                                                                
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ✓ Showing CPU-only nodes                                                                              updated 0s ago  
