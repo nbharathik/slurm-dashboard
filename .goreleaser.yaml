@@ -86,4 +86,4 @@ release:
   footer: |
     Install: `curl -fsSL https://raw.githubusercontent.com/nbharathik/slurm-dashboard/main/install.sh | sh`
     Every archive is listed in `checksums.txt` (SHA-256), which is signed with cosign
-    (`checksums.txt.sigstore.json`); the archives also carry GitHub build provenance.
+    (`checksums.txt.sigstore.json`). Public-repository releases also include GitHub build provenance.
