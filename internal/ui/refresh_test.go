@@ -17,7 +17,7 @@ func TestRefreshControls(t *testing.T) {
 	sched.Add(state.Func{N: "myjobs", I: func() time.Duration { return 10 * time.Second }, Fn: func(context.Context) (any, error) { return nil, nil }}, state.Options{})
 	f.opt.Scheduler = sched
 	a := f.app(t, 120, 36, false)
-	if s := screen(a); !strings.Contains(s, "updated") || strings.Contains(s, "↻") || strings.Contains(s, "manual") {
+	if s := screen(a); !strings.Contains(s, "0s ago") || strings.Contains(s, "↻") || strings.Contains(s, "manual") {
 		t.Fatalf("header should show only the freshness:\n%s", firstLines(s, 2))
 	}
 	press(a, "p")
@@ -30,7 +30,7 @@ func TestRefreshControls(t *testing.T) {
 	}
 	// The - and + keys are gone: the speed is the refresh setting.
 	press(a, "-", "+")
-	if s := screen(a); !strings.Contains(s, "updated") || sched.Paused() {
+	if s := screen(a); !strings.Contains(s, "0s ago") || sched.Paused() {
 		t.Fatalf("- and + must do nothing:\n%s", firstLines(s, 2))
 	}
 }

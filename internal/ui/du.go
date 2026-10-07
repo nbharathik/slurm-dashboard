@@ -67,7 +67,8 @@ func (a *App) runDu(path string, argv []string) tea.Cmd {
 	prev := a.st.DiskUsage[path]
 	prev.Path, prev.Running = path, true
 	a.st.DiskUsage[path] = prev
-	ctx, cancel := context.WithTimeout(context.Background(), storage.DuTimeout)
+	a.refreshStorageAnalysis()
+	ctx, cancel := context.WithTimeout(a.runCtx, storage.DuTimeout)
 	a.duCancel = cancel
 	now := a.now
 	started := now()
@@ -105,6 +106,7 @@ func (a *App) runDu(path string, argv []string) tea.Cmd {
 }
 
 func (a *App) duDone(m duDoneMsg) {
+	defer a.refreshStorageAnalysis()
 	a.duCancel = nil
 	u := m.usage
 	if m.err != nil {
@@ -120,4 +122,17 @@ func (a *App) duDone(m duDoneMsg) {
 		return
 	}
 	a.setFlash("Analysed "+m.path, false)
+}
+
+func (a *App) refreshStorageAnalysis() {
+	for i, v := range a.views {
+		if v.Name() != "storage" && v.Name() != "overview" {
+			continue
+		}
+		if i == a.tab {
+			v.Refresh(a.ctx)
+		} else {
+			a.dirty[v.Name()] = true
+		}
+	}
 }

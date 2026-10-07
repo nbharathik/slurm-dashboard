@@ -12,6 +12,7 @@ import (
 	"github.com/nbharathik/slurm-dashboard/internal/execx"
 	"github.com/nbharathik/slurm-dashboard/internal/logs"
 	"github.com/nbharathik/slurm-dashboard/internal/report"
+	"github.com/nbharathik/slurm-dashboard/internal/slurm"
 	"github.com/nbharathik/slurm-dashboard/internal/slurm/parse"
 )
 
@@ -23,11 +24,11 @@ func historyJobHandler(t *testing.T, f *execx.FakeRunner) {
 		t.Fatal(err)
 	}
 	f.Handler = func(_ context.Context, argv []string) (execx.Result, error) {
-		if argv[0] == "sacct" && len(argv) > 5 && argv[4] == "-j" {
+		if argv[0] == "sacct" && len(argv) > 7 && argv[4] == "-u" && argv[6] == "-j" {
 			var b strings.Builder
 			for _, line := range strings.Split(string(raw), "\n") {
 				id := strings.SplitN(line, parse.Sep, 2)[0]
-				if id == argv[5] || strings.HasPrefix(id, argv[5]+".") {
+				if id == argv[7] || strings.HasPrefix(id, argv[7]+".") {
 					b.WriteString(line + "\n")
 				}
 			}
@@ -170,5 +171,31 @@ func TestLogPrinterResetsAfterRotation(t *testing.T) {
 	}
 	if out.String() != "oldnew\n" {
 		t.Fatalf("new file swallowed by old control sequence: %q", out.String())
+	}
+}
+
+func TestForeignCLIPrivateOperations(t *testing.T) {
+	h, a, f := fixtureApp(t)
+	cmd := slurm.Commands{User: "user1"}
+	f.Set(cmd.HistoryJob("999"), execx.FakeResponse{})
+	f.Set(cmd.JobDetail("999"), execx.FakeResponse{Stdout: []byte("JobId=999 UserId=other(99) Command=PRIVATE StdOut=/private/secret WorkDir=/private")})
+	for _, args := range [][]string{{"logs", "999"}, {"eff", "999"}} {
+		if code := runApp(h, a, args...); code != ExitError {
+			t.Fatalf("foreign %v: exit %d", args, code)
+		}
+		if strings.Contains(h.stdout.String()+h.stderr.String(), "PRIVATE") || strings.Contains(h.stdout.String()+h.stderr.String(), "/private") {
+			t.Fatal("private controller data reached CLI output")
+		}
+	}
+	for _, argv := range f.Calls() {
+		if len(argv) >= 3 && argv[0] == "scontrol" && argv[2] == "job" {
+			t.Fatalf("foreign CLI fetched private controller fields: %q", argv)
+		}
+		if argv[0] == "sacct" {
+			joined := strings.Join(argv, " ")
+			if strings.Contains(joined, "-j 999") && !strings.Contains(joined, "-u user1") {
+				t.Fatalf("accounting was not user scoped: %q", argv)
+			}
+		}
 	}
 }

@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"slices"
@@ -307,6 +308,24 @@ func runCopy(a *App, args []string) (tea.Cmd, error) {
 	}
 	if !ok {
 		return nil, errors.New("nothing to copy here")
+	}
+	if what == "path" {
+		j, err := a.oneJob("", nil)
+		if err != nil {
+			return nil, err
+		}
+		if !j.OwnedBy(a.st.User) {
+			return nil, fmt.Errorf("private paths are available only for your own jobs")
+		}
+		return func() tea.Msg {
+			ctx, cancel := context.WithTimeout(a.runCtx, lookupTimeout)
+			defer cancel()
+			d, err := a.opt.Sources.JobDetail(ctx, j.ID.Raw)
+			if err != nil || d == nil {
+				return views.FlashMsg{Text: "Log path unavailable: ownership or visibility check failed", Err: true}
+			}
+			return views.CopyMsg{Text: views.LogPath(d, false), What: what}
+		}, nil
 	}
 	text, err := c.CopyText(a.ctx, what)
 	if err != nil {

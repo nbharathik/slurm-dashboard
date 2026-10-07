@@ -1,0 +1,45 @@
+ sdash │ ‹ 4/6 Nodes ›    tundra · demo 
+───────────━━━━━━━━━────────────────────
+                                        
+ 8 nodes · 219/1235335 CPUs free · 6/2… 
+ ! reservation maint · starts in 2d03h… 
+   NODE ▲     STATE  CPU FREE  GPU FREE 
+ ────────────────────────────────────── 
+ ▶ ▾ gpu (2)  up       68/128       0/8 
+     gpu01    alloc     36/64       0/4 
+     gpu02    alloc     32/64       0/4 
+                                        
+   ▾ cpu* (…  up      144/512           
+     cpu01    mixed    16/128           
+     cpu02    mixed    64/128           
+     cpu03    mixed    64/128           
+     cpu04    drai…     0/128           
+                                        
+   large-do…  down      0/128       0/4 
+   large-up   mixed  7/12345…       6/8 
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+────────────────────────────────────────
+ , settings · ? help     updated 1h ago 

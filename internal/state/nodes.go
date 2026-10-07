@@ -98,6 +98,9 @@ type PartSummary struct {
 	CPUTotal, CPUFree         int
 	GPUTotal, GPUFree         int
 	MIGTotal, MIGFree         int
+	CPUUnavailable            int
+	GPUUnavailable            int
+	MIGUnavailable            int
 	GPUTypes                  []TypeCount // whole GPUs by type: Total and Free
 	Pending                   int
 	PendingKnown              bool
@@ -134,6 +137,9 @@ func PartitionSummaries(parts []model.Partition, usage []NodeUsage, pending map[
 			s.MIGTotal += n.MIGTotal
 			if !Available(n) {
 				s.Down++
+				s.CPUUnavailable += n.CPUTotal - min(max(n.CPUAlloc, 0), n.CPUTotal)
+				s.GPUUnavailable += n.GPUTotal - min(max(n.GPUAlloc, 0), n.GPUTotal)
+				s.MIGUnavailable += n.MIGTotal - min(max(n.MIGAlloc, 0), n.MIGTotal)
 				if n.Reason != "" {
 					s.DownReasons = append(s.DownReasons, n.Name+": "+ShortReason(n.Reason))
 				}

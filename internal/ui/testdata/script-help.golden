@@ -5,32 +5,32 @@
   ──────────╭──────────────────────────────────────────────────────────────────────────────────────────────╮──────────  
     ✗ 809 pr│  Keys                                                                                        │  [open]    
     ✗ 799 tr│                                                                                              │  [open]    
-    ! Scratc│  Global                        Tables                        Jobs                            │  [open]    
-    ! 813 ev│  1-6          go to a tab      up/k         up               a            everyone's jobs    │  [open]    
-            │  tab          next section     down/j       down             c            cancel             │            
-  Cluster   │  :            command          pgup pgdn    page             h            hold               │ee / total  
-  ──────────│  r            refresh          home end     top / bottom     u            release            │──────────  
-    gpu   ██│  R            refresh all      enter        details          Q            requeue            │            
-    cpu*  ██│  p            pause            space        select           l            logs               │            
-            │  ,            settings         ctrl+a       select all       e            stderr             │            
-  Your jobs │  ?            help             s S          sort / reverse   o            pager              │iled today  
-    ID      │  esc          back             / f          filter           t            shell              │            
-  ──────────│  q/ctrl+c     quit             m            actions          g            gpu use            │──────────  
-  ▶ 812     │  ctrl+d       debug            y            copy id          w            why                │            
-    813     │                                ← →          fold / unfold    v            script             │            
-    816     │                                                                                              │            
-    815_[3-9│  Queue                         Overview                      Nodes                           │            
-    818     │  e            start estimate   enter        details          G            all/gpu/cpu        │            
-            │  v            what to show     x            dismiss          g            group              │            
-  Storage · │  g            group                                          enter        details            │            
-  ──────────│  enter        details                                                                        │──────────  
-    Home    │                                                                                              │            
-    Scratch │  Usage                         Storage                       Log viewer                      │            
-    Project │  [            shorter range    enter        details          F            follow             │            
-    Fairshar│  ]            longer range     a            analyse          w            wrap               │            
-            │  enter        details                                        /            search             │            
-            │  → lines 1-24 of 36 (j/k, pgup/pgdn scroll)                                                  │            
+    ! Scratc│  Global                        Tables                        Details                         │  [open]    
+    ! 813 ev│  1-6          go to a tab      up/k         up               alt+up       scroll details up  │  [open]    
+            │  tab          next section     down/j       down             alt+down     scroll details do  │            
+  Cluster   │  :            command          pgup pgdn    page             esc          back               │    0s ago  
+  ──────────│  r            refresh          home end     top / bottom                                     │──────────  
+    Partitio│  R            refresh all      enter        details                                          │            
+    gpu     │  p            pause            space        select                                           │            
+    cpu*    │  ,            settings         ctrl+a       select all                                       │            
+            │  ?            help             s S          sort / reverse                                   │            
+  Your jobs │  esc          back             / f          filter                                           │iled today  
+    ID      │  q/ctrl+c     quit             m            actions                                          │            
+  ──────────│  ctrl+d       debug            y            copy id                                          │──────────  
+  ▶ 812     │                                ← →          fold / unfold                                    │            
+    813     │                                                                                              │            
+    816     │  Jobs                          Queue                         Overview                        │            
+    815_[3-9│  a            everyone's jobs  e            start estimate   enter        details            │            
+    818     │  c            cancel           v            what to show     x            dismiss            │            
+            │  h            hold             g            group                                            │            
+  Storage   │  u            release          enter        details                                          │    0s ago  
+  ──────────│  Q            requeue                                                                        │──────────  
+    Home    │  l            logs                                                                           │            
+    Scratch │  e            stderr                                                                         │            
+    Project │  o            pager                                                                          │            
+    Fairshar│  t            shell                                                                          │            
+            │  → lines 1-24 of 52 (j/k, pgup/pgdn scroll)                                                  │            
             ╰──────────────────────────────────────────────────────────────────────────────────────────────╯            
                                                                                                                         
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  enter open · tab next section · , settings · ? help                                                   updated 0s ago  
+  enter open · tab next section · , settings · ? help                                                                   

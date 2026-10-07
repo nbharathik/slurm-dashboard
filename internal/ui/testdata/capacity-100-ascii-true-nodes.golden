@@ -1,0 +1,45 @@
+  sdash | 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage           tundra | you | demo  
+----------------------------------------=========---------------------------------------------------
+                                                                                                    
+  8 nodes | 219/1235335 CPUs free | 6/20 GPUs free                                                  
+  ! reservation maint | starts in 2d03h | 6 nodes | 6h                                              
+    NODE ^      STATE     CPU FREE   MEM FREE  GPU FREE  GPU TYPE        JOBS                       
+  ------------------------------------------------------------------------------------------------  
+  > v gpu (2)   up          68/128    592G/1T       0/8  H100            5 pending | limit 2d       
+      gpu01     alloc        36/64  336G/512G       0/4  H100            you 2 | alice 1            
+      gpu02     alloc        32/64  256G/512G       0/4  H100            bob 1                      
+                                                                                                    
+    v cpu* (4)  up         144/512    356G/1T                            limit 7d                   
+      cpu01     mixed       16/128   44G/256G                            you 1 | carol 1            
+      cpu02     mixed       64/128  156G/256G                            carol 1                    
+      cpu03     mixed       64/128  156G/256G                            carol 1                    
+      cpu04     drained      0/128     0/256G                            "bad DIMM"                 
+                                                                                                    
+    large-down  down         0/128     0/512G       0/4                                             
+    large-up    mixed    7/1234567     -/977G       6/8  MIG +10/14 MIG  busy, jobs not visible     
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+----------------------------------------------------------------------------------------------------
+  enter details | / filter | G all/gpu/cpu | , settings | ? help                    updated 1h ago  

@@ -1,0 +1,35 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage           tundra · you · demo  
+────────────────────────────────────────━━━━━━━━━───────────────────────────────────────────────────
+                                                                                                    
+  6 nodes · 212/640 CPUs free · 0/8 GPUs free                                                       
+  ! reservation maint · starts in 2d03h · all nodes · 6h                                            
+    NODE ▲      STATE    CPU FREE   MEM FREE  GPU FREE  GPU TYPE  JOBS                              
+  ────────────────────────────────────────────────────────────────────────────────────────────────  
+    ▾ gpu (2)   up         68/128    592G/1T       0/8  H100      5 pending · limit 2d              
+  ▶   gpu01     alloc       36/64  336G/512G       0/4  H100      you 2 · alice 1                   
+      gpu02     alloc       32/64  256G/512G       0/4  H100      bob 1                             
+                                                                                                    
+    ▾ cpu* (4)  up        144/512    356G/1T                      limit 7d                          
+      cpu01     mixed      16/128   44G/256G                      you 1 · carol 1                   
+  ╭─ gpu01 [esc] ────────────────────────────────────────────────────────────────────────────────╮  
+  │ State      ALLOCATED                                                                         │  
+  │ Partitions gpu                                                                               │  
+  │ GPUs       ■■■■  4 of 4 in use                                                               │  
+  │            4/4  H100                                                                         │  
+  │ CPUs       28 of 64 allocated, load 23.2                                                     │  
+  │ Memory     176G of 512G allocated · OS reports 389G free                                     │  
+  │ Est. free  in 8m                                                                             │  
+  │ Features   h100, ib                                                                          │  
+  │ Booted     Sep 18 14:00 (10d ago)                                                            │  
+  │                                                                                              │  
+  │ Running jobs                                                                                 │  
+  │ 813        you       4 CPU 1 GPU   estimated end today 14:08 (in 8m)                         │  
+  │ 812        you       8 CPU 1 GPU   estimated end tomorrow 08:14 (in 18h14m)                  │  
+  │ 790        alice     16 CPU 2 GPU  estimated end tomorrow 18:00 (in 1d04h)                   │  
+  │                                                                                              │  
+  │                                                                                              │  
+  │                                                                                              │  
+  │                                                                                              │  
+  ╰──────────────────────────────────────────────────────────────────────────────────────────────╯  
+────────────────────────────────────────────────────────────────────────────────────────────────────
+  esc close · G all/gpu/cpu · s sort · , settings · ? help                          updated 0s ago  

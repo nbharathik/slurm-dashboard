@@ -41,10 +41,11 @@ type Table struct {
 	Focused  bool
 	Empty    string // text shown when there are no rows
 
-	fitW   int
-	fitted []layout.Fitted
-	height int // rows visible at the last render
-	shown  []layout.Column
+	fitW       int
+	fitted     []layout.Fitted
+	height     int // rows visible at the last render
+	shown      []layout.Column
+	itemPrefix []int
 }
 
 // SetRows replaces the rows, keeping the cursor on the same row ID; when
@@ -52,6 +53,13 @@ type Table struct {
 func (t *Table) SetRows(rows []Row) {
 	cur := t.CursorID()
 	t.Rows = rows
+	t.itemPrefix = make([]int, len(rows)+1)
+	for i, r := range rows {
+		t.itemPrefix[i+1] = t.itemPrefix[i]
+		if r.item() {
+			t.itemPrefix[i+1]++
+		}
+	}
 	t.fitW = -1
 	t.Cols = slices.Clone(t.Cols) // the caller's column list is shared; Want is ours
 	used := map[string]bool{}
@@ -114,6 +122,12 @@ func indentWidth(colID string, t *Table) int {
 		return 2
 	}
 	return 0
+}
+
+// ReleaseRows drops derived data while preserving selection and scroll preferences.
+func (t *Table) ReleaseRows() {
+	t.Rows, t.itemPrefix, t.fitted, t.shown = nil, nil, nil, nil
+	t.fitW = -1
 }
 
 // CursorID returns the ID of the row under the cursor, or "".
@@ -374,16 +388,21 @@ func (t *Table) position() string {
 		return ""
 	}
 	first, last, total := 0, 0, 0
-	for i, r := range t.Rows {
-		if !r.item() {
-			continue
-		}
-		total++
-		if i < t.Offset {
-			first++
-		}
-		if i < end {
-			last++
+	if len(t.itemPrefix) == len(t.Rows)+1 {
+		first = t.itemPrefix[t.Offset]
+		last = t.itemPrefix[end]
+		total = t.itemPrefix[len(t.Rows)]
+	} else {
+		for i, r := range t.Rows {
+			if r.item() {
+				total++
+				if i < t.Offset {
+					first++
+				}
+				if i < end {
+					last++
+				}
+			}
 		}
 	}
 	return strconv.Itoa(min(first+1, total)) + "-" + strconv.Itoa(last) + " of " + strconv.Itoa(total)

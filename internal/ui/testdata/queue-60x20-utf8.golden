@@ -1,7 +1,7 @@
  sdash │ ‹ 3/6 Queue ›                  tundra · you · demo 
 ───────────━━━━━━━━━────────────────────────────────────────
  18 jobs · 7 running · 11 pending · waiting on Resources 8… 
-   ID           USER   NAME          STATE   TIME           
+   ID           USER   NAME          STATE   ELAPSED/LIMIT  
  ────────────────────────────────────────────────────────── 
  ▶ ▾ running           7 jobs                               
      801        carol  md-sim        ● RUN   1d06h/3d       

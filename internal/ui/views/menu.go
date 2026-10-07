@@ -34,7 +34,7 @@ func newJobMenu(jobs []model.Job, me string) *jobMenu {
 	if len(jobs) > 1 {
 		title = strconv.Itoa(len(jobs)) + " jobs"
 	}
-	own := j.User == "" || j.User == me
+	own := j.OwnedBy(me)
 	m := &jobMenu{title: title}
 	add := func(label, k string, msg tea.Msg) { m.items = append(m.items, menuItem{label, k, msg}) }
 	action := func(id string) ActionMsg { return ActionMsg{Action: id, Jobs: jobs} }
@@ -54,9 +54,11 @@ func newJobMenu(jobs []model.Job, me string) *jobMenu {
 			}
 		}
 	}
-	add("Show output log", "l", LogMsg{Job: j})
-	add("Show error log", "e", LogMsg{Job: j, Stderr: true})
-	add("Show batch script", "v", ScriptMsg{Job: j})
+	if own {
+		add("Show output log", "l", LogMsg{Job: j})
+		add("Show error log", "e", LogMsg{Job: j, Stderr: true})
+		add("Show batch script", "v", ScriptMsg{Job: j})
+	}
 	add("Copy job ID", "y", CopyMsg{Text: j.ID.Raw, What: "job ID"})
 	return m
 }

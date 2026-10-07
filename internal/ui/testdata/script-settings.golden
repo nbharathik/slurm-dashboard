@@ -8,27 +8,27 @@
     ! Scratch is at 9│  Settings                                                                  │           [open]    
     ! 813 eval-bench │                                                                            │           [open]    
                      │    Data                                                                    │                     
-  Cluster            │  ▶ Refresh               ‹ normal ›  my jobs 10s, cluster 30s              │       free / total  
+  Cluster            │  ▶ Refresh               ‹ normal ›  my jobs 10s, cluster 30s              │             0s ago  
   ───────────────────│    Hide partitions       [ ] gpu  [ ] cpu                                  │───────────────────  
-    gpu   ██░░░ 68/12│    Look                                                                    │                     
-    cpu*  ████░ 144/5│    Theme                 ‹ auto ›                                          │                     
-                     │    Layout                ‹ clean ›                                         │                     
-  Your jobs          │    Plain symbols         ‹ off ›                                           │g  ✗ 2 failed today  
-    ID         NAME  │    Mouse                 ‹ on ›                                            │                     
-  ───────────────────│    Start on              ‹ overview ›                                      │───────────────────  
-  ▶ 812        train-│    Alerts                                                                  │                     
-    813        eval-b│    Job-end notices       ‹ on ›                                            │                     
-    816        prepro│    Time-limit warning    ‹ 10m ›                                           │                     
-    815_[3-9]  sweep │    Idle-job warning      ‹ on ›                                            │                     
-    818        big-sw│    Storage warning at    ‹ 90% ›                                           │                     
-                     │    Storage critical at   ‹ 97% ›                                           │                     
-  Storage · fairshare│    Other                                                                   │                     
-  ───────────────────│    Shell in a job via    ‹ srun ›                                          │───────────────────  
-    Home       ██████│                                                                            │                     
-    Scratch    ██████│  Changes apply now; the demo does not save them                            │                     
-    Project    █████░│  ↑↓ move · ‹› change · space toggles · esc closes                          │                     
-    Fairshare  ██████╰────────────────────────────────────────────────────────────────────────────╯                     
-                                                                                                                        
+    Partition      Us│    Look                                                                    │                     
+    gpu        GPU [█│    Theme                 ‹ auto ›                                          │                     
+    cpu*       CPU [█│    Layout                ‹ clean ›                                         │                     
+                     │    Plain symbols         ‹ off ›                                           │                     
+  Your jobs          │    Mouse                 ‹ on ›                                            │g  ✗ 2 failed today  
+    ID         NAME  │    Start on              ‹ overview ›                                      │                     
+  ───────────────────│    Alerts                                                                  │───────────────────  
+  ▶ 812        train-│    Job-end notices       ‹ on ›                                            │                     
+    813        eval-b│    Time-limit warning    ‹ 10m ›                                           │                     
+    816        prepro│    Idle-job warning      ‹ on ›                                            │                     
+    815_[3-9]  sweep │    Storage warning at    ‹ 90% ›                                           │                     
+    818        big-sw│    Storage critical at   ‹ 97% ›                                           │                     
+                     │    Other                                                                   │                     
+  Storage            │    Shell in a job via    ‹ srun ›                                          │             0s ago  
+  ───────────────────│                                                                            │───────────────────  
+    Home       ██████│  Changes apply now; the demo does not save them                            │                     
+    Scratch    ██████│  ↑↓ move · ‹› change · space toggles · esc closes                          │                     
+    Project    █████░╰────────────────────────────────────────────────────────────────────────────╯                     
+    Fairshare  ████████████░░░░░░░░  0.62                                                                               
                                                                                                                         
                                                                                                                         
                                                                                                                         

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"sync"
+
+	"github.com/nbharathik/slurm-dashboard/internal/privatefile"
 )
 
 // rotatingFile is an io.WriteCloser that rotates path when it would grow
@@ -26,7 +28,7 @@ func openRotating(path string, maxSize int64, keep int) (*rotatingFile, error) {
 }
 
 func (r *rotatingFile) open() error {
-	f, err := os.OpenFile(r.path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
+	f, err := privatefile.Append(r.path)
 	if err != nil {
 		return err
 	}
@@ -35,8 +37,6 @@ func (r *rotatingFile) open() error {
 		_ = f.Close()
 		return err
 	}
-	// An existing file may predate the mode rule; tighten it.
-	_ = f.Chmod(0o600)
 	r.f, r.size = f, fi.Size()
 	return nil
 }

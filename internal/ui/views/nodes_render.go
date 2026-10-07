@@ -21,18 +21,10 @@ func (v *Nodes) Render(ctx *Context, w, h int) string {
 		foot = "\n" + v.input.View(ctx.Theme, w)
 		h--
 	}
-	if v.detail != "" && ctx.Mode < layout.Wide {
-		if ctx.Mode <= layout.Compact {
-			return v.nodeDetail(ctx, w, h) + foot
-		}
-		half := h / 2
-		return v.listing(ctx, w, h-half) + "\n" + v.nodeDetail(ctx, w, half) + foot
+	if v.detail != "" {
+		return detailLayout(w, h, func(w, h int) string { return v.listing(ctx, w, h) }, func(w, h int) string { return v.nodeDetail(ctx, w, h) }) + foot
 	}
 	nodes := block{min: 5, render: func(w, h int) string {
-		if v.detail != "" {
-			tw := w * 6 / 10
-			return joinH(v.listing(ctx, tw, h), tw, v.nodeDetail(ctx, w-tw, h))
-		}
 		return v.listing(ctx, w, h)
 	}}
 	if !ctx.Config.Detailed() {
@@ -85,13 +77,12 @@ func (v *Nodes) statusLine(ctx *Context) string {
 	var cpuFree, cpuTotal, gpuFree, gpuTotal int
 	for _, u := range v.listed {
 		n := u.Node
-		if !state.Available(n) {
-			continue
-		}
-		cpuFree += n.CPUTotal - n.CPUAlloc
 		cpuTotal += n.CPUTotal
-		gpuFree += u.Free
 		gpuTotal += n.GPUTotal
+		if state.Available(n) {
+			cpuFree += max(n.CPUTotal-n.CPUAlloc, 0)
+			gpuFree += u.Free
+		}
 	}
 	parts := []string{plural(len(v.listed), "node"), fmt.Sprintf("%d/%d CPUs free", cpuFree, cpuTotal)}
 	if gpuTotal > 0 {
@@ -171,10 +162,9 @@ func (v *Nodes) groupRow(ctx *Context, s state.PartSummary, members []state.Node
 	var types []string
 	for _, m := range members {
 		n := m.Node
-		if !state.Available(n) {
-			continue // a node that cannot take jobs adds no capacity, as in the status line
+		if state.Available(n) {
+			cpuFree += max(n.CPUTotal-n.CPUAlloc, 0)
 		}
-		cpuFree += n.CPUTotal - n.CPUAlloc
 		cpuTotal += n.CPUTotal
 		gpuFree += m.Free
 		gpuTotal += n.GPUTotal
@@ -182,9 +172,9 @@ func (v *Nodes) groupRow(ctx *Context, s state.PartSummary, members []state.Node
 		migTotal += n.MIGTotal
 		if n.MemTotalMB > 0 {
 			memTotal += n.MemTotalMB
-			if n.MemTracked() {
+			if state.Available(n) && n.MemTracked() {
 				memFree += n.MemTotalMB - n.MemAllocMB
-			} else {
+			} else if state.Available(n) {
 				untracked++
 			}
 		}
@@ -253,7 +243,11 @@ func (v *Nodes) nodeRow(ctx *Context, u state.NodeUsage) components.Row {
 	}
 	cpu := ""
 	if n.CPUTotal > 0 {
-		cpu = fmt.Sprintf("%d/%d", n.CPUTotal-n.CPUAlloc, n.CPUTotal)
+		free := 0
+		if state.Available(n) {
+			free = max(n.CPUTotal-n.CPUAlloc, 0)
+		}
+		cpu = fmt.Sprintf("%d/%d", free, n.CPUTotal)
 	}
 	load := fmt.Sprintf("%.1f", n.CPULoad)
 	switch state.LoadLevel(n) {
@@ -386,7 +380,7 @@ func partitionsPanel(ctx *Context, parts []state.PartSummary, w, h int) string {
 		if len(gpus) > 0 {
 			res += th.Faint.Render(" "+th.Sym.Separator+" ") + "GPUs " + strings.Join(gpus, ", ") + " free"
 		}
-		pd := th.Faint.Render("PD ?")
+		pd := th.Faint.Render("PD -")
 		if s.PendingKnown {
 			pd = "PD " + strconv.Itoa(s.Pending)
 		}

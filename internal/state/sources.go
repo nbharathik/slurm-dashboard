@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/nbharathik/slurm-dashboard/internal/actions"
 	"github.com/nbharathik/slurm-dashboard/internal/execx"
 	"github.com/nbharathik/slurm-dashboard/internal/model"
 	"github.com/nbharathik/slurm-dashboard/internal/slurm"
@@ -44,6 +45,7 @@ const (
 	ErrAccountingDown
 	ErrMissing
 	ErrTimeout
+	ErrRestricted
 )
 
 // SlurmError is a failed Slurm call with a user-facing summary.
@@ -68,6 +70,8 @@ func Classify(err error, stderr []byte) error {
 	low := strings.ToLower(msg)
 	kind := ErrOther
 	switch {
+	case strings.Contains(low, "permission denied"), strings.Contains(low, "access denied"), strings.Contains(low, "not authorized"), strings.Contains(low, "access/permission denied"):
+		kind = ErrRestricted
 	case errors.Is(err, execx.ErrNotFound):
 		kind = ErrMissing
 	case errors.Is(err, execx.ErrTimeout):
@@ -123,6 +127,8 @@ type Sources struct {
 	mu       sync.Mutex
 	warnLog  map[string][]time.Time
 	warnings map[string]int
+	ownAt    time.Time
+	ownJobs  map[string]model.Job
 }
 
 // run executes argv with a label and returns stdout or a classified error.
@@ -180,15 +186,22 @@ func (s *Sources) WarningCounts() map[string]int {
 func (s *Sources) MyJobs(ctx context.Context) ([]model.Job, error) {
 	out, err := s.run(ctx, "myjobs", s.Cmd.MyJobs())
 	if err != nil {
+		s.mu.Lock()
+		s.ownJobs, s.ownAt = nil, time.Time{}
+		s.mu.Unlock()
 		return nil, err
 	}
 	jobs, warns := parse.MyJobs(out)
 	s.noteWarnings("myjobs", warns)
-	for i := range jobs {
-		if jobs[i].User == "" {
-			jobs[i].User = s.Cmd.User
+	s.mu.Lock()
+	s.ownAt = time.Now()
+	s.ownJobs = make(map[string]model.Job, len(jobs))
+	for _, j := range jobs {
+		if j.OwnedBy(s.Cmd.User) {
+			s.ownJobs[j.ID.Raw] = j
 		}
 	}
+	s.mu.Unlock()
 	return jobs, nil
 }
 
@@ -279,6 +292,15 @@ func (s *Sources) Reservations(ctx context.Context) ([]model.Reservation, error)
 // JobDetail returns scontrol's view of one job, or nil if Slurm no longer
 // knows it.
 func (s *Sources) JobDetail(ctx context.Context, id string) (*model.JobDetail, error) {
+	if _, err := s.OwnJob(ctx, id); err != nil {
+		if errors.Is(err, ErrNotOwner) && ctx.Value(snapshotKey{}) == nil {
+			h, herr := s.HistoryJob(ctx, id)
+			if herr == nil && h != nil && h.ID.Raw == id {
+				return nil, nil
+			}
+		}
+		return nil, err
+	}
 	out, err := s.run(ctx, "jobdetail", s.Cmd.JobDetail(id))
 	if err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), "invalid job id") {
@@ -291,11 +313,17 @@ func (s *Sources) JobDetail(ctx context.Context, id string) (*model.JobDetail, e
 	if len(jobs) == 0 {
 		return nil, nil
 	}
+	if jobs[0].User != s.Cmd.User || s.Cmd.User == "" {
+		return nil, ErrNotOwner
+	}
 	return &jobs[0], nil
 }
 
 // JobStat returns live usage of a running job, or nil without steps.
 func (s *Sources) JobStat(ctx context.Context, id string) (*model.JobStat, error) {
+	if _, err := s.OwnJob(ctx, id); err != nil {
+		return nil, err
+	}
 	out, err := s.run(ctx, "jobstat", s.Cmd.Sstat(id))
 	if err != nil {
 		return nil, err
@@ -317,7 +345,7 @@ var jobNumber = regexp.MustCompile(`^[0-9]{1,12}$`)
 func (s *Sources) MyStats(ctx context.Context, ids []string) (map[string]model.JobStat, error) {
 	var ok []string
 	for _, id := range ids {
-		if jobNumber.MatchString(id) {
+		if jobNumber.MatchString(id) && s.snapshotOwn(id) {
 			ok = append(ok, id)
 		}
 	}
@@ -332,6 +360,9 @@ func (s *Sources) MyStats(ctx context.Context, ids []string) (map[string]model.J
 		s.noteWarnings("mystats", warns)
 		now := time.Now()
 		for id, st := range stats {
+			if !s.snapshotOwn(id) {
+				continue
+			}
 			st.At = now
 			out[id] = *st
 		}
@@ -353,16 +384,21 @@ func (s *Sources) History(ctx context.Context, days int) (HistoryData, error) {
 
 // HistoryJob returns one job's accounting record, or nil.
 func (s *Sources) HistoryJob(ctx context.Context, id string) (*model.HistoryJob, error) {
+	if !userName.MatchString(s.Cmd.User) || actions.ValidateJobID(id) != nil {
+		return nil, ErrNotOwner
+	}
 	out, err := s.run(ctx, "historyjob", s.Cmd.HistoryJob(id))
 	if err != nil {
 		return nil, err
 	}
 	jobs, warns := parse.History(out)
 	s.noteWarnings("historyjob", warns)
-	if len(jobs) == 0 {
-		return nil, nil
+	for i := range jobs {
+		if jobs[i].ID.Raw == id {
+			return &jobs[i], nil
+		}
 	}
-	return &jobs[0], nil
+	return nil, nil
 }
 
 // Fairshare returns the user's fairshare associations.
@@ -422,9 +458,15 @@ func (s *Sources) FinalStates(ctx context.Context, ids []string) ([]parse.FinalS
 // BatchScript returns a job's batch script: from the controller while it
 // knows the job, else from accounting where the site stores scripts.
 func (s *Sources) BatchScript(ctx context.Context, id string) (string, error) {
+	if err := s.RequireOwn(ctx, id); err != nil {
+		return "", err
+	}
 	out, err := s.run(ctx, "script", s.Cmd.BatchScript(id))
 	if err == nil && len(out) > 0 {
 		return string(out), nil
+	}
+	if KindOf(err) == ErrRestricted {
+		return "", err
 	}
 	out2, err2 := s.run(ctx, "script-sacct", s.Cmd.SacctBatchScript(id))
 	if err2 == nil {
@@ -441,6 +483,9 @@ func (s *Sources) BatchScript(ctx context.Context, id string) (string, error) {
 
 // SubmitLine returns a job's submit command line and working directory (empty before Slurm 23.02).
 func (s *Sources) SubmitLine(ctx context.Context, id string) (line, workDir string, err error) {
+	if err := s.RequireOwn(ctx, id); err != nil {
+		return "", "", err
+	}
 	out, err := s.run(ctx, "submitline", s.Cmd.SubmitLine(id))
 	if err != nil {
 		return "", "", err
@@ -458,4 +503,67 @@ func stripSacctScriptHeader(s string) string {
 		}
 	}
 	return s
+}
+
+// ErrNotOwner disables private features without an authoritative ownership record.
+var ErrNotOwner = errors.New("private operation requires a fresh record owned by your operating-system user; visibility may be restricted by site policy")
+
+// OwnJob checks the native user-scoped queue before a private operation.
+func (s *Sources) OwnJob(ctx context.Context, id string) (model.Job, error) {
+	if s == nil || !userName.MatchString(s.Cmd.User) || actions.ValidateJobID(id) != nil {
+		return model.Job{}, ErrNotOwner
+	}
+	if ctx.Value(snapshotKey{}) != nil {
+		s.mu.Lock()
+		j, ok := s.ownJobs[id]
+		fresh := time.Since(s.ownAt) <= 30*time.Second
+		s.mu.Unlock()
+		if ok && fresh && j.OwnedBy(s.Cmd.User) {
+			return j, nil
+		}
+		return model.Job{}, ErrNotOwner
+	}
+	jobs, err := s.MyJobs(ctx)
+	if err != nil {
+		return model.Job{}, err
+	}
+	for _, j := range jobs {
+		if j.ID.Raw == id && j.OwnedBy(s.Cmd.User) {
+			return j, nil
+		}
+	}
+	return model.Job{}, ErrNotOwner
+}
+
+// RequireOwn also accepts a user-filtered accounting record for a finished job.
+func (s *Sources) RequireOwn(ctx context.Context, id string) error {
+	_, err := s.OwnJob(ctx, id)
+	if err == nil {
+		return nil
+	}
+	if !errors.Is(err, ErrNotOwner) {
+		return err
+	}
+	h, err := s.HistoryJob(ctx, id)
+	if err != nil {
+		return err
+	}
+	if h != nil && h.ID.Raw == id {
+		return nil
+	}
+	return ErrNotOwner
+}
+
+type snapshotKey struct{}
+
+// SnapshotPrivate reuses a recent native user-scoped result for scheduled lookups.
+func SnapshotPrivate(ctx context.Context) context.Context {
+	return context.WithValue(ctx, snapshotKey{}, true)
+}
+
+func (s *Sources) snapshotOwn(id string) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	j, ok := s.ownJobs[id]
+	return ok && j.OwnedBy(s.Cmd.User) && time.Since(s.ownAt) <= 30*time.Second
 }

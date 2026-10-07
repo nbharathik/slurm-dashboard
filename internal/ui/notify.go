@@ -76,7 +76,7 @@ func (a *App) lookupFinal() tea.Cmd {
 		ids[i] = j.job.ID.Raw
 	}
 	return func() tea.Msg {
-		ctx, cancel := context.WithTimeout(context.Background(), lookupTimeout)
+		ctx, cancel := context.WithTimeout(a.runCtx, lookupTimeout)
 		defer cancel()
 		states, err := src.FinalStates(ctx, ids)
 		return finalMsg{jobs: jobs, states: states, err: err}

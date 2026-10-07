@@ -43,8 +43,10 @@ type Checker struct {
 	LookPath func(string) (string, error)
 	Now      func() time.Time
 
-	mu   sync.Mutex
-	last map[string]model.Quota
+	mu      sync.Mutex
+	last    map[string]model.Quota
+	slots   chan struct{}
+	flights map[string]*checkTask
 }
 
 // NewRunner returns the storage runner (2 commands at a time, 30 s each); argv quota commands are read-only by basename.
@@ -68,22 +70,80 @@ func ShellFor(r *execx.RealRunner) func(context.Context, string) (execx.Result, 
 
 // Check reads every location, at most MaxConcurrent at once.
 func (c *Checker) Check(ctx context.Context, locs []Location) []model.Quota {
+	ctx, cancel := context.WithTimeout(ctx, Timeout)
+	defer cancel()
 	out := make([]model.Quota, len(locs))
-	sem := make(chan struct{}, MaxConcurrent)
-	var wg sync.WaitGroup
+	tasks := make([]*checkTask, len(locs))
 	for i, l := range locs {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			sem <- struct{}{}
-			defer func() { <-sem }()
-			lctx, cancel := context.WithTimeout(ctx, Timeout)
-			defer cancel()
-			out[i] = c.one(lctx, l)
-		}()
+		key := l.Label + "\x00" + l.Path
+		c.mu.Lock()
+		if c.slots == nil {
+			c.slots = make(chan struct{}, MaxConcurrent)
+			c.flights = map[string]*checkTask{}
+		}
+		task := c.flights[key]
+		c.mu.Unlock()
+		if task == nil {
+			select {
+			case c.slots <- struct{}{}:
+			case <-ctx.Done():
+				out[i] = c.unavailable(l, ctx.Err())
+				continue
+			}
+			c.mu.Lock()
+			task = c.flights[key]
+			if task != nil {
+				<-c.slots
+			} else {
+				task = &checkTask{done: make(chan struct{})}
+				c.flights[key] = task
+				go func(t *checkTask, loc Location, k string) {
+					t.result = c.one(ctx, loc)
+					c.mu.Lock()
+					delete(c.flights, k)
+					close(t.done)
+					c.mu.Unlock()
+					<-c.slots
+				}(task, l, key)
+			}
+			c.mu.Unlock()
+		}
+		tasks[i] = task
 	}
-	wg.Wait()
+	for i, l := range locs {
+		task := tasks[i]
+		if task == nil {
+			continue
+		}
+		select {
+		case <-task.done:
+			out[i] = task.result
+		case <-ctx.Done():
+			out[i] = c.unavailable(l, ctx.Err())
+		}
+	}
 	return out
+}
+
+type checkTask struct {
+	done   chan struct{}
+	result model.Quota
+}
+
+func (c *Checker) unavailable(l Location, err error) model.Quota {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	q, ok := c.last[l.Label+"\x00"+l.Path]
+	if !ok {
+		q = model.Quota{Label: l.Label, Path: l.Path, Backend: l.Backend}
+	}
+	q.Err = textsafe.Field(firstLine(err.Error()))
+	if q.Filesystem != nil {
+		fs := *q.Filesystem
+		fs.Err = q.Err
+		q.Filesystem = &fs
+	}
+	return q
 }
 
 func (c *Checker) now() time.Time {
@@ -97,15 +157,40 @@ func (c *Checker) now() time.Time {
 func (c *Checker) one(ctx context.Context, l Location) model.Quota {
 	q := model.Quota{Label: l.Label, Path: l.Path, FSType: l.Mount.FSType, Backend: l.Backend, Note: l.Note}
 	err := c.read(ctx, l, &q)
+	if !q.IsFilesystemTotal && ctx.Err() == nil {
+		fs := model.Quota{Label: q.Label, Path: q.Path, FSType: q.FSType, Backend: "statfs", IsFilesystemTotal: true}
+		if fsErr := c.statfs(l, &fs); fsErr != nil {
+			fs.Err = textsafe.Field(firstLine(fsErr.Error()))
+		} else {
+			fs.At = c.now()
+		}
+		q.Filesystem = &fs
+	}
+	if ctx.Err() != nil {
+		err = ctx.Err()
+	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if c.last == nil {
 		c.last = map[string]model.Quota{}
 	}
 	key := l.Label + "\x00" + l.Path
+	if q.Filesystem != nil {
+		if ctx.Err() != nil {
+			q.Filesystem.Err = textsafe.Field(firstLine(ctx.Err().Error()))
+		}
+		if prev, ok := c.last[key]; ok && prev.Filesystem != nil && q.Filesystem.Err != "" {
+			fs := *prev.Filesystem
+			fs.Err = q.Filesystem.Err
+			q.Filesystem = &fs
+		}
+	}
 	if err != nil {
 		if prev, ok := c.last[key]; ok {
 			prev.Err = firstLine(err.Error())
+			if q.Filesystem != nil {
+				prev.Filesystem = q.Filesystem
+			}
 			return prev
 		}
 		q.Err = textsafe.Field(firstLine(err.Error()))
@@ -224,10 +309,16 @@ func (c *Checker) statfs(l Location, q *model.Quota) error {
 	}
 	// Like df: used excludes reserved blocks, and the limit is what users
 	// can reach (used + available), so the percentage matches df's Use%.
+	if st.Free > st.Total || st.Avail > st.Free || st.FreeFiles > st.Files || st.Total > uint64(1<<63-1) || st.Files > uint64(1<<63-1) {
+		return errors.New("invalid filesystem capacity")
+	}
 	used := st.Total - st.Free
 	q.UsedBytes, q.SoftBytes, q.HardBytes = int64(used), 0, int64(used+st.Avail)             //nolint:gosec // filesystem sizes fit in int64
 	q.UsedFiles, q.SoftFiles, q.HardFiles = int64(st.Files-st.FreeFiles), 0, int64(st.Files) //nolint:gosec // inode counts fit in int64
 	q.IsFilesystemTotal = true
+	q.AvailableBytes = int64(st.Avail) //nolint:gosec // Avail <= Total <= MaxInt64 checked above
+	q.FilesystemBytes = int64(st.Total)
+	q.AvailabilityKnown = true
 	return nil
 }
 

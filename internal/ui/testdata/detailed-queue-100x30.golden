@@ -6,25 +6,25 @@
   Running most: bob 32 CPU 4 GPU · you 28 CPU 2 GPU · alice 16 CPU 2 GPU · carol 224 CPU            
   Waiting on: Resources 8 · Priority 2 · JobHeldUser 1                                              
   [all]  running   pending   held   mine   GPU jobs                                                 
-    ID           USER   NAME          STATE   TIME       PART  RESOURCES      WHERE         START   
+    ID           USER   NAME          STATE   ELAPSED/LIMIT  PART  RESOURCES      WHERE     START   
   ────────────────────────────────────────────────────────────────────────────────────────────────  
-  ▶ ▾ running           7 jobs                                 8 GPU 300 CPU                        
-      801        carol  md-sim        ● RUN   1d06h/3d   cpu   96 CPU         cpu01         Sep 27  
-      802        carol  md-sim        ● RUN   1d04h/3d   cpu   128 CPU        cpu02 +1      Sep 27  
-      790        alice  llm-finetune  ● RUN   20h/2d     gpu   2 GPU 16 CPU   gpu01         Sep 27  
-      795        bob    diffusion     ● RUN   9h46m/12h  gpu   4 GPU 32 CPU   gpu02         04:14   
-      812        you    train-lora    ● RUN   5h46m/1d   gpu   1 GPU 8 CPU    gpu01         08:14   
-      813        you    eval-bench    ● RUN   1h52m/2h   gpu   1 GPU 4 CPU    gpu01         12:08   
-      816        you    preproc       ● RUN   30s/1h     cpu   16 CPU         cpu01         13:59   
+  ▶ ▾ running           7 jobs                                     8 GPU 300 CPU                    
+      801        carol  md-sim        ● RUN   1d06h/3d       cpu   96 CPU         cpu01     Sep 27  
+      802        carol  md-sim        ● RUN   1d04h/3d       cpu   128 CPU        cpu02 +1  Sep 27  
+      790        alice  llm-finetune  ● RUN   20h/2d         gpu   2 GPU 16 CPU   gpu01     Sep 27  
+      795        bob    diffusion     ● RUN   9h46m/12h      gpu   4 GPU 32 CPU   gpu02     04:14   
+      812        you    train-lora    ● RUN   5h46m/1d       gpu   1 GPU 8 CPU    gpu01     08:14   
+      813        you    eval-bench    ● RUN   1h52m/2h       gpu   1 GPU 4 CPU    gpu01     12:08   
+      816        you    preproc       ● RUN   30s/1h         cpu   16 CPU         cpu01     13:59   
                                                                                                     
-    ▾ pending           4 jobs                                 6 GPU 28 CPU                         
-      810        dave   rl-agent      ◌ PD    -/8h       gpu   2 GPU 8 CPU    Resources     in 30m  
-      805        dave   rl-agent      ◌ PD    -/8h       gpu   2 GPU 8 CPU    Priority      ·       
-      815_[3-9]  you    sweep         ◌ PD    -/4h       gpu   1 GPU 8 CPU    Resources     in 4m   
-      807        erin   embed         ◌ PD    -/2h       gpu   1 GPU 4 CPU    Priority      ·       
+    ▾ pending           4 jobs                                     6 GPU 28 CPU                     
+      810        dave   rl-agent      ◌ PD    -/8h           gpu   2 GPU 8 CPU    Resourc…  in 30m  
+      805        dave   rl-agent      ◌ PD    -/8h           gpu   2 GPU 8 CPU    Priority  ·       
+      815_[3-9]  you    sweep         ◌ PD    -/4h           gpu   1 GPU 8 CPU    Resourc…  in 4m   
+      807        erin   embed         ◌ PD    -/2h           gpu   1 GPU 4 CPU    Priority  ·       
                                                                                                     
-    ▾ held              1 job                                  4 GPU 32 CPU                         
-      818        you    big-sweep     ‖ HELD  -/12h      gpu   4 GPU 32 CPU   JobHeldUser   ·       
+    ▾ held              1 job                                      4 GPU 32 CPU                     
+      818        you    big-sweep     ‖ HELD  -/12h          gpu   4 GPU 32 CPU   JobHeld…  ·       
                                                                                                     
 ────────────────────────────────────────────────────────────────────────────────────────────────────
   enter details · / filter · v what to show · , settings · ? help                   updated 0s ago  

@@ -1,0 +1,45 @@
+ sdash | < 1/6 Overview ! >             tundra | you | demo 
+-----------==============-----------------------------------
+                                                            
+ Needs attention                                   6 in all 
+ ---------------------------------------------------------- 
+   x 809 preproc: OUT_OF_MEMORY (peak 31.8G of 32~ [open]   
+   x 799 train-lora: TIMEOUT                       [open]   
+   ! Scratch is at 91% of its space quota          [open]   
+   ! 813 eval-bench has 8m left: checkpoint or sa~ [open]   
+                                                            
+ Cluster                                       stale 1h ago 
+ ---------------------------------------------------------- 
+   Partition                   Used        Free Total       
+   gpu                     GPU [########]     0     8       
+                           5 waiting, H100                  
+   cpu*                    CPU [####--  ]   144   512       
+                           1 down                           
+   long-partition-name-f~  GPU [#---    ]     6    12       
+                           MIG 10/14 free, 1 down, H100,    
+                           H200                             
+                                                            
+ Your jobs  0s ago  R 3 running  P 2 pending  F 2 failed t~ 
+   ID         NAME        STATE   ELAPSED/LIMIT             
+ ---------------------------------------------------------- 
+ > 812        train-lora  R RUN   5h46m/1d                  
+   813        eval-bench  R RUN   1h52m/2h                  
+   816        preproc     R RUN   30s/1h                    
+   815_[3-9]  sweep       P PD    -/4h                      
+   818        big-sweep   H HELD  -/12h                     
+                                                            
+ Storage                                             0s ago 
+ ---------------------------------------------------------- 
+   Home       ###.. 31G/50G quota                           
+   Scratch    ##### 9.2T/10T quota                          
+   Project    #.... 1.2T/5T quota                           
+   Fairshare  ############........  0.62                    
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+------------------------------------------------------------
+ enter open | tab next section | , settings | ? help        

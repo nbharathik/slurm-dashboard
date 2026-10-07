@@ -22,7 +22,7 @@ linters:
         # os/user cannot see LDAP/SSSD accounts in a static (CGO_ENABLED=0) binary.
         - pattern: '.*'
           pkg: '^os/user$'
-          msg: use $USER (fallback "id -un" via execx); os/user cannot see LDAP users without cgo
+          msg: use "id -un" via execx; os/user cannot see LDAP users without cgo
         # Only internal/actions may authorise state-changing Slurm commands,
         # after the user has seen the exact argv.
         - pattern: '^execx\.WithMutation$'

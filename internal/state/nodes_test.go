@@ -94,7 +94,7 @@ func TestPartitionSummaries(t *testing.T) {
 	if len(g.GPUTypes) != 1 || g.GPUTypes[0] != (TypeCount{Type: "h200", Total: 4, Free: 3}) {
 		t.Errorf("gpu types = %+v", g.GPUTypes)
 	}
-	if c := s[1]; c.Down != 1 || c.CPUFree != 0 || len(c.DownReasons) != 1 || c.PendingKnown {
+	if c := s[1]; c.Down != 1 || c.CPUFree != 0 || c.CPUUnavailable != 64 || len(c.DownReasons) != 1 || c.PendingKnown {
 		t.Errorf("cpu = %+v", c)
 	}
 }

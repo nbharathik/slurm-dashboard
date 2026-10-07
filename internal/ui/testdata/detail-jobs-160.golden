@@ -1,0 +1,35 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage                                                                       tundra · you · demo  
+───────────────────────━━━━━━━━─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                                                                
+  11 jobs · 3 running · 8 pending                                                               ╭─ 812 train-lora [esc] ─────────────────────────────────────╮  
+    ID         NAME        STATE      ELAPSED/LIMIT  RESOURCES     WHERE                        │ ● RUNNING on gpu01 · elapsed 5h46m, limit 1d               │  
+  ───────────────────────────────────────────────────────────────────────────────────────────── │                                                            │  
+  ▶ 812        train-lora  ● RUNNING  5h46m/1d       1 GPU 8 CPU   gpu01                        │ Time ███████░░░░░░░░░░░░░░░░░░░░░░░ 24%  18h14m left       │  
+    813        eval-bench  ● RUNNING  1h52m/2h       1 GPU 4 CPU   gpu01                        │ Mem  22.7G of 32G  ███████████░░░░ 71%                     │  
+    816        preproc     ● RUNNING  30s/1h         16 CPU        cpu01                        │ CPU  5.1 of 8 cores avg (64%)                              │  
+    815_[3-9]  sweep       ◌ PENDING  -/4h           1 GPU 8 CPU   #2/5 Resources               │ GPU  1 GPU  press g to sample                              │  
+    818        big-sweep   ‖ PENDING  -/12h          4 GPU 32 CPU  JobHeldUser                  │ Out  /home/you/runs/lora/train-lora-812.out [l]            │  
+                                                                                                │ Err  /home/you/runs/lora/train-lora-812.err [e]            │  
+                                                                                                │ Dir  /home/you/runs/lora                                   │  
+                                                                                                │                                                            │  
+                                                                                                │ [ Cancel ] [ Requeue ] [ Shell ] [ Script ]                │  
+                                                                                                │                                                            │  
+                                                                                                │ ▸ All fields (i)                                           │  
+                                                                                                │                                                            │  
+                                                                                                │                                                            │  
+                                                                                                │                                                            │  
+                                                                                                │                                                            │  
+                                                                                                │                                                            │  
+                                                                                                │                                                            │  
+                                                                                                │                                                            │  
+                                                                                                │                                                            │  
+                                                                                                │                                                            │  
+                                                                                                │                                                            │  
+                                                                                                │                                                            │  
+                                                                                                │                                                            │  
+                                                                                                │                                                            │  
+                                                                                                │                                                            │  
+                                                                                                │                                                            │  
+                                                                                                ╰────────────────────────────────────────────────────────────╯  
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  enter details · c cancel · l logs · , settings · ? help                                                                                       updated 0s ago  

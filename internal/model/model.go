@@ -301,7 +301,11 @@ type Quota struct {
 	Grace             string
 	Note              string
 	Raw               string // backend output, for the detail view
+	AvailableBytes    int64
+	FilesystemBytes   int64
+	AvailabilityKnown bool
 	IsFilesystemTotal bool   // statfs fallback, not a personal quota
+	Filesystem        *Quota `json:"-"`
 	Err               string // last error, if the value is stale
 	At                time.Time
 }
@@ -425,3 +429,6 @@ func (h *HistoryJob) ComputeEfficiency(gpuUtil float64) {
 	}
 	h.Eff.GPUHours = float64(h.GPUs) * elapsed / 3600
 }
+
+// OwnedBy fails closed when either identity is unknown.
+func (j Job) OwnedBy(user string) bool { return user != "" && j.User != "" && j.User == user }

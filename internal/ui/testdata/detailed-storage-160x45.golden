@@ -2,14 +2,14 @@
 ──────────────────────────────────────────────────────────━━━━━━━━━━━───────────────────────────────────────────────────────────────────────────────────────────
                                                                                                                                                                 
   3 locations · checked 14:00                                                                                                                                   
-    LOCATION  SPACE                         FILES     30 DAYS               PATH                                      FS      BACKEND  NOTE                     
+    LOCATION  SCOPE   SPACE USED                    FILES     CHECK / TREND         PATH             FS      BACKEND  NOTE                                      
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
-  ▶ Home      █████░░░ 31G/50G (hard 55G)   212k/1M   ▁▁▂▃▄▅▅▆▇█ full ~6mo  /home/you                                 nfs     quota                             
-    Scratch   ███████░ 9.2T/10T (hard 11T)  3.1M/5M   ▁▂▂▃▄▅▅▆▇█ full ~19d  /scratch/you                              lustre  lustre   purged after 60 days     
-    Project   ██░░░░░░ 1.2T/5T              900k/10M  ▁▁▂▃▄▅▅▆▇█            /project/ml-lab                           gpfs    gpfs                              
-                                                                                                                                                                
-                                                                                                                                                                
-                                                                                                                                                                
+  ▶ Home      Yours   █████░░░ 31G/50G (hard 55G)   212k/1M   ▁▁▂▃▄▅▅▆▇█ full ~6mo  /home/you        nfs     quota                                              
+    Scratch   Yours   ███████░ 9.2T/10T (hard 11T)  3.1M/5M   ▁▂▂▃▄▅▅▆▇█ full ~19d  /scratch/you     lustre  lustre   purged after 60 days                      
+    Project   Yours   ██░░░░░░ 1.2T/5T              900k/10M  ▁▁▂▃▄▅▅▆▇█            /project/ml-lab  gpfs    gpfs                                               
+    Home      Shared  Unavailable                             collecting            /home/you        nfs     statfs   stale: filesystem usage unavailable sha…  
+    Scratch   Shared  Unavailable                             collecting            /scratch/you     lustre  statfs   stale: filesystem usage unavailable sha…  
+    Project   Shared  Unavailable                             collecting            /project/ml-lab  gpfs    statfs   stale: filesystem usage unavailable sha…  
                                                                                                                                                                 
                                                                                                                                                                 
                                                                                                                                                                 
@@ -42,4 +42,4 @@
                                                                                                                                                                 
                                                                                                                                                                 
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  enter raw output · R refresh storage · a analyse · , settings · ? help                                                                        updated 0s ago  
+  enter details · R refresh storage · a analyse yours · , settings · ? help                                                                     updated 0s ago  

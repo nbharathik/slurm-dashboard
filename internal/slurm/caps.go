@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/nbharathik/slurm-dashboard/internal/privatefile"
 
 	"github.com/nbharathik/slurm-dashboard/internal/execx"
 	"github.com/nbharathik/slurm-dashboard/internal/model"
@@ -110,7 +111,7 @@ func readJSON(path string, v any) error {
 	if path == "" {
 		return errors.New("no cache directory")
 	}
-	b, err := os.ReadFile(path)
+	b, err := privatefile.Read(path, 1<<20)
 	if err != nil {
 		return err
 	}
@@ -122,34 +123,15 @@ func writeJSON(path string, v any) error {
 	if path == "" || filepath.Dir(path) == "." {
 		return errors.New("no cache directory")
 	}
-	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
-		return err
-	}
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
 	}
-	tmp, err := os.CreateTemp(filepath.Dir(path), ".tmp-*")
-	if err != nil {
-		return err
-	}
-	if _, err := tmp.Write(b); err != nil {
-		_ = tmp.Close()
-		_ = os.Remove(tmp.Name())
-		return err
-	}
-	if err := tmp.Close(); err != nil {
-		_ = os.Remove(tmp.Name())
-		return err
-	}
-	return os.Rename(tmp.Name(), path)
+	return privatefile.Write(path, b)
 }
 
-// User returns $USER, else "id -un"; never os/user, which misses LDAP/SSSD accounts in a static binary.
-func User(ctx context.Context, getenv func(string) string, r execx.Runner) (string, error) {
-	if u := strings.TrimSpace(getenv("USER")); u != "" {
-		return u, nil
-	}
+// User resolves the operating-system identity, including LDAP/SSSD accounts.
+func User(ctx context.Context, _ func(string) string, r execx.Runner) (string, error) {
 	res, err := r.Run(execx.WithLabel(ctx, "user"), "id", "-un")
 	if err != nil {
 		return "", err
@@ -157,5 +139,5 @@ func User(ctx context.Context, getenv func(string) string, r execx.Runner) (stri
 	if u := strings.TrimSpace(string(res.Stdout)); u != "" {
 		return u, nil
 	}
-	return "", errors.New("cannot determine the user name: $USER is empty and id -un printed nothing")
+	return "", errors.New("cannot determine the operating-system user: id -un printed nothing")
 }

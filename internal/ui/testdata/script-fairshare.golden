@@ -8,29 +8,29 @@
     ! Scratch is at 91% of its space quota                                                                    [open]    
     ! 813 eval-bench has 8m left: checkpoint or save now                                                      [open]    
                                                                                                                         
-  Cluster                                                                                                 free / total  
+  Cluster                                                                                                       0s ago  
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
-    gpu   ██░░░╭────────────────────────────────────────────────────────────────────────────────────────╮               
-    cpu*  ████░│  Fairshare and priority                                                                │               
-               │                                                                                        │               
-  Your jobs    │  ml-lab       you        fairshare 0.620  usage  18.0%  shares  25.0%                  │ failed today  
-    ID         │  Fairshare falls as your usage grows past your shares; 1.0 is best.                    │               
-  ─────────────│                                                                                        │─────────────  
-    812        │  Pending jobs                                                                          │               
-    813        │  815        priority 5120 = fairshare 3072 + partition 1000 + age 512 + QOS 280 + job  │               
-    816        │  size 256                                                                              │               
-    815_[3-9]  │                                                                                        │               
-    818        │  esc closes                                                                            │               
-               ╰────────────────────────────────────────────────────────────────────────────────────────╯               
-  Storage · fairshare                                                                                                   
-  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
-    Home       ████████████░░░░░░░░  31G/50G                                                                            
-    Scratch    ██████████████████░░  9.2T/10T                                                                           
-    Project    █████░░░░░░░░░░░░░░░  1.2T/5T                                                                            
-  ▶ Fairshare  ████████████░░░░░░░░  0.62  usage 18% of 25% share                                                       
+    Partition  ╭────────────────────────────────────────────────────────────────────────────────────────╮               
+    gpu        │  Fairshare and priority                                                                │               
+    cpu*       │                                                                                        │               
+               │  ml-lab       you        fairshare 0.620  usage  18.0%  shares  25.0%                  │               
+  Your jobs    │  Fairshare falls as your usage grows past your shares; 1.0 is best.                    │ failed today  
+    ID         │                                                                                        │               
+  ─────────────│  Pending jobs                                                                          │─────────────  
+    812        │  815        priority 5120 = fairshare 3072 + partition 1000 + age 512 + QOS 280 + job  │               
+    813        │  size 256                                                                              │               
+    816        │                                                                                        │               
+    815_[3-9]  │  esc closes                                                                            │               
+    818        ╰────────────────────────────────────────────────────────────────────────────────────────╯               
                                                                                                                         
+  Storage                                                                                                       0s ago  
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
+    Home       ████████████░░░░░░░░  31G used / 50G quota                                                               
+    Scratch    ██████████████████░░  9.2T used / 10T quota                                                              
+    Project    █████░░░░░░░░░░░░░░░  1.2T used / 5T quota                                                               
+  ▶ Fairshare  ████████████░░░░░░░░  0.62                                                                               
                                                                                                                         
                                                                                                                         
                                                                                                                         
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  enter open · tab next section · , settings · ? help                                                   updated 0s ago  
+  enter open · tab next section · , settings · ? help                                                                   

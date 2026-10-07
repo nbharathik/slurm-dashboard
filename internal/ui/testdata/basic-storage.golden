@@ -2,12 +2,12 @@
 ──────────────────────────────────────────────────────────━━━━━━━━━━━───────────────────────────────
                                                                                                     
   2 locations · checked 14:01                                                                       
-    LOCATION  SPACE             FILES      30 DAYS               PATH                               
+    LOCATION  SCOPE   SPACE USED          FILES      CHECK / TREND         PATH                     
   ────────────────────────────────────────────────────────────────────────────────────────────────  
-  ▶ Home      ███████░ 18G/20G  150k/500k  ▁▁▁▃▄▄▄▆▇█ full ~97d  /home/you                          
-    Scratch   █░░░░░░░ 800G/5T  400k/2M    ▁▂▂▃▄▅▅▆▇█            /scratch/you                       
-                                                                                                    
-                                                                                                    
+  ▶ Home      Yours   ███████░ 18G/20G    150k/500k  ▁▁▁▃▄▄▄▆▇█ full ~97d  /home/you                
+    Scratch   Yours   █░░░░░░░ 800G/5T    400k/2M    ▁▂▂▃▄▅▅▆▇█            /scratch/you             
+    Home      Shared  Unavailable  stale             collecting            /home/you                
+    Scratch   Shared  Unavailable  stale             collecting            /scratch/you             
                                                                                                     
                                                                                                     
                                                                                                     
@@ -27,4 +27,4 @@
                                                                                                     
                                                                                                     
 ────────────────────────────────────────────────────────────────────────────────────────────────────
-  enter raw output · R refresh storage · a analyse · , settings · ? help            updated 0s ago  
+  enter details · R refresh storage · a analyse yours · , settings · ? help         updated 0s ago  

@@ -7,6 +7,9 @@ sdash --demo     # try it on a simulated cluster (--demo=hetero, --demo=basic)
 
 Press `?` for every key, `,` for settings, `q` to quit. Each tab is one
 table with a one-line status above it; `enter` opens the details of a row.
+Details sit below the table, or beside it on wide terminals. On small screens
+they fill the view. Scroll a long card with the wheel over it or `alt+↑` / `alt+↓`;
+`esc` closes it. An open card follows the selected row.
 `:` opens a command line with completion.
 
 ## The screen
@@ -25,7 +28,8 @@ table with a one-line status above it; `enter` opens the details of a row.
 The top bar names the app and lists every tab; the heavy stretch of the rule
 under it marks the one that is open. The footer shows a few keys for the
 tab, then `, settings` and `? help`, and at the right when the data was last
-refreshed (yellow when stale, red when it failed). A partition on Nodes, or
+refreshed (yellow when stale, red when it failed). Overview shows each section's
+age separately so fresh jobs do not hide stale capacity or storage. A partition on Nodes, or
 a group on Queue, is a bold row whose numbers are the totals of the rows
 indented under it; `enter` or `→` `←` fold it.
 
@@ -38,7 +42,18 @@ indented under it; `enter` or `→` `←` fold it.
 | `3` | Queue | Everyone's jobs, grouped by state, user or partition |
 | `4` | Nodes | Every node by partition: free CPUs, memory and GPUs (MIG too), who runs there |
 | `5` | Usage | What your jobs used and wasted, your limits and fairshare, then your finished jobs (`:tab history` still works) |
-| `6` | Storage | Quotas per location; `a` finds the largest directories |
+| `6` | Storage | Your usage and shared filesystem capacity; `a` analyses your directory |
+
+On Overview, each partition has one bar: GPU for GPU partitions, MIG for
+slice-only partitions, otherwise CPU. Green means allocated, blank means free,
+and `-` in a bar means unavailable. **Free** and **Total** stay aligned beside
+the bar. GPU types and waiting jobs appear alongside; the detailed layout adds
+CPU counts for GPU partitions. Rows wrap on narrow terminals.
+Storage bars fill with **used** space; quota limits are personal, while shared
+filesystem figures describe the filesystem.
+Unavailable nodes contribute no free capacity. Missing counts use `-`;
+open a node to see why its memory allocation is unavailable.
+Job time columns show elapsed time and the limit; end times are estimates.
 
 ## Keys
 
@@ -67,8 +82,10 @@ numbers in columns that line up, one status line, no boxes. Choose
 `layout = "detailed"` on the Settings screen (`,`) to bring back what was
 left out: load, free-in and the Partitions panel on Nodes; the summary lines
 on Queue; extra columns on Jobs, Usage and Storage; the Priority and
-Wasteful lines on Usage. Opening a row (`enter`) always shows everything
-about it.
+Wasteful lines on Usage. Opening your job (`enter`) shows its full detail card.
+Other users' cards show the public queue snapshot, including runtime and estimated
+end time. Logs, scripts, working directories, live usage and job actions require
+fresh verification that the job belongs to your operating-system user.
 
 ## Your jobs
 
@@ -129,10 +146,17 @@ the site records it (`gres/gpuutil`). Memory peaks are estimates.
 
 ## Storage over time
 
-The Storage tab draws the last 30 days of each location and, when use is
+The Storage table separates **Yours** from **Shared** filesystem totals.
+Your row shows the reported quota, or **Analyse (a)** when directory usage
+needs a scan. Press `a` or click the action to scan that path at low priority;
+the row shows progress, the result and its age. `esc` cancels. Scans run only
+when requested, against the configured directory.
+
+Quota and filesystem histories stay separate. The table draws the last 30 days
+of reported usage and, when use is
 rising towards a limit, says when it will be reached (`full ~19d`). It
 needs at least four readings over a day and sees nothing while sdash is not
-running: readings (at most one an hour per location, kept 90 days) go to
+running: readings (at most one an hour per location and scope, kept 90 days) go to
 `~/.local/state/sdash/storage.jsonl`. Delete that file to start over.
 
 ## Warnings

@@ -1,14 +1,14 @@
  sdash | < 6/6 Storage >                tundra | you | demo 
 -----------===========--------------------------------------
  3 locations | checked 14:00                                
-   LOCATION  SPACE              30 DAYS                     
+   LOCATION  SCOPE   SPACE USED                             
  ---------------------------------------------------------- 
- > Home      #####... 31G/50G   __.-=++*#@ full ~6mo        
-   Scratch   #######. 9.2T/10T  _..-=++*#@ full ~19d        
-   Project   ##...... 1.2T/5T   __.-=++*#@                  
-                                                            
-                                                            
-                                                            
+ > Home      Yours   #####... 31G/50G                       
+   Scratch   Yours   #######. 9.2T/10T                      
+   Project   Yours   ##...... 1.2T/5T                       
+   Home      Shared  Unavailable  stale                     
+   Scratch   Shared  Unavailable  stale                     
+   Project   Shared  Unavailable  stale                     
                                                             
                                                             
                                                             
@@ -17,4 +17,4 @@
                                                             
                                                             
 ------------------------------------------------------------
- enter raw output | , settings | ? help      updated 0s ago 
+ enter details | , settings | ? help         updated 0s ago 

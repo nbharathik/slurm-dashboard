@@ -992,8 +992,8 @@ func TestMarginsAndFooter(t *testing.T) {
 		}
 	}
 	foot := lines[len(lines)-1]
-	if !strings.Contains(foot, "? help") || !strings.HasSuffix(strings.TrimRight(foot, " "), "updated 0s ago") {
-		t.Errorf("footer lacks help on the left or freshness on the right: %q", foot)
+	if !strings.Contains(foot, "? help") || strings.Contains(foot, "ago") {
+		t.Errorf("Overview footer should keep help and leave freshness in the sections: %q", foot)
 	}
 	if rule := lines[len(lines)-2]; rule != strings.Repeat("─", 100) {
 		t.Errorf("no rule above the footer: %q", rule)

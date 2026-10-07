@@ -34,14 +34,8 @@ func (v *Jobs) Render(ctx *Context, w, h int) string {
 	case !v.detail || !hasJob:
 		v.table.Focused = true
 		body = v.tablePanel(ctx, w, h)
-	case ctx.Mode >= layout.Wide:
-		tw := w * 6 / 10
-		body = joinH(v.tablePanel(ctx, tw, h), tw, v.detailPanel(ctx, j, w-tw, h))
-	case ctx.Mode == layout.Normal:
-		th1 := h / 2
-		body = v.tablePanel(ctx, w, th1) + "\n" + v.detailPanel(ctx, j, w, h-th1)
 	default:
-		body = v.detailPanel(ctx, j, w, h)
+		body = detailLayout(w, h, func(w, h int) string { return v.tablePanel(ctx, w, h) }, func(w, h int) string { return v.detailPanel(ctx, j, w, h) })
 	}
 	if v.menu != nil {
 		body = layout.Overlay(body, v.menu.render(ctx), w, h)
@@ -154,6 +148,9 @@ func joinH(a string, aw int, b string) string {
 // card for pending ones, logs, dependency, buttons and all fields.
 func (v *Jobs) detailPanel(ctx *Context, j model.Job, w, h int) string {
 	th := ctx.Theme
+	if !j.OwnedBy(ctx.Store.User) {
+		return v.publicJobPanel(ctx, j, w, h)
+	}
 	inner := w - 4
 	d := v.detailFor(ctx, j)
 	stat := v.statFor(ctx, j)
@@ -192,7 +189,7 @@ func (v *Jobs) detailPanel(ctx *Context, j model.Job, w, h int) string {
 		if j.TimeLimit != nil {
 			limit = units.FormatLimit(*j.TimeLimit)
 		}
-		add(th.StateLabel(j.State, j.Reason, false)+where+th.Muted.Render(" "+th.Sym.Separator+" "+units.FormatShort(j.TimeUsed)+" of "+limit), "")
+		add(th.StateLabel(j.State, j.Reason, false)+where+th.Muted.Render(" "+th.Sym.Separator+" "+"elapsed "+units.FormatShort(j.TimeUsed)+", limit "+limit), "")
 		if j.TimeLimit != nil && *j.TimeLimit > 0 {
 			frac := j.TimeUsed.Seconds() / j.TimeLimit.Seconds()
 			left := ""
@@ -237,7 +234,7 @@ func (v *Jobs) detailPanel(ctx *Context, j model.Job, w, h int) string {
 		add(th.Muted.Render("loading details" + th.Sym.Ellipsis))
 	}
 
-	if j.User == "" || j.User == ctx.Store.User {
+	if j.OwnedBy(ctx.Store.User) {
 		var btns []string
 		btn := func(id, label string, danger bool) {
 			btns = append(btns, ctx.Mark("jobs:btn:"+id, components.Button(th, label, false, danger)))
@@ -273,8 +270,7 @@ func (v *Jobs) detailPanel(ctx *Context, j model.Job, w, h int) string {
 	}
 	title := j.ID.Raw + " " + j.Name
 	content := strings.Join(b, "\n")
-	panelTitle := title + " " + ctx.Mark("jobs:btn:close", th.Faint.Render("[esc]"))
-	return components.PaddedPanel(th, panelTitle, content, w, h, false)
+	return v.pane.render(ctx, j.ID.Raw, title, "jobs:btn:close", content, w, h)
 }
 
 func themeKind(j model.Job) themeKindT { return themeKindT(kindOf(j)) }
@@ -341,4 +337,28 @@ func tildify(p string) string {
 		return "~" + p[len(home):]
 	}
 	return p
+}
+
+func (v *Jobs) publicJobPanel(ctx *Context, j model.Job, w, h int) string {
+	th := ctx.Theme
+	limit := "unlimited"
+	if j.TimeLimit != nil {
+		limit = units.FormatLimit(*j.TimeLimit)
+	}
+	lines := []string{th.StateLabel(j.State, j.Reason, false), "User: " + j.User, "Partition: " + j.Partition, "Resources: " + requested(j), "Elapsed: " + units.FormatShort(j.TimeUsed) + "  Limit: " + limit}
+	if len(j.NodeList) > 0 {
+		lines = append(lines, "Nodes: "+strings.Join(j.NodeList, ","))
+	}
+	if !j.EndTime.IsZero() {
+		lines = append(lines, "Estimated end: "+friendlyTime(ctx.Now, j.EndTime))
+	}
+	if j.State == model.StatePending {
+		lines = append(lines, "Waiting: "+j.Reason)
+	}
+	lines = append(lines, "", th.Muted.Render("Public queue snapshot. Private features are available only for your own jobs."))
+	var body []string
+	for _, l := range lines {
+		body = append(body, layout.Wrap(l, max(w-4, 1))...)
+	}
+	return v.pane.render(ctx, j.ID.Raw, j.ID.Raw+" "+j.Name, "jobs:btn:close", strings.Join(body, "\n"), w, h)
 }

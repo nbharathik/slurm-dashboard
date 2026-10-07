@@ -38,8 +38,11 @@ func (v *Nodes) nodeDetail(ctx *Context, w, h int) string {
 	}
 	for _, g := range n.GPUs {
 		label := g.Type
-		if short := units.GPUDisplayName(g.Type, ctx.Config.GPUNames); short != "" && !strings.Contains(strings.ToLower(short), strings.ToLower(g.Type)) {
-			label = short + th.Faint.Render(" ("+g.Type+")")
+		if short := units.GPUDisplayName(g.Type, ctx.Config.GPUNames); short != "" {
+			label = short
+			if ctx.Config.Detailed() && !strings.Contains(strings.ToLower(short), strings.ToLower(g.Type)) {
+				label += th.Faint.Render(" (" + g.Type + ")")
+			}
 		}
 		if label == "" {
 			label = "gpu"
@@ -53,7 +56,7 @@ func (v *Nodes) nodeDetail(ctx *Context, w, h int) string {
 		row("Memory", memDetail(ctx, n))
 	}
 	if f := freeIn(ctx, u); f != "" {
-		row("Frees up", "in "+f)
+		row("Est. free", "in "+f)
 	}
 	if len(n.Features) > 0 {
 		row("Features", strings.Join(n.Features, ", "))
@@ -74,7 +77,7 @@ func (v *Nodes) nodeDetail(ctx *Context, w, h int) string {
 		}
 		end := "no end time"
 		if !j.EndTime.IsZero() {
-			end = "ends " + friendlyTime(ctx.Now, j.EndTime) + " (in " + units.FormatShort(max(j.EndTime.Sub(ctx.Now), 0)) + ")"
+			end = "estimated end " + friendlyTime(ctx.Now, j.EndTime) + " (in " + units.FormatShort(max(j.EndTime.Sub(ctx.Now), 0)) + ")"
 		}
 		res := fmt.Sprintf("%d CPU", j.CPUs/max(len(j.NodeList), 1))
 		if g := state.GPUShare(j); g > 0 {
@@ -90,6 +93,5 @@ func (v *Nodes) nodeDetail(ctx *Context, w, h int) string {
 	if u.Estimate {
 		b = append(b, "", th.Faint.Render("Multi-node jobs are assumed to spread evenly."))
 	}
-	title := n.Name + " " + ctx.Mark("nodes:close", th.Faint.Render("[esc]"))
-	return components.PaddedPanel(th, title, strings.Join(b, "\n"), w, h, false)
+	return v.pane.render(ctx, n.Name, n.Name, "nodes:close", strings.Join(b, "\n"), w, h)
 }

@@ -97,6 +97,10 @@ func TestSourcesErrorsAndEdgeCases(t *testing.T) {
 	if _, err := s.History(ctx, 7); KindOf(err) != ErrAccountingDown {
 		t.Fatalf("accounting down: %v", err)
 	}
+	if _, err := s.JobDetail(ctx, "99"); KindOf(err) != ErrControllerDown {
+		t.Fatal("ownership lookup errors must fail closed")
+	}
+	f.Set(s.Cmd.MyJobs(), execx.FakeResponse{Stdout: ownQueue("u", "99", "98", "97", "1", "2", "3")})
 	f.Set(s.Cmd.JobDetail("99"), execx.FakeResponse{Stderr: []byte("slurm_load_jobs error: Invalid job id specified\n"), ExitCode: 1})
 	if d, err := s.JobDetail(ctx, "99"); d != nil || err != nil {
 		t.Fatalf("vanished job = %v, %v", d, err)
@@ -192,6 +196,7 @@ func TestMyStatsBatchesAndFilters(t *testing.T) {
 		for _, id := range strings.Split(argv[5], ",") { // sstat -a -n -P -j IDS
 			b.WriteString(id + ".batch|1|1000K|900K|00:01:00|cpu=00:01:00,mem=1000K\n")
 		}
+		b.WriteString("999999.batch|1|1000K|900K|00:01:00|cpu=00:01:00,mem=1000K\n")
 		return execx.Result{Stdout: []byte(b.String())}, nil
 	}
 	s := &Sources{Runner: f, Cmd: slurm.Commands{Caps: model.Capabilities{Major: 23, Minor: 11}, User: "u"}}
@@ -200,7 +205,12 @@ func TestMyStatsBatchesAndFilters(t *testing.T) {
 	for i := 1; i <= 45; i++ {
 		ids = append(ids, strconv.Itoa(1000+i))
 	}
-	ids = append(ids, "815_3", "12+1", "abc", "", "1; rm -rf /")
+	s.ownAt = time.Now()
+	s.ownJobs = map[string]model.Job{}
+	for _, id := range ids {
+		s.ownJobs[id] = model.Job{ID: model.JobID{Raw: id}, User: "u"}
+	}
+	ids = append(ids, "999999", "815_3", "12+1", "abc", "", "1; rm -rf /")
 	got, err := s.MyStats(context.Background(), ids)
 	if err != nil {
 		t.Fatal(err)

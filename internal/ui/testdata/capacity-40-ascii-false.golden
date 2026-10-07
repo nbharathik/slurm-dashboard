@@ -1,0 +1,45 @@
+ sdash │ ‹ 1/6 Overview ! ›        demo 
+───────────━━━━━━━━━━━━━━───────────────
+                                        
+ Needs attention               6 in all 
+ ────────────────────────────────────── 
+   ✗ 809 preproc: OUT_OF_MEMO… [open]   
+   ✗ 799 train-lora: TIMEOUT   [open]   
+   ! Scratch is at 91% of its… [open]   
+   ! 813 eval-bench has 8m le… [open]   
+                                        
+ Cluster                   stale 1h ago 
+ ────────────────────────────────────── 
+         Used        Free Total         
+   gpu                                  
+     GPU [████████]     0     8         
+     5 waiting, H100                    
+   cpu*                                 
+     CPU [████--  ]   144   512  1 down 
+   長い-partition-name-for-mixed-GPU-a… 
+     GPU [█---    ]     6    12         
+     MIG 10/14 free, 1 down, H100, H200 
+                                        
+ Your jobs  0s ago  ● 3 running  ◌ 2 p… 
+   ID         NAME        STATE         
+ ────────────────────────────────────── 
+ ▶ 812        train-lora  ● RUN         
+   813        eval-bench  ● RUN         
+   816        preproc     ● RUN         
+   815_[3-9]  sweep       ◌ PD          
+   818        big-sweep   ‖ HELD        
+                                        
+ Storage                         0s ago 
+ ────────────────────────────────────── 
+   Home       ███░░ 31G/50G quota       
+   Scratch    █████ 9.2T/10T quota      
+   Project    █░░░░ 1.2T/5T quota       
+   Fairshare  ███░░  0.62               
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+────────────────────────────────────────
+ enter open · , settings · ? help       

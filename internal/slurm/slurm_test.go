@@ -75,11 +75,8 @@ func TestCommandsMatchSpec(t *testing.T) {
 func TestUser(t *testing.T) {
 	env := func(m map[string]string) func(string) string { return func(k string) string { return m[k] } }
 	f := execx.NewFake()
-	if u, err := User(context.Background(), env(map[string]string{"USER": "alice"}), f); err != nil || u != "alice" || len(f.Calls()) != 0 {
-		t.Fatalf("User from $USER = %q %v", u, err)
-	}
 	f.Set([]string{"id", "-un"}, execx.FakeResponse{Stdout: []byte("bob\n")})
-	if u, err := User(context.Background(), env(nil), f); err != nil || u != "bob" {
+	if u, err := User(context.Background(), env(map[string]string{"USER": "alice"}), f); err != nil || u != "bob" {
 		t.Fatalf("User from id = %q %v", u, err)
 	}
 	f2 := execx.NewFake()

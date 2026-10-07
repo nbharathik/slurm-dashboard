@@ -47,6 +47,7 @@ func (a *App) handleRequest(msg tea.Msg) tea.Cmd {
 		a.switchTab(a.tabIndex(model.TabJobs))
 		if o, ok := a.views[a.tab].(interface{ Open(*views.Context, string) }); ok {
 			o.Open(a.ctx, msg.ID)
+			a.syncVisible()
 		}
 	case views.HistoryJobMsg:
 		a.switchTab(a.tabIndex(model.TabUsage))
@@ -143,7 +144,7 @@ func (a *App) startAction(id string, jobs []model.Job, args map[string]string) t
 	var mine []model.Job
 	skipped := 0
 	for _, j := range jobs {
-		if j.User != "" && a.st.User != "" && j.User != a.st.User {
+		if !j.OwnedBy(a.st.User) {
 			skipped++
 			continue
 		}
@@ -181,14 +182,23 @@ func (a *App) runAction(act actions.Action, jobs []model.Job, argvs [][]string) 
 	}
 	n := len(jobs)
 	return func() tea.Msg {
-		ctx, cancel := context.WithTimeout(context.Background(), ActionTimeout)
+		ctx, cancel := context.WithTimeout(a.runCtx, ActionTimeout)
 		defer cancel()
+		for _, j := range jobs {
+			fresh, err := a.opt.Sources.OwnJob(ctx, j.ID.Raw)
+			if err != nil || !act.AppliesTo(fresh) {
+				return actionDoneMsg{res: actions.Result{Action: act, Err: fmt.Errorf("ownership or applicable state changed for %s: %v", j.ID.Raw, err)}, jobs: n}
+			}
+		}
 		return actionDoneMsg{res: actions.Run(ctx, r, act, argvs), jobs: n}
 	}
 }
 
 // handleViewState forwards view-state requests to the collectors.
 func (a *App) handleViewState(msg tea.Msg) tea.Cmd {
+	if _, ok := msg.(views.DetailMsg); ok {
+		msg = views.DetailMsg{ID: a.activeDetailID()}
+	}
 	if a.opt.OnViewState != nil {
 		a.opt.OnViewState(msg)
 	}

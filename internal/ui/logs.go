@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -66,33 +67,11 @@ type infoBox struct {
 	anyKey      bool // any key closes it (the welcome card)
 }
 
-// detailOf returns the loaded scontrol detail of j, if any.
-func (a *App) detailOf(j model.Job) *model.JobDetail {
-	d := a.st.Detail.Data
-	if !a.st.Detail.Has || d.Job == nil {
-		return nil
-	}
-	if d.ID == j.ID.Raw || d.Job.ID.Raw == j.ID.Raw {
-		return d.Job
-	}
-	return nil
-}
-
-// ownJobID is the job's own ID: a running array task has one that differs
-// from "812_3", and srun --jobid wants it.
-func (a *App) ownJobID(j model.Job) string {
-	if d := a.detailOf(j); d != nil {
-		if id := d.Raw["JobId"]; id != "" && actions.ValidateJobID(id) == nil {
-			return id
-		}
-	}
-	return j.ID.Raw
-}
-
 // openLogs resolves a job's log paths, then opens the viewer (or $PAGER).
 func (a *App) openLogs(j model.Job, stderr, pager bool) tea.Cmd {
-	if d := a.detailOf(j); d != nil {
-		return a.showLog(logTargetMsg{job: j, stderr: stderr, pager: pager, out: views.LogPath(d, false), err: views.LogPath(d, true)})
+	if !j.OwnedBy(a.st.User) {
+		a.setFlash("Private logs require verified ownership", true)
+		return nil
 	}
 	src := a.opt.Sources
 	if src == nil {
@@ -101,7 +80,7 @@ func (a *App) openLogs(j model.Job, stderr, pager bool) tea.Cmd {
 	}
 	a.setFlash("Finding the log files of "+j.ID.Raw+a.th.Sym.Ellipsis, false)
 	return func() tea.Msg {
-		ctx, cancel := context.WithTimeout(context.Background(), lookupTimeout)
+		ctx, cancel := context.WithTimeout(a.runCtx, lookupTimeout)
 		defer cancel()
 		d, err := src.JobDetail(ctx, j.ID.Raw)
 		m := logTargetMsg{job: j, stderr: stderr, pager: pager, fail: err}
@@ -128,6 +107,10 @@ func (a *App) guessLogPath(j model.Job) (string, bool) {
 }
 
 func (a *App) showLog(m logTargetMsg) tea.Cmd {
+	if !m.job.OwnedBy(a.st.User) || m.fail != nil {
+		a.setFlash("Private log unavailable: ownership or visibility check failed", true)
+		return nil
+	}
 	if m.out == "" && m.fail == nil {
 		if p, ok := a.guessLogPath(m.job); ok {
 			m.out, m.err = p, p
@@ -158,9 +141,11 @@ func (a *App) showLog(m logTargetMsg) tea.Cmd {
 		logs.NewBuffer(logs.MaxLines, false, hl), false)
 	v.Job, v.Stderr, v.Path, v.Note = m.job, m.stderr, path, m.note
 	a.logView, a.logPaths = v, [2]string{m.out, m.err}
+	a.syncVisible()
 	a.flash = flash{}
 	a.logGen++
 	a.logReader = logs.NewReader(a.opt.LogFS, path, logs.InitialBytes)
+	a.logReader.ChunkLimit = 256 << 10
 	return a.pollLog()
 }
 
@@ -171,12 +156,15 @@ func (a *App) pollLog() tea.Cmd {
 
 func (a *App) closeLog() {
 	a.logView, a.logReader = nil, nil
+	a.syncVisible()
 	a.logGen++
 }
 
 // handleLogMsg applies log viewer messages.
 func (a *App) handleLogMsg(msg tea.Msg) tea.Cmd {
 	switch m := msg.(type) {
+	case verifiedShellMsg:
+		return a.execShell(m.job, m.node, m.ownID)
 	case logTargetMsg:
 		return a.showLog(m)
 	case logChunkMsg:
@@ -194,7 +182,7 @@ func (a *App) handleLogMsg(msg tea.Msg) tea.Cmd {
 		}
 		switch {
 		case c.More:
-			return a.pollLog()
+			return a.logTick(time.Millisecond)
 		case c.State != logs.Reading:
 			return a.logTick(logPollMissing)
 		}
@@ -214,9 +202,12 @@ func (a *App) handleLogMsg(msg tea.Msg) tea.Cmd {
 			return nil
 		}
 		j := a.logView.Job
-		return a.showLog(logTargetMsg{job: j, stderr: m.Stderr, out: a.logPaths[0], err: a.logPaths[1]})
+		return a.openLogs(j, m.Stderr, false)
 	case views.PagerPathMsg:
-		return a.execPager(m.Path)
+		if a.logView != nil {
+			return a.openLogs(a.logView.Job, a.logView.Stderr, true)
+		}
+		return nil
 	case scriptMsg:
 		if m.err != nil {
 			a.setFlash("batch script of "+m.job.ID.Raw+": "+layout.FirstLine(m.err.Error()), true)
@@ -227,6 +218,7 @@ func (a *App) handleLogMsg(msg tea.Msg) tea.Cmd {
 		a.closeLog()
 		a.logView = views.NewLogView(fmt.Sprintf("batch script %s %s %s", a.th.Sym.Separator, m.job.ID.Raw, m.job.Name), buf, true)
 		a.logView.Job = m.job
+		a.syncVisible()
 		a.flash = flash{}
 	case gpuSampleMsg:
 		if m.err != nil {
@@ -286,13 +278,17 @@ func (a *App) execPager(path string) tea.Cmd {
 
 // loadScript fetches a job's batch script.
 func (a *App) loadScript(j model.Job) tea.Cmd {
+	if !j.OwnedBy(a.st.User) {
+		a.setFlash("Private scripts require verified ownership", true)
+		return nil
+	}
 	src := a.opt.Sources
 	if src == nil {
 		return nil
 	}
 	a.setFlash("Loading the batch script of "+j.ID.Raw+a.th.Sym.Ellipsis, false)
 	return func() tea.Msg {
-		ctx, cancel := context.WithTimeout(context.Background(), lookupTimeout)
+		ctx, cancel := context.WithTimeout(a.runCtx, lookupTimeout)
 		defer cancel()
 		text, err := src.BatchScript(ctx, j.ID.Raw)
 		return scriptMsg{job: j, text: text, err: err}
@@ -305,16 +301,45 @@ func (a *App) openShell(j model.Job, node string) tea.Cmd {
 		a.setFlash("shells are not available in demo mode", true)
 		return nil
 	}
-	if j.User != "" && a.st.User != "" && j.User != a.st.User {
+	if !j.OwnedBy(a.st.User) {
 		a.setFlash("you can only open a shell in your own jobs", true)
 		return nil
 	}
-	argv, err := actions.ShellArgv(j, a.ownJobID(j), node, a.opt.Config.Shell, a.opt.Getenv("SHELL"), a.st.Caps)
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(a.runCtx, lookupTimeout)
+		defer cancel()
+		fresh, err := a.opt.Sources.OwnJob(ctx, j.ID.Raw)
+		if err != nil || fresh.State != model.StateRunning {
+			return views.FlashMsg{Text: "Ownership or running state could not be verified", Err: true}
+		}
+		if node != "" && !slices.Contains(fresh.NodeList, node) {
+			return views.FlashMsg{Text: "Requested node is not in the fresh job allocation", Err: true}
+		}
+		d, err := a.opt.Sources.JobDetail(ctx, j.ID.Raw)
+		if err != nil || d == nil || d.State != model.StateRunning {
+			return views.FlashMsg{Text: "Fresh controller details unavailable", Err: true}
+		}
+		ownID := d.Raw["JobId"]
+		if ownID == "" {
+			ownID = d.ID.Raw
+		}
+		return verifiedShellMsg{job: fresh, node: node, ownID: ownID}
+	}
+}
+
+type verifiedShellMsg struct {
+	job   model.Job
+	node  string
+	ownID string
+}
+
+func (a *App) execShell(j model.Job, node, ownID string) tea.Cmd {
+	argv, err := actions.ShellArgv(j, ownID, node, a.opt.Config.Shell, a.opt.Getenv("SHELL"), a.st.Caps)
 	if err != nil {
 		a.setFlash(err.Error(), true)
 		return nil
 	}
-	cmd, err := actions.Shell(context.Background(), execx.Policy{}, argv)
+	cmd, err := actions.Shell(a.runCtx, execx.Policy{}, argv)
 	if err != nil {
 		a.setFlash(err.Error(), true)
 		return nil
@@ -326,11 +351,11 @@ func (a *App) openShell(j model.Job, node string) tea.Cmd {
 
 // sampleGPU runs nvidia-smi once inside a running job.
 func (a *App) sampleGPU(j model.Job) tea.Cmd {
-	if j.User != "" && a.st.User != "" && j.User != a.st.User {
+	if !j.OwnedBy(a.st.User) {
 		a.setFlash("you can only sample your own jobs", true)
 		return nil
 	}
-	argv, err := actions.GPUSampleArgv(j, a.ownJobID(j), "")
+	_, err := actions.GPUSampleArgv(j, j.ID.Raw, "")
 	if err != nil {
 		a.setFlash(err.Error(), true)
 		return nil
@@ -341,8 +366,24 @@ func (a *App) sampleGPU(j model.Job) tea.Cmd {
 	}
 	a.setFlash("Sampling GPUs (this creates a job step that shows in sacct)"+a.th.Sym.Ellipsis, false)
 	return func() tea.Msg {
-		ctx, cancel := context.WithTimeout(context.Background(), gpuTimeout)
+		ctx, cancel := context.WithTimeout(a.runCtx, gpuTimeout)
 		defer cancel()
+		fresh, err := a.opt.Sources.OwnJob(ctx, j.ID.Raw)
+		if err != nil || fresh.State != model.StateRunning {
+			return gpuSampleMsg{job: j, err: fmt.Errorf("ownership or running state could not be verified: %v", err)}
+		}
+		d, err := a.opt.Sources.JobDetail(ctx, j.ID.Raw)
+		if err != nil || d == nil || d.State != model.StateRunning {
+			return gpuSampleMsg{job: j, err: fmt.Errorf("fresh controller details unavailable")}
+		}
+		ownID := d.Raw["JobId"]
+		if ownID == "" {
+			ownID = d.ID.Raw
+		}
+		argv, err := actions.GPUSampleArgv(d.Job, ownID, "")
+		if err != nil {
+			return gpuSampleMsg{job: j, err: err}
+		}
 		s, err := actions.SampleGPUs(ctx, r, argv)
 		return gpuSampleMsg{job: j, argv: argv, samples: s, err: err}
 	}

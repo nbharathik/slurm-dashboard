@@ -7,12 +7,14 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/nbharathik/slurm-dashboard/internal/privatefile"
+
 	"github.com/nbharathik/slurm-dashboard/internal/meta"
 )
 
 // WriteCrash records a recovered panic in cacheDir/crash-<timestamp>.log and returns its path.
 func WriteCrash(cacheDir string, recovered any, stack []byte) (string, error) {
-	if err := os.MkdirAll(cacheDir, 0o700); err != nil {
+	if err := privatefile.Directory(cacheDir); err != nil {
 		return "", err
 	}
 	now := time.Now().UTC()

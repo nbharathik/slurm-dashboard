@@ -65,7 +65,7 @@ func (v *Overview) Sources() []string {
 }
 
 // Badge marks the tab when there is something to look at.
-func (v *Overview) Badge(*Context) string {
+func (v *Overview) Badge(_ *Context) string {
 	if len(v.alerts) > 0 {
 		return "!"
 	}
@@ -83,14 +83,13 @@ func (v *Overview) Refresh(ctx *Context) {
 	st := ctx.Store
 	v.alerts = st.Alerts(ctx.Now, ctx.Dismissed)
 
-	var parts []model.Partition
-	for _, p := range st.Partitions.Data {
-		if !slices.Contains(ctx.Config.HidePartitions, p.Name) {
-			parts = append(parts, p)
+	_, parts := st.Capacity()
+	v.parts = nil
+	for _, p := range parts {
+		if !slices.Contains(ctx.Config.HidePartitions, p.Partition.Name) {
+			v.parts = append(v.parts, p)
 		}
 	}
-	pending, known := state.PendingByPartition(st)
-	v.parts = state.PartitionSummaries(parts, state.NodeGPUUsage(st.Nodes.Data, st.Cluster.Data.Jobs, st.User), pending, known)
 
 	v.myJobs = state.JoinJobs(st.MyJobs.Data, st.Cluster.Data.Jobs, st.QueueRank.Data)
 	var cols []layout.Column
@@ -329,3 +328,6 @@ func (v *Overview) Hints(ctx *Context) []key.Binding {
 	}
 	return hints
 }
+
+// RefreshAlerts updates badges without rebuilding hidden tables.
+func (v *Overview) RefreshAlerts(ctx *Context) { v.alerts = ctx.Store.Alerts(ctx.Now, ctx.Dismissed) }

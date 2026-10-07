@@ -2,29 +2,29 @@
 ──────────────────────────────────────────────────────────━━━━━━━━━━━───────────────────────────────────────────────────
                                                                                                                         
   3 locations · checked 14:00                                                                                           
-    LOCATION  SPACE              FILES     30 DAYS               PATH                                                   
+    LOCATION  SCOPE   SPACE USED          FILES     CHECK / TREND         PATH                                          
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
-    Home      █████░░░ 31G/50G   212k/1M   ▁▁▂▃▄▅▅▆▇█ full ~6mo  /home/you                                              
-  ▶ Scratch   ███████░ 9.2T/10T  3.1M/5M   ▁▂▂▃▄▅▅▆▇█ full ~19d  /scratch/you                                           
-    Project   ██░░░░░░ 1.2T/5T   900k/10M  ▁▁▂▃▄▅▅▆▇█            /project/ml-lab                                        
-                                                                                                                        
-  ╭─ Scratch [esc] ──────────────────────────────────────────────────────────────────────────────────────────────────╮  
-  │ Path     /scratch/you                                                                                            │  
-  │ Backend  lustre  (lu╭──────────────────────────────────────────────────────────────────────╮                     │  
-  │ Note     purged afte│  Scan /scratch/you?                                                  │                     │  
-  │ Trend    ▁▁▂▂▂▂▂▂▃▃▃│                                                                      │                     │  
-  │          growing abo│  This is a lustre filesystem: walking it loads the shared metadata   │                     │  
-  │                     │  server that everyone uses.                                          │                     │  
-  │ Backend output      │  sdash runs du at the lowest priority, stops after 10 minutes, and   │                     │  
-  │ Disk quotas for usr │  esc cancels it.                                                     │                     │  
-  │   Filesystem  used  │                                                                      │                     │  
-  │   /scratch/you  9420│  Will run:                                                           │                     │  
-  │                     │    nice -n 19 ionice -c3 du -x -d1 -k -- /scratch/you                │                     │  
-  │ [ Analyse usage (a) │                                                                      │                     │  
-  │                     │                                      [ Scan (y) ]  [ Cancel (esc) ]  │                     │  
-  │                     ╰──────────────────────────────────────────────────────────────────────╯                     │  
+    Home      Yours   █████░░░ 31G/50G    212k/1M   ▁▁▂▃▄▅▅▆▇█ full ~6mo  /home/you                                     
+  ▶ Scratch   Yours   ███████░ 9.2T/10T   3.1M/5M   ▁▂▂▃▄▅▅▆▇█ full ~19d  /scratch/you                                  
+    Project   Yours   ██░░░░░░ 1.2T/5T    900k/10M  ▁▁▂▃▄▅▅▆▇█            /project/ml-lab                               
+    Home      Shared  Unavailable  stale            collecting            /home/you                                     
+    Scratch   Shared  Unavailable  stale            collecting            /scratch/you                                  
+    Project   Shared  Unavailable  stale            collecting            /project/ml-lab                               
+                        ╭──────────────────────────────────────────────────────────────────────╮                        
+  ╭─ Scratch / Yours [es│  Scan /scratch/you?                                                  │─────────────────────╮  
+  │ Path     /scratch/yo│                                                                      │                     │  
+  │ Scope    Your quota │  This is a lustre filesystem: walking it loads the shared metadata   │                     │  
+  │ Backend  lustre  (lu│  server that everyone uses.                                          │                     │  
+  │ Note     purged afte│  sdash runs du at the lowest priority, stops after 10 minutes, and   │                     │  
+  │ Trend    ▁▁▂▂▂▂▂▂▃▃▃│  esc cancels it.                                                     │                     │  
+  │          growing abo│                                                                      │                     │  
+  │                     │  Will run:                                                           │                     │  
+  │ Backend output      │    nice -n 19 ionice -c3 du -x -d1 -k -- /scratch/you                │                     │  
+  │ Disk quotas for usr │                                                                      │                     │  
+  │   Filesystem  used  │                                      [ Scan (y) ]  [ Cancel (esc) ]  │                     │  
+  │   /scratch/you  9420╰──────────────────────────────────────────────────────────────────────╯                     │  
   │                                                                                                                  │  
-  │                                                                                                                  │  
+  │ [ Analyse your usage (a) ]                                                                                       │  
   │                                                                                                                  │  
   │                                                                                                                  │  
   │                                                                                                                  │  

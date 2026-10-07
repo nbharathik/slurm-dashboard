@@ -4,10 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"errors"
-	"os"
-	"path/filepath"
+	"fmt"
 	"time"
+
+	"github.com/nbharathik/slurm-dashboard/internal/privatefile"
 )
 
 // FileName is the log inside the state directory.
@@ -21,7 +21,7 @@ func Open(path string, now time.Time) *Log {
 	if path == "" {
 		return l
 	}
-	raw, err := os.ReadFile(path)
+	raw, err := privatefile.Read(path, 16<<20)
 	if err != nil {
 		return l
 	}
@@ -48,29 +48,12 @@ func Open(path string, now time.Time) *Log {
 	return l
 }
 
-// Persist appends samples to the file (mode 0600, dir 0700); samples stay in memory on error.
+// Persist replaces the file with retained samples; samples stay in memory on error.
 func (l *Log) Persist(samples []Sample) error {
 	if l == nil || l.path == "" || len(samples) == 0 {
 		return nil
 	}
-	if err := os.MkdirAll(filepath.Dir(l.path), 0o700); err != nil {
-		return err
-	}
-	f, err := os.OpenFile(l.path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
-	if err != nil {
-		return err
-	}
-	var buf bytes.Buffer
-	for _, s := range samples {
-		b, err := json.Marshal(s)
-		if err != nil {
-			continue
-		}
-		buf.Write(b)
-		buf.WriteByte('\n')
-	}
-	_, werr := f.Write(buf.Bytes())
-	return errors.Join(werr, f.Close())
+	return l.rewrite()
 }
 
 // rewrite replaces the file with the samples in memory, atomically.
@@ -81,19 +64,18 @@ func (l *Log) rewrite() error {
 		for _, s := range series {
 			b, err := json.Marshal(s)
 			if err == nil {
+				if buf.Len()+len(b)+1 > 16<<20 {
+					l.mu.RUnlock()
+					return fmt.Errorf("storage history exceeds persistence budget")
+				}
 				buf.Write(b)
 				buf.WriteByte('\n')
 			}
 		}
 	}
 	l.mu.RUnlock()
-	tmp := l.path + ".tmp"
-	if err := os.WriteFile(tmp, buf.Bytes(), 0o600); err != nil {
-		return err
+	if buf.Len() > 16<<20 {
+		return fmt.Errorf("storage history exceeds persistence budget")
 	}
-	if err := os.Rename(tmp, l.path); err != nil {
-		_ = os.Remove(tmp)
-		return err
-	}
-	return nil
+	return privatefile.Write(l.path, buf.Bytes())
 }

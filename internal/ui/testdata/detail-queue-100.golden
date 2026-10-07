@@ -1,0 +1,35 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage           tundra · you · demo  
+───────────────────────────────━━━━━━━━━────────────────────────────────────────────────────────────
+                                                                                                    
+  18 jobs · 7 running · 11 pending · waiting on Resources 8, Priority 2                             
+    ID           USER   NAME          STATE   ELAPSED/LIMIT  PART  RESOURCES      WHERE             
+  ────────────────────────────────────────────────────────────────────────────────────────────────  
+    ▾ running           7 jobs                                     8 GPU 300 CPU                    
+  ▶   801        carol  md-sim        ● RUN   1d06h/3d       cpu   96 CPU         cpu01             
+      802        carol  md-sim        ● RUN   1d04h/3d       cpu   128 CPU        cpu02 +1          
+      790        alice  llm-finetune  ● RUN   20h/2d         gpu   2 GPU 16 CPU   gpu01             
+      795        bob    diffusion     ● RUN   9h46m/12h      gpu   4 GPU 32 CPU   gpu02             
+      812        you    train-lora    ● RUN   5h46m/1d       gpu   1 GPU 8 CPU    gpu01             
+      813        you    eval-bench    ● RUN   1h52m/2h       gpu   1 GPU 4 CPU    gpu01             
+  ╭─ 801 md-sim [esc] ───────────────────────────────────────────────────────────────────────────╮  
+  │ ● RUNNING                                                                                    │  
+  │ User: carol                                                                                  │  
+  │ Partition: cpu                                                                               │  
+  │ Resources: 96 CPUs, 180G, 3d                                                                 │  
+  │ Elapsed: 1d06h  Limit: 3d                                                                    │  
+  │ Nodes: cpu01                                                                                 │  
+  │ Estimated end: Sep 30 08:00                                                                  │  
+  │                                                                                              │  
+  │ Public queue snapshot. Private features are available only for your own jobs.                │  
+  │                                                                                              │  
+  │                                                                                              │  
+  │                                                                                              │  
+  │                                                                                              │  
+  │                                                                                              │  
+  │                                                                                              │  
+  │                                                                                              │  
+  │                                                                                              │  
+  │                                                                                              │  
+  ╰──────────────────────────────────────────────────────────────────────────────────────────────╯  
+────────────────────────────────────────────────────────────────────────────────────────────────────
+  enter details · / filter · v what to show · , settings · ? help                   updated 0s ago  

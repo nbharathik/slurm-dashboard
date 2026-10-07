@@ -1,15 +1,15 @@
   sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage                                                    birch · you · demo  
 ────────────────────────────────────────━━━━━━━━━───────────────────────────────────────────────────────────────────────────────────────────
                                                                                                                                             
-  12 nodes · 328/592 CPUs free · 1/10 GPUs free                                                                                             
+  12 nodes · 328/656 CPUs free · 1/10 GPUs free                                                                                             
   ! reservation gpu-maint · starts in 3d01h · 2 nodes · 8h                                                                                  
     NODE ▲       STATE    CPU FREE   MEM FREE  GPU FREE  GPU TYPE         JOBS                                                              
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
-  ▶ ▾ cpu* (6)   up        128/256       -/2T                             1 pending · limit 7d                                              
+  ▶ ▾ cpu* (6)   up        128/320     -/2.5T                             1 pending · limit 7d                                              
       cpu01      alloc        0/64     -/512G                             carol 1                                                           
       cpu02      mixed       32/64     -/512G                             you 1                                                             
       cpu03      idle        64/64  512G/512G                                                                                               
-      cpu04      drained     64/64  512G/512G                             "fan failure"                                                     
+      cpu04      drained      0/64     0/512G                             "fan failure"                                                     
       cpu05      idle        32/32  256G/256G                                                                                               
       cpu06      alloc        0/32     -/256G                             carol 1                                                           
                                                                                                                                             

@@ -2,25 +2,25 @@
 ───────────────────────────────━━━━━━━━━────────────────────────────────────────────────────────────────────────────────
                                                                                                                         
   18 jobs · 7 running · 11 pending · waiting on Resources 8, Priority 2                                                 
-    ID           USER   NAME          STATE   TIME       PART  RESOURCES      WHERE                                     
+    ID           USER   NAME          STATE   ELAPSED/LIMIT  PART  RESOURCES      WHERE                                 
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
-  ▶ ▾ running           7 jobs                                 8 GPU 300 CPU                                            
-      801        carol  md-sim        ● RUN   1d06h/3d   cpu   96 CPU         cpu01                                     
-      802        carol  md-sim        ● RUN   1d04h/3d   cpu   128 CPU        cpu02 +1                                  
-      790        alice  llm-finetune  ● RUN   20h/2d     gpu   2 GPU 16 CPU   gpu01                                     
-      795        bob    diffusion     ● RUN   9h46m/12h  gpu   4 GPU 32 CPU   gpu02                                     
-      812        you    train-lora    ● RUN   5h46m/1d   gpu   1 GPU 8 CPU    gpu01                                     
-      813        you    eval-bench    ● RUN   1h52m/2h   gpu   1 GPU 4 CPU    gpu01                                     
-      816        you    preproc       ● RUN   30s/1h     cpu   16 CPU         cpu01                                     
+  ▶ ▾ running           7 jobs                                     8 GPU 300 CPU                                        
+      801        carol  md-sim        ● RUN   1d06h/3d       cpu   96 CPU         cpu01                                 
+      802        carol  md-sim        ● RUN   1d04h/3d       cpu   128 CPU        cpu02 +1                              
+      790        alice  llm-finetune  ● RUN   20h/2d         gpu   2 GPU 16 CPU   gpu01                                 
+      795        bob    diffusion     ● RUN   9h46m/12h      gpu   4 GPU 32 CPU   gpu02                                 
+      812        you    train-lora    ● RUN   5h46m/1d       gpu   1 GPU 8 CPU    gpu01                                 
+      813        you    eval-bench    ● RUN   1h52m/2h       gpu   1 GPU 4 CPU    gpu01                                 
+      816        you    preproc       ● RUN   30s/1h         cpu   16 CPU         cpu01                                 
                                                                                                                         
-    ▾ pending           4 jobs                                 6 GPU 28 CPU                                             
-      810        dave   rl-agent      ◌ PD    -/8h       gpu   2 GPU 8 CPU    Resources                                 
-      805        dave   rl-agent      ◌ PD    -/8h       gpu   2 GPU 8 CPU    Priority                                  
-      815_[3-9]  you    sweep         ◌ PD    -/4h       gpu   1 GPU 8 CPU    Resources                                 
-      807        erin   embed         ◌ PD    -/2h       gpu   1 GPU 4 CPU    Priority                                  
+    ▾ pending           4 jobs                                     6 GPU 28 CPU                                         
+      810        dave   rl-agent      ◌ PD    -/8h           gpu   2 GPU 8 CPU    Resources                             
+      805        dave   rl-agent      ◌ PD    -/8h           gpu   2 GPU 8 CPU    Priority                              
+      815_[3-9]  you    sweep         ◌ PD    -/4h           gpu   1 GPU 8 CPU    Resources                             
+      807        erin   embed         ◌ PD    -/2h           gpu   1 GPU 4 CPU    Priority                              
                                                                                                                         
-    ▾ held              1 job                                  4 GPU 32 CPU                                             
-      818        you    big-sweep     ‖ HELD  -/12h      gpu   4 GPU 32 CPU   JobHeldUser                               
+    ▾ held              1 job                                      4 GPU 32 CPU                                         
+      818        you    big-sweep     ‖ HELD  -/12h          gpu   4 GPU 32 CPU   JobHeldUser                           
                                                                                                                         
                                                                                                                         
                                                                                                                         

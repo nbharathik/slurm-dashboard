@@ -1,0 +1,45 @@
+ sdash │ ‹ 4/6 Nodes ›                  tundra · you · demo 
+───────────━━━━━━━━━────────────────────────────────────────
+                                                            
+ 8 nodes · 219/1235335 CPUs free · 6/20 GPUs free           
+ ! reservation maint · starts in 2d03h · 6 nodes · 6h       
+   NODE ▲      STATE     CPU FREE  GPU FREE  JOBS           
+ ────────────────────────────────────────────────────────── 
+ ▶ ▾ gpu (2)   up          68/128       0/8  5 pending · l… 
+     gpu01     alloc        36/64       0/4  you 2 · alice… 
+     gpu02     alloc        32/64       0/4  bob 1          
+                                                            
+   ▾ cpu* (4)  up         144/512            limit 7d       
+     cpu01     mixed       16/128            you 1 · carol… 
+     cpu02     mixed       64/128            carol 1        
+     cpu03     mixed       64/128            carol 1        
+     cpu04     drained      0/128            "bad DIMM"     
+                                                            
+   large-down  down         0/128       0/4                 
+   large-up    mixed    7/1234567       6/8  busy, jobs no… 
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+────────────────────────────────────────────────────────────
+ enter details · , settings · ? help         updated 1h ago 

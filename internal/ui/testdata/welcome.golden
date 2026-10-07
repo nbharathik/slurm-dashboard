@@ -8,23 +8,23 @@
     ! Scratch is at 91% of its space quota                                                [open]    
     ! 813 eval-bench has 8m left: checkpoint or save now                                  [open]    
      ╭────────────────────────────────────────────────────────────────────────────────────────╮     
-  Clu│  Welcome to sdash                                                                      │tal  
+  Clu│  Welcome to sdash                                                                      │ago  
   ───│                                                                                        │───  
-    g│  1-6  Overview, Jobs, Queue (everyone), Nodes, Usage, Storage                          │     
-    c│  /    filter a table        :  run a command (:help)                                   │     
-     │  ?    every key             ,  settings (refresh speed, theme, ...)                    │     
-  You│                                                                                        │day  
-    I│  sdash only runs Slurm commands you could run yourself, polls gently,                  │     
-  ───│  and shows the exact command before it changes a job.                                  │───  
-  ▶ 8│                                                                                        │     
-    8│  Press any key to start.                                                               │     
+    P│  1-6  Overview, Jobs, Queue (everyone), Nodes, Usage, Storage                          │     
+    g│  /    filter a table        :  run a command (:help)                                   │     
+    c│  ?    every key             ,  settings (refresh speed, theme, ...)                    │     
+     │                                                                                        │     
+  You│  sdash only runs Slurm commands you could run yourself, polls gently,                  │day  
+    I│  and shows the exact command before it changes a job.                                  │     
+  ───│                                                                                        │───  
+  ▶ 8│  Press any key to start.                                                               │     
     8╰────────────────────────────────────────────────────────────────────────────────────────╯     
-    815_[3-9]  sweep       ◌ PD    -/4h       1 GPU 8 CPU   #2/5 Resources                          
-    818        big-sweep   ‖ HELD  -/12h      4 GPU 32 CPU  JobHeldUser                             
-  Storage · fairshare                                                                               
+    816        preproc     ● RUN   30s/1h         16 CPU        cpu01                               
+    815_[3-9]  sweep       ◌ PD    -/4h           1 GPU 8 CPU   #2/5 Resources                      
+    818        big-sweep   ‖ HELD  -/12h          4 GPU 32 CPU  JobHeldUser                         
+  Storage                                                                                   0s ago  
   ────────────────────────────────────────────────────────────────────────────────────────────────  
-    Home       ████████████░░░░░░░░  31G/50G                                                        
-    Scratch    ██████████████████░░  9.2T/10T                                                       
-    Project    █████░░░░░░░░░░░░░░░  1.2T/5T                                                        
+    Home       ████████████░░░░░░░░  31G used / 50G quota                                           
+    Scratch    ██████████████████░░  9.2T used / 10T quota                                          
 ────────────────────────────────────────────────────────────────────────────────────────────────────
-  enter open · tab next section · , settings · ? help                               updated 0s ago  
+  enter open · tab next section · , settings · ? help                                               

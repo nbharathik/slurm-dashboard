@@ -114,6 +114,11 @@ func (r *RealRunner) Run(ctx context.Context, argv ...string) (Result, error) {
 		return res, err
 	}
 
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, r.opts.DefaultTimeout)
+		defer cancel()
+	}
 	select {
 	case r.sem <- struct{}{}:
 	case <-ctx.Done():
@@ -122,12 +127,6 @@ func (r *RealRunner) Run(ctx context.Context, argv ...string) (Result, error) {
 		return res, err
 	}
 	defer func() { <-r.sem }()
-
-	if _, ok := ctx.Deadline(); !ok {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, r.opts.DefaultTimeout)
-		defer cancel()
-	}
 
 	res, err := r.exec(ctx, argv)
 	res.Argv = argv
@@ -154,6 +153,11 @@ func RunUserShell(ctx context.Context, r *RealRunner, script string, extraEnv []
 			return res, err
 		}
 	}
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, r.opts.DefaultTimeout)
+		defer cancel()
+	}
 	select {
 	case r.sem <- struct{}{}:
 	case <-ctx.Done():
@@ -162,11 +166,6 @@ func RunUserShell(ctx context.Context, r *RealRunner, script string, extraEnv []
 		return res, err
 	}
 	defer func() { <-r.sem }()
-	if _, ok := ctx.Deadline(); !ok {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, r.opts.DefaultTimeout)
-		defer cancel()
-	}
 	res, err := r.executeEnv(WithLabel(ctx, "user-shell"), argv, append(SanitizeEnv(r.opts.BaseEnv), extraEnv...))
 	res.Argv = argv
 	r.record(WithLabel(ctx, "user-shell"), res, start, err, false)

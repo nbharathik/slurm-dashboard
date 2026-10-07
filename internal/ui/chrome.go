@@ -54,6 +54,9 @@ func (a *App) identity(room int) string {
 func (a *App) freshness() string {
 	th := a.th
 	src := a.views[a.tab].Source()
+	if a.views[a.tab].Name() == "overview" {
+		return ""
+	}
 	if src == "history" && a.st.Caps.Version != "" && !a.st.Caps.HasSacct {
 		return th.Muted.Render("no accounting")
 	}
@@ -263,7 +266,10 @@ func (a *App) statusRight(room int) string {
 	sep := th.Faint.Render(" " + th.Sym.Separator + " ")
 	full := fresh
 	if badge := a.refreshBadge(); badge != "" {
-		full = badge + sep + fresh
+		full = badge
+		if fresh != "" {
+			full += sep + fresh
+		}
 	}
 	for _, s := range []string{full, fresh} {
 		if layout.Width(s) <= room {

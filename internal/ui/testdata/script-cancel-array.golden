@@ -8,27 +8,27 @@
     ! Scratch is at 91% of its space quota                                                                    [open]    
     ! 813 eval-bench has 8m left: checkpoint or save now                                                      [open]    
                                                                                                                         
-  Cluster                                                                                                 free / total  
+  Cluster                                                                                                       0s ago  
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
-    gpu   ██░░░ 68/128 CPUs   GPUs 0/8 H100  5 waiting                                                                  
-    cpu*  ████░ 144/512 ╭──────────────────────────────────────────────────────────────────────╮                        
-                        │  Cancel 1 job?                                                       │                        
-  Your jobs             │                                                                      │ding  ✗ 2 failed today  
-    ID         NAME     │  815_[3-9] sweep          ◌ PD 00:00                                 │                        
-  ──────────────────────│                                                                      │──────────────────────  
-  ▶ 812        train-lor│  Will run:                                                           │                        
-    813        eval-benc│    scancel 815_[3-9]                                                 │                        
-    816        preproc  │                                                                      │                        
-    815_[3-9]  sweep    │                                      [ Cancel (y) ]  [ Keep (esc) ]  │                        
-    818        big-sweep╰──────────────────────────────────────────────────────────────────────╯                        
+    Partition      Used        Free Total                                                                               
+    gpu        GPU [████╭──────────────────────────────────────────────────────────────────────╮                        
+    cpu*       CPU [████│  Cancel 1 job?                                                       │                        
+                        │                                                                      │                        
+  Your jobs             │  815_[3-9] sweep          ◌ PD 00:00                                 │ding  ✗ 2 failed today  
+    ID         NAME     │                                                                      │                        
+  ──────────────────────│  Will run:                                                           │──────────────────────  
+  ▶ 812        train-lor│    scancel 815_[3-9]                                                 │                        
+    813        eval-benc│                                                                      │                        
+    816        preproc  │                                      [ Cancel (y) ]  [ Keep (esc) ]  │                        
+    815_[3-9]  sweep    ╰──────────────────────────────────────────────────────────────────────╯                        
+    818        big-sweep   ‖ HELD  -/12h          4 GPU 32 CPU  JobHeldUser                                             
                                                                                                                         
-  Storage · fairshare                                                                                                   
+  Storage                                                                                                       0s ago  
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
-    Home       ████████████░░░░░░░░  31G/50G                                                                            
-    Scratch    ██████████████████░░  9.2T/10T                                                                           
-    Project    █████░░░░░░░░░░░░░░░  1.2T/5T                                                                            
-    Fairshare  ████████████░░░░░░░░  0.62  usage 18% of 25% share                                                       
-                                                                                                                        
+    Home       ████████████░░░░░░░░  31G used / 50G quota                                                               
+    Scratch    ██████████████████░░  9.2T used / 10T quota                                                              
+    Project    █████░░░░░░░░░░░░░░░  1.2T used / 5T quota                                                               
+    Fairshare  ████████████░░░░░░░░  0.62                                                                               
                                                                                                                         
                                                                                                                         
                                                                                                                         

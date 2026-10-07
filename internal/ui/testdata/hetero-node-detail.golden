@@ -1,40 +1,40 @@
   sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage                                                    birch · you · demo  
 ────────────────────────────────────────━━━━━━━━━───────────────────────────────────────────────────────────────────────────────────────────
                                                                                                                                             
-  1 node · 48/64 CPUs free · filter: mig                                           ╭─ mig01 [esc] ───────────────────────────────────────╮  
-  ! reservation gpu-maint · starts in 3d01h · 2 nodes · 8h                         │ State      MIXED                                    │  
-    NODE ▲     STATE  CPU FREE  MEM FREE  GPU FREE  GPU TYPE  JOBS                 │ Partitions mig                                      │  
-  ─────────────────────────────────────────────────────────────────────────────────│ MIG        4 of 11 slices in use                    │  
-    ▾ mig (1)  up        48/64    -/512G      7/11  MIG       limit 12h            │            2/7  1g.16gb                             │  
-  ▶   mig01    mixed     48/64    -/512G      7/11  MIG       you 1 · dave 2       │            2/4  1g.33gb                             │  
-                                                                                   │ CPUs       16 of 64 allocated, load 13.3            │  
-                                                                                   │ Memory     not tracked by Slurm (jobs here did not  │  
-                                                                                   │ Features   mig                                      │  
-                                                                                   │ Booted     Sep 18 14:00 (10d ago)                   │  
-                                                                                   │                                                     │  
-                                                                                   │ Running jobs                                        │  
-                                                                                   │ 4070       dave      8 CPU 2 MIG   ends today 18:00 │  
-                                                                                   │ 4071       dave      4 CPU 1 MIG   ends today 19:00 │  
-                                                                                   │ 4102       you       4 CPU 1 MIG   ends today 20:40 │  
-                                                                                   │                                                     │  
-                                                                                   │                                                     │  
-                                                                                   │                                                     │  
-                                                                                   │                                                     │  
-                                                                                   │                                                     │  
-                                                                                   │                                                     │  
-                                                                                   │                                                     │  
-                                                                                   │                                                     │  
-                                                                                   │                                                     │  
-                                                                                   │                                                     │  
-                                                                                   │                                                     │  
-                                                                                   │                                                     │  
-                                                                                   │                                                     │  
-                                                                                   │                                                     │  
-                                                                                   │                                                     │  
-                                                                                   │                                                     │  
-                                                                                   │                                                     │  
-                                                                                   │                                                     │  
-                                                                                   │                                                     │  
-                                                                                   ╰─────────────────────────────────────────────────────╯  
+  1 node · 48/64 CPUs free · filter: mig                                          ╭─ mig01 [esc] ────────────────────────────────────────╮  
+  ! reservation gpu-maint · starts in 3d01h · 2 nodes · 8h                        │ State      MIXED                                     │  
+    NODE ▲     STATE  CPU FREE  MEM FREE  GPU FREE  GPU TYPE  JOBS                │ Partitions mig                                       │  
+  ─────────────────────────────────────────────────────────────────────────────── │ MIG        4 of 11 slices in use                     │  
+    ▾ mig (1)  up        48/64    -/512G      7/11  MIG       limit 12h           │            2/7  MIG 1g.16gb                          │  
+  ▶   mig01    mixed     48/64    -/512G      7/11  MIG       you 1 · dave 2      │            2/4  MIG 1g.33gb                          │  
+                                                                                  │ CPUs       16 of 64 allocated, load 13.3             │  
+                                                                                  │ Memory     512G total; allocation not tracked · OS   │  
+                                                                                  │ reports 467G free                                    │  
+                                                                                  │ Features   mig                                       │  
+                                                                                  │ Booted     Sep 18 14:00 (10d ago)                    │  
+                                                                                  │                                                      │  
+                                                                                  │ Running jobs                                         │  
+                                                                                  │ 4070       dave      8 CPU 2 MIG   estimated end     │  
+                                                                                  │ today 18:00 (in 3h55m)                               │  
+                                                                                  │ 4071       dave      4 CPU 1 MIG   estimated end     │  
+                                                                                  │ today 19:00 (in 4h55m)                               │  
+                                                                                  │ 4102       you       4 CPU 1 MIG   estimated end     │  
+                                                                                  │ today 20:40 (in 6h35m)                               │  
+                                                                                  │                                                      │  
+                                                                                  │                                                      │  
+                                                                                  │                                                      │  
+                                                                                  │                                                      │  
+                                                                                  │                                                      │  
+                                                                                  │                                                      │  
+                                                                                  │                                                      │  
+                                                                                  │                                                      │  
+                                                                                  │                                                      │  
+                                                                                  │                                                      │  
+                                                                                  │                                                      │  
+                                                                                  │                                                      │  
+                                                                                  │                                                      │  
+                                                                                  │                                                      │  
+                                                                                  │                                                      │  
+                                                                                  ╰──────────────────────────────────────────────────────╯  
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   esc close · G all/gpu/cpu · s sort · , settings · ? help                                                                  updated 0s ago  

@@ -8,25 +8,26 @@
     ! Scratch is at 91% of its space quota                                                                                                            [open]    
     ! 813 eval-bench has 8m left: checkpoint or save now                                                                                              [open]    
                                                                                                                                                                 
-  Cluster                                                                                                                                         free / total  
+  Cluster                                                                                                                                               0s ago  
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
-    gpu   ██░░░ 68/128 CPUs   GPUs 0/8 H100  5 waiting                                                                                                          
-    cpu*  ████░ 144/512 CPUs                            cpu04: bad DIMM                                                                                         
+    Partition      Used        Free Total                                                                                                                       
+    gpu        GPU [████████]     0     8  CPU 68/128 free, 5 waiting, H100                                                                                     
+    cpu*       CPU [████--  ]   144   512  1 down                                                                                                               
                                                                                                                                                                 
-  Your jobs                                                                                                         ● 3 running  ◌ 2 pending  ✗ 2 failed today  
-    next to end: 813 eval-bench in 8m · waiting: Resources 1, JobHeldUser 1                                                                                     
-    ID         NAME        STATE   TIME       RESOURCES     WHERE                                                                                    1-4 of 5   
+  Your jobs                                                                                                 0s ago  ● 3 running  ◌ 2 pending  ✗ 2 failed today  
+    estimated next end: 813 eval-bench in 8m · waiting: Resources 1, JobHeldUser 1                                                                              
+    ID         NAME        STATE   ELAPSED/LIMIT  RESOURCES     WHERE                                                                                1-4 of 5   
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
-  ▶ 812        train-lora  ● RUN   5h46m/1d   1 GPU 8 CPU   gpu01                                                                                               
-    813        eval-bench  ● RUN   1h52m/2h   1 GPU 4 CPU   gpu01                                                                                               
-    816        preproc     ● RUN   30s/1h     16 CPU        cpu01                                                                                               
-    815_[3-9]  sweep       ◌ PD    -/4h       1 GPU 8 CPU   #2/5 Resources                                                                                      
+  ▶ 812        train-lora  ● RUN   5h46m/1d       1 GPU 8 CPU   gpu01                                                                                           
+    813        eval-bench  ● RUN   1h52m/2h       1 GPU 4 CPU   gpu01                                                                                           
+    816        preproc     ● RUN   30s/1h         16 CPU        cpu01                                                                                           
+    815_[3-9]  sweep       ◌ PD    -/4h           1 GPU 8 CPU   #2/5 Resources                                                                                  
                                                                                                                                                                 
-  Storage · fairshare                                                                                                                                           
+  Storage                                                                                                                                               0s ago  
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
-    Home       ████████████░░░░░░░░  31G/50G                                                                                                                    
-    Scratch    ██████████████████░░  9.2T/10T                                                                                                                   
-    Project    █████░░░░░░░░░░░░░░░  1.2T/5T                                                                                                                    
+    Home       ████████████░░░░░░░░  31G used / 50G quota                                                                                                       
+    Scratch    ██████████████████░░  9.2T used / 10T quota                                                                                                      
+    Project    █████░░░░░░░░░░░░░░░  1.2T used / 5T quota                                                                                                       
     Fairshare  ████████████░░░░░░░░  0.62  usage 18% of 25% share                                                                                               
                                                                                                                                                                 
                                                                                                                                                                 
@@ -40,6 +41,5 @@
                                                                                                                                                                 
                                                                                                                                                                 
                                                                                                                                                                 
-                                                                                                                                                                
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  enter open · tab next section · , settings · ? help                                                                                           updated 0s ago  
+  enter open · tab next section · , settings · ? help                                                                                                           

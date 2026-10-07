@@ -2,14 +2,18 @@
 ──────────────────────────────────────────────────────────━━━━━━━━━━━───────────────────────────────────────────────────
                                                                                                                         
   3 locations · checked 14:00                                                                                           
-    LOCATION  SPACE              FILES     30 DAYS               PATH                                                   
+    LOCATION  SCOPE   SPACE USED          FILES     CHECK / TREND         PATH                                          
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
-    Home      █████░░░ 31G/50G   212k/1M   ▁▁▂▃▄▅▅▆▇█ full ~6mo  /home/you                                              
-  ▶ Scratch   ███████░ 9.2T/10T  3.1M/5M   ▁▂▂▃▄▅▅▆▇█ full ~19d  /scratch/you                                           
-    Project   ██░░░░░░ 1.2T/5T   900k/10M  ▁▁▂▃▄▅▅▆▇█            /project/ml-lab                                        
+    Home      Yours   █████░░░ 31G/50G    212k/1M   ▁▁▂▃▄▅▅▆▇█ full ~6mo  /home/you                                     
+  ▶ Scratch   Yours   ███████░ 9.2T/10T   3.1M/5M   ▁▂▂▃▄▅▅▆▇█ full ~19d  /scratch/you                                  
+    Project   Yours   ██░░░░░░ 1.2T/5T    900k/10M  ▁▁▂▃▄▅▅▆▇█            /project/ml-lab                               
+    Home      Shared  Unavailable  stale            collecting            /home/you                                     
+    Scratch   Shared  Unavailable  stale            collecting            /scratch/you                                  
+    Project   Shared  Unavailable  stale            collecting            /project/ml-lab                               
                                                                                                                         
-  ╭─ Scratch [esc] ──────────────────────────────────────────────────────────────────────────────────────────────────╮  
+  ╭─ Scratch / Yours [esc] ──────────────────────────────────────────────────────────────────────────────────────────╮  
   │ Path     /scratch/you                                                                                            │  
+  │ Scope    Your quota                                                                                              │  
   │ Backend  lustre  (lustre)                                                                                        │  
   │ Note     purged after 60 days                                                                                    │  
   │ Trend    ▁▁▂▂▂▂▂▂▃▃▃▄▄▄▄▅▅▅▅▅▅▆▆▆▇▇▇███  8T to 9.2T over 29d18h                                                  │  
@@ -20,11 +24,7 @@
   │   Filesystem  used   quota  limit   files   quota    limit                                                       │  
   │   /scratch/you  9420G  10240G  11264G  3100000  5000000  6000000                                                 │  
   │                                                                                                                  │  
-  │ [ Analyse usage (a) ]                                                                                            │  
-  │                                                                                                                  │  
-  │                                                                                                                  │  
-  │                                                                                                                  │  
-  │                                                                                                                  │  
+  │ [ Analyse your usage (a) ]                                                                                       │  
   │                                                                                                                  │  
   │                                                                                                                  │  
   │                                                                                                                  │  
@@ -33,4 +33,4 @@
   │                                                                                                                  │  
   ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯  
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  esc close · a analyse · , settings · ? help                                                           updated 0s ago  
+  esc close · a analyse yours · , settings · ? help                                                     updated 0s ago  

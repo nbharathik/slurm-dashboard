@@ -86,7 +86,7 @@ compute node. Terminal output is sanitised; redirected output keeps the raw byte
 				}
 				if time.Since(lastCheck) >= logStatusEvery {
 					lastCheck = time.Now()
-					if d, err := rt.sources.JobDetail(ctx, id); err == nil && (d == nil || !d.State.IsActive()) {
+					if j, err := rt.sources.OwnJob(ctx, id); err != nil || !j.State.IsActive() {
 						// One last read for output written as the job ended.
 						if err := printer.write(r.Poll()); err != nil {
 							return err

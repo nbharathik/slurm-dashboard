@@ -1,18 +1,18 @@
   sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage           tundra · you · demo  
 ────────────────────────────────────────━━━━━━━━━───────────────────────────────────────────────────
                                                                                                     
-  6 nodes · 212/512 CPUs free · 0/8 GPUs free                                                       
+  6 nodes · 212/640 CPUs free · 0/8 GPUs free                                                       
     NODE ▲      STATE    CPU FREE   MEM FREE  GPU FREE  GPU TYPE  LOAD  JOBS               FREE IN  
   ────────────────────────────────────────────────────────────────────────────────────────────────  
   ▶ ▾ gpu (2)   up         68/128    592G/1T       0/8  H100            5 pending · limi…           
       gpu01     alloc       36/64  336G/512G       0/4  H100      23.2  you 2 · alice 1         8m  
       gpu02     alloc       32/64  256G/512G       0/4  H100      26.6  bob 1                2h14m  
                                                                                                     
-    ▾ cpu* (4)  up        144/384  356G/768G                            limit 7d                    
+    ▾ cpu* (4)  up        144/512    356G/1T                            limit 7d                    
       cpu01     mixed      16/128   44G/256G                      93.0  you 1 · carol 1             
       cpu02     mixed      64/128  156G/256G                      53.1  carol 1                     
       cpu03     mixed      64/128  156G/256G                      53.1  carol 1                     
-      cpu04     drained   128/128  256G/256G                       0.0  "bad DIMM"                  
+      cpu04     drained     0/128     0/256G                       0.0  "bad DIMM"                  
                                                                                                     
                                                                                                     
                                                                                                     

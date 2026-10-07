@@ -2,13 +2,13 @@
 ───────────────────────────────━━━━━━━━━────────────────────────────────────────────────────────────────────────────────
                                                                                                                         
   18 jobs · 7 running · 11 pending · waiting on Resources 8, Priority 2 · filter: user:you state:PD                     
-    ID           USER   NAME       STATE   TIME       PART  RESOURCES     WHERE                                         
+    ID           USER   NAME       STATE   ELAPSED/LIMIT  PART  RESOURCES     WHERE                                     
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
-    ▾ pending           1 job                               1 GPU 8 CPU                                                 
-  ▶   815_[3-9]  you    sweep      ◌ PD    -/4h       gpu   1 GPU 8 CPU   Resources                                     
+    ▾ pending           1 job                                   1 GPU 8 CPU                                             
+  ▶   815_[3-9]  you    sweep      ◌ PD    -/4h           gpu   1 GPU 8 CPU   Resources                                 
                                                                                                                         
-    ▾ held              1 job                               4 GPU 32 CPU                                                
-      818        you    big-sweep  ‖ HELD  -/12h      gpu   4 GPU 32 CPU  JobHeldUser                                   
+    ▾ held              1 job                                   4 GPU 32 CPU                                            
+      818        you    big-sweep  ‖ HELD  -/12h          gpu   4 GPU 32 CPU  JobHeldUser                               
                                                                                                                         
                                                                                                                         
                                                                                                                         

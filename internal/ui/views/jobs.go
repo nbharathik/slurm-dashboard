@@ -25,7 +25,7 @@ var jobColumns = []layout.Column{
 	{ID: "user", Title: "USER", Priority: 2, Min: 5, Max: 12},
 	{ID: "name", Title: "NAME", Priority: 1, Min: 8, Max: 32},
 	{ID: "state", Title: "STATE", Priority: 1, Min: 5, Max: 16},
-	{ID: "time", Title: "TIME", Priority: 2, Min: 9, Max: 16},
+	{ID: "time", Title: "ELAPSED/LIMIT", Priority: 2, Min: 9, Max: 16},
 	{ID: "partition", Title: "PART", Priority: 3, Min: 4, Max: 12},
 	{ID: "res", Title: "RESOURCES", Priority: 2, Min: 9, Max: 16},
 	{ID: "reason", Title: "WHERE", Priority: 2, Min: 8, Max: 40, Flex: true},
@@ -50,24 +50,26 @@ var (
 // Jobs is the Jobs tab (the user's jobs) and, in queue mode, the Queue
 // tab (everyone's jobs, grouped, with a summary).
 type Jobs struct {
-	table     components.Table
-	queue     bool
-	groupBy   string          // queue: state | user | partition | none
-	folded    map[string]bool // queue: group key → collapsed, when chosen
-	summary   queueSummary
-	filter    Filter
-	input     *LineInput // filter line while typing
-	sortCol   string     // "" = default order
-	sortDesc  bool
-	expanded  map[uint64]bool
-	jobs      []model.Job
-	byID      map[string]model.Job
-	members   map[string][]model.Job // group row → member jobs
-	detail    bool
-	detailID  string
-	allFields bool
-	menu      *jobMenu
-	lastClick struct {
+	table       components.Table
+	queue       bool
+	groupBy     string          // queue: state | user | partition | none
+	folded      map[string]bool // queue: group key → collapsed, when chosen
+	summary     queueSummary
+	filter      Filter
+	input       *LineInput // filter line while typing
+	sortCol     string     // "" = default order
+	sortDesc    bool
+	expanded    map[uint64]bool
+	jobs        []model.Job
+	byID        map[string]model.Job
+	members     map[string][]model.Job // group row → member jobs
+	detail      bool
+	pane        detailPane
+	detailID    string
+	savedCursor string
+	allFields   bool
+	menu        *jobMenu
+	lastClick   struct {
 		id string
 		at time.Time
 	}
@@ -87,6 +89,21 @@ func (v *Jobs) Name() string {
 		return model.TabQueue
 	}
 	return model.TabJobs
+}
+
+// ActiveDetailID identifies the private detail panel currently rendered by this view.
+func (v *Jobs) ActiveDetailID(ctx *Context) string {
+	if !v.detail {
+		return ""
+	}
+	j, ok := v.byID[v.detailID]
+	if !ok {
+		j, ok = v.cursorJob()
+	}
+	if ok && j.OwnedBy(ctx.Store.User) {
+		return j.ID.Raw
+	}
+	return ""
 }
 
 // Title implements View.
@@ -224,6 +241,23 @@ func (v *Jobs) Refresh(ctx *Context) {
 	v.table.Cols = v.columns(ctx.Config.Detailed())
 	v.table.SortCol, v.table.SortDesc = v.sortCol, v.sortDesc
 	v.table.SetRows(v.rows(ctx))
+	if v.savedCursor != "" {
+		v.table.SetCursorID(v.savedCursor)
+		v.savedCursor = ""
+	}
+}
+
+// Invalidate releases obsolete hidden Queue rows; view choices survive reopening.
+func (v *Jobs) Invalidate() {
+	if !v.queue {
+		return
+	}
+	if id := v.table.CursorID(); id != "" {
+		v.savedCursor = strings.Clone(id)
+	}
+	v.table.ReleaseRows()
+	v.jobs, v.byID, v.members = nil, nil, nil
+	v.summary = queueSummary{}
 }
 
 func (v *Jobs) columns(detailed bool) []layout.Column {
@@ -271,9 +305,11 @@ func (v *Jobs) rows(ctx *Context) []components.Row {
 func (v *Jobs) jobRows(ctx *Context, jobs []model.Job, indent int) []components.Row {
 	// Group arrays with more than one row under a parent.
 	count := map[uint64]int{}
+	arrays := map[uint64][]model.Job{}
 	for _, j := range jobs {
 		if j.ID.IsArray() {
 			count[j.ID.ArrayJobID]++
+			arrays[j.ID.ArrayJobID] = append(arrays[j.ID.ArrayJobID], j)
 		}
 	}
 	var rows []components.Row
@@ -285,12 +321,7 @@ func (v *Jobs) jobRows(ctx *Context, jobs []model.Job, indent int) []components.
 				continue
 			}
 			emitted[arr] = true
-			var members []model.Job
-			for _, m := range jobs {
-				if m.ID.IsArray() && m.ID.ArrayJobID == arr {
-					members = append(members, m)
-				}
-			}
+			members := arrays[arr]
 			gid := "arr:" + strconv.FormatUint(arr, 10)
 			v.members[gid] = members
 			g := v.groupRow(ctx, gid, arr, members)
@@ -542,8 +573,11 @@ func shortTime(now, t time.Time) string {
 
 // detailFor returns the scontrol detail of j if it is loaded.
 func (v *Jobs) detailFor(ctx *Context, j model.Job) *model.JobDetail {
+	if !j.OwnedBy(ctx.Store.User) {
+		return nil
+	}
 	d := ctx.Store.Detail.Data
-	if d.Job == nil || !ctx.Store.Detail.Has {
+	if d.Job == nil || !ctx.Store.Detail.Has || !d.Job.OwnedBy(ctx.Store.User) {
 		return nil
 	}
 	if d.ID == j.ID.Raw || d.Job.ID.Raw == j.ID.Raw {
@@ -553,8 +587,11 @@ func (v *Jobs) detailFor(ctx *Context, j model.Job) *model.JobDetail {
 }
 
 func (v *Jobs) statFor(ctx *Context, j model.Job) *model.JobStat {
+	if !j.OwnedBy(ctx.Store.User) {
+		return nil
+	}
 	d := ctx.Store.Detail.Data
-	if d.Stat != nil && (d.ID == j.ID.Raw) {
+	if d.Job != nil && d.Job.OwnedBy(ctx.Store.User) && d.Stat != nil && (d.ID == j.ID.Raw) {
 		return d.Stat
 	}
 	return nil

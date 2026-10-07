@@ -1,6 +1,6 @@
 # Install
 
-After the first release is published:
+Install a published release:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/nbharathik/slurm-dashboard/main/install.sh | sh
@@ -31,16 +31,15 @@ following the [Go 1.26 platform requirements](https://go.dev/wiki/MinimumRequire
 Linux releases have no dynamic library dependencies.
 
 Use the site's configured Slurm clients on `PATH`; try `sdash doctor`.
-Parser fixtures currently cover **Slurm 23.11**. Other versions need matching
-fixtures and a cluster smoke test before being claimed as tested. Output formats
-can change. Missing optional accounting or priority support disables the affected
-views. macOS also needs configured Slurm clients; `sdash --demo` works without them.
+The parsers are tested with **Slurm 23.11** output. Other versions and site
+customisations can use different formats. Missing optional accounting or priority
+support disables the affected views. macOS also needs configured Slurm clients;
+`sdash --demo` works without them.
 
 ## Footprint
 
-Every release binary, including optional bash completion, must remain below
-**20 MiB**; builds fail before publication otherwise. Download archives are
-reported separately. Measurements are in [footprint](footprint.md).
+The installed executable, including optional bash completion, takes less than
+**20 MiB**. Download archives require additional temporary space.
 
 Installation temporarily holds the archive and staged executable; upgrades also
 retain the current executable until replacement. Temporary files are removed on
@@ -50,7 +49,7 @@ tools can add overhead, so temporary space is not a fixed guarantee.
 Runtime cache (`~/.cache/sdash`) and state (`~/.local/state/sdash`) are separate
 from the application budget; XDG overrides apply. Their size depends on use.
 Requested recordings and user job logs are outside this budget. Installation
-does not remove existing user data or developer toolchains.
+does not remove existing user data or toolchains.
 
 ## Offline, update and remove
 
@@ -87,6 +86,6 @@ Config, cache, state, recordings and job logs are retained.
 
 ## Source builds
 
-Developers need the Go toolchain specified in `go.mod` and Make: run `make install`
-in the checkout. `PREFIX=/opt/sdash` changes the prefix. `make update` pulls and
+To build from source, use the Go toolchain specified in `go.mod` and Make.
+Run `make install` in the checkout. `PREFIX=/opt/sdash` changes the prefix. `make update` pulls and
 reinstalls; `make uninstall` removes the binary and bash completion.

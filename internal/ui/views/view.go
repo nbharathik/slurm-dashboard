@@ -19,15 +19,16 @@ import (
 
 // Context is what every view can read while updating or rendering.
 type Context struct {
-	Store  *state.Store
-	Theme  theme.Theme
-	Keys   *keys.Map
-	Zones  *zone.Manager
-	Config config.Config
-	Now    time.Time
-	Mode   layout.Mode
-	Width  int
-	Height int
+	Store    *state.Store
+	Theme    theme.Theme
+	Keys     *keys.Map
+	Zones    *zone.Manager
+	Config   config.Config
+	Now      time.Time
+	Interval func(string) time.Duration
+	Mode     layout.Mode
+	Width    int
+	Height   int
 	// Dismissed alert keys (with expiry), shared with the app's state file.
 	Dismissed map[string]time.Time
 	// Prefs are view choices remembered in the state file (PrefMsg).

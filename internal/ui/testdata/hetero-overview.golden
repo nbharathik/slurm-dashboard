@@ -8,33 +8,33 @@
     i 4102 notebook uses 12% of its 4 CPUs after 1h25m: ask for less next time                                                    [open]    
     i Maintenance starts in 3d01h; jobs longer than 73h will wait                                                                 [open]    
                                                                                                                                             
-  Cluster                                                                                                                     free / total  
+  Cluster                                                                                                                           0s ago  
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
-    cpu*   ███░░ 128/320 CPUs                                      1 waiting  cpu04: fan failure                                            
-    gpu    ███░░ 88/192 CPUs   GPUs 0/8 H200 NVL                   3 waiting                                                                
-    ws     █░░░░ 48/64 CPUs    GPUs 1/2 RTX PRO 6000 BW            1 waiting                                                                
-    mig    █░░░░ 48/64 CPUs                              MIG 7/11                                                                           
-    debug  ███░░ 32/96 CPUs    GPUs 1/1 RTX PRO 6000 BW                                                                                     
-    login  ░░░░░ 16/16 CPUs                                                                                                                 
+    Partition      Used        Free Total                                                                                                   
+    cpu*       CPU [███--   ]   128   320  1 waiting, 1 down                                                                                
+    gpu        GPU [████████]     0     8  3 waiting, H200 NVL                                                                              
+    ws         GPU [████    ]     1     2  1 waiting, RTX PRO 6000 BW                                                                       
+    mig        MIG [███     ]     7    11                                                                                                   
+    debug      GPU [        ]     1     1  RTX PRO 6000 BW                                                                                  
+    login      CPU [        ]    16    16                                                                                                   
                                                                                                                                             
-  Your jobs                                                                                     ● 4 running  ◌ 2 pending  ✗ 1 failed today  
-    ID          NAME         STATE  TIME       RESOURCES     WHERE                                                                          
+  Your jobs                                                                             0s ago  ● 4 running  ◌ 2 pending  ✗ 1 failed today  
+    ID          NAME         STATE  ELAPSED/LIMIT  RESOURCES     WHERE                                                                      
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
-  ▶ 4101        train-h200   ● RUN  6h15m/1d   2 GPU 16 CPU  h200-01                                                                        
-    4104        align        ● RUN  2h05m/12h  32 CPU        cpu02                                                                          
-    4102        notebook     ● RUN  1h25m/8h   1 GPU 4 CPU   mig01                                                                          
-    4105_1      sweep        ● RUN  1m/4h      1 GPU 8 CPU   h200-01                                                                        
-    4106        finetune-4x  ◌ PD   -/1d       4 GPU 32 CPU  #1/3 Resources                                                                 
-    4105_[2-8]  sweep        ◌ PD   -/4h       1 GPU 8 CPU   #2/3 Resources                                                                 
+  ▶ 4101        train-h200   ● RUN  6h15m/1d       2 GPU 16 CPU  h200-01                                                                    
+    4104        align        ● RUN  2h05m/12h      32 CPU        cpu02                                                                      
+    4102        notebook     ● RUN  1h25m/8h       1 GPU 4 CPU   mig01                                                                      
+    4105_1      sweep        ● RUN  1m/4h          1 GPU 8 CPU   h200-01                                                                    
+    4106        finetune-4x  ◌ PD   -/1d           4 GPU 32 CPU  #1/3 Resources                                                             
+    4105_[2-8]  sweep        ◌ PD   -/4h           1 GPU 8 CPU   #2/3 Resources                                                             
                                                                                                                                             
-  Storage · fairshare                                                                                                                       
+  Storage                                                                                                                           0s ago  
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
-    Home       ██████████████████░░  58.6T/64T  shared                                                                                      
-    Scratch    ████░░░░░░░░░░░░░░░░  2.1T/10T                                                                                               
-    Fairshare  ██████████░░░░░░░░░░  0.48  usage 9% of 5% share                                                                             
-                                                                                                                                            
+    Home       ██████████████████░░  58.6T used / 64T shared                                                                                
+    Scratch    ████░░░░░░░░░░░░░░░░  2.1T used / 10T quota                                                                                  
+    Fairshare  ██████████░░░░░░░░░░  0.48                                                                                                   
                                                                                                                                             
                                                                                                                                             
                                                                                                                                             
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  enter open · tab next section · , settings · ? help                                                                       updated 0s ago  
+  enter open · tab next section · , settings · ? help                                                                                       

@@ -31,6 +31,7 @@ import (
 type viewState struct {
 	mu           sync.Mutex
 	detailID     string
+	detailVerify bool
 	historyDays  int
 	pendingParts []string
 	// running holds the IDs of the user's plain running jobs old enough to
@@ -54,7 +55,7 @@ func (v *viewState) get() viewState {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 	return viewState{
-		detailID: v.detailID, historyDays: v.historyDays, pendingParts: slices.Clone(v.pendingParts), fromAll: v.fromAll, fromAllAt: v.fromAllAt,
+		detailID: v.detailID, detailVerify: v.detailVerify, historyDays: v.historyDays, pendingParts: slices.Clone(v.pendingParts), fromAll: v.fromAll, fromAllAt: v.fromAllAt,
 		running: slices.Clone(v.running), warnWaste: v.warnWaste,
 	}
 }
@@ -63,10 +64,42 @@ func (v *viewState) get() viewState {
 func (v *viewState) onViewState(msg tea.Msg) {
 	switch m := msg.(type) {
 	case views.DetailMsg:
-		v.set(func(v *viewState) { v.detailID = m.ID })
+		v.set(func(v *viewState) {
+			if v.detailID != m.ID {
+				v.detailVerify = m.ID != ""
+			}
+			v.detailID = m.ID
+		})
 	case views.HistoryRangeMsg:
 		v.set(func(v *viewState) { v.historyDays = m.Days })
 	}
+}
+
+// collectDetail refreshes an expired ownership witness only when a panel opens.
+func (v *viewState) collectDetail(ctx context.Context, src *state.Sources, usage bool) (state.Detail, error) {
+	v.mu.Lock()
+	id, verify := v.detailID, v.detailVerify
+	v.detailVerify = false
+	v.mu.Unlock()
+	d := state.Detail{ID: id}
+	snapshot := state.SnapshotPrivate(ctx)
+	if verify {
+		if _, err := src.OwnJob(snapshot, id); err != nil {
+			if _, err := src.OwnJob(ctx, id); err != nil {
+				return d, err
+			}
+		}
+	}
+	job, err := src.JobDetail(snapshot, id)
+	if err != nil {
+		return d, err
+	}
+	d.Job = job
+	if job != nil && job.State == model.StateRunning && usage {
+		// Usage is best effort: a job without steps has none yet.
+		d.Stat, _ = src.JobStat(snapshot, id)
+	}
+	return d, nil
 }
 
 // intervalMap names each source's interval for a refresh speed.
@@ -95,7 +128,21 @@ func addCollectors(s *state.Scheduler, src *state.Sources, site parse.ClusterInf
 			parts := state.PartitionsOfPending(jobs)
 			prev := vs.get().pendingParts
 			running := runningToSample(jobs)
-			vs.set(func(v *viewState) { v.pendingParts, v.running = parts, running })
+			vs.set(func(v *viewState) {
+				v.pendingParts, v.running = parts, running
+				if v.detailID != "" {
+					found := false
+					for _, j := range jobs {
+						if j.ID.Raw == v.detailID && j.OwnedBy(src.Cmd.User) {
+							found = true
+							break
+						}
+					}
+					if !found {
+						v.detailID, v.detailVerify = "", false
+					}
+				}
+			})
 			// Sources gated on pending jobs start as soon as there are some.
 			if len(parts) > 0 && !slices.Equal(prev, parts) {
 				s.Refresh("queuerank", "sprio")
@@ -153,20 +200,9 @@ func addCollectors(s *state.Scheduler, src *state.Sources, site parse.ClusterInf
 	add("nodes", state.Options{Timeout: state.TimeoutNodes}, func(ctx context.Context) (any, error) { return src.Nodes(ctx) })
 	add("partitions", state.Options{Timeout: state.TimeoutPartitions}, func(ctx context.Context) (any, error) { return src.Partitions(ctx) })
 	add("reservations", state.Options{Timeout: state.TimeoutPartitions}, func(ctx context.Context) (any, error) { return src.Reservations(ctx) })
-	add("jobdetail", state.Options{Timeout: state.TimeoutDetail, Active: func() bool { return vs.get().detailID != "" }},
+	add("jobdetail", state.Options{Timeout: state.TimeoutDetail, Tabs: []string{model.TabJobs, model.TabQueue}, OnlyVisible: true, Active: func() bool { return vs.get().detailID != "" }},
 		func(ctx context.Context) (any, error) {
-			id := vs.get().detailID
-			d := state.Detail{ID: id}
-			job, err := src.JobDetail(ctx, id)
-			if err != nil {
-				return d, err
-			}
-			d.Job = job
-			if job != nil && job.State == model.StateRunning && caps.HasSstat && !site.NoUsageGather() {
-				// Usage is best effort: a job without steps has none yet.
-				d.Stat, _ = src.JobStat(ctx, id)
-			}
-			return d, nil
+			return vs.collectDetail(ctx, src, caps.HasSstat && !site.NoUsageGather())
 		})
 	if caps.HasSacct {
 		add("history", state.Options{Timeout: state.TimeoutHistory, Tabs: []string{model.TabUsage}, HiddenMin: 30 * time.Minute},

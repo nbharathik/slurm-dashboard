@@ -3,6 +3,7 @@ package views
 import (
 	"github.com/nbharathik/slurm-dashboard/internal/model"
 	"github.com/nbharathik/slurm-dashboard/internal/slurm/units"
+	"github.com/nbharathik/slurm-dashboard/internal/state"
 )
 
 // gpuTypeLabel is the short name of a node's whole-GPU types, or "MIG"
@@ -24,10 +25,12 @@ func nodeMemCell(ctx *Context, n model.Node) string {
 	switch {
 	case n.MemTotalMB <= 0:
 		return ""
+	case !state.Available(n):
+		return "0/" + units.FormatMB(float64(n.MemTotalMB))
 	case !n.MemTracked():
 		return th.Faint.Render("-/") + units.FormatMB(float64(n.MemTotalMB))
 	}
-	return units.FormatMB(float64(n.MemTotalMB-n.MemAllocMB)) + "/" + units.FormatMB(float64(n.MemTotalMB))
+	return units.FormatMB(float64(max(n.MemTotalMB-n.MemAllocMB, 0))) + "/" + units.FormatMB(float64(n.MemTotalMB))
 }
 
 // memDetail is the node detail's memory line.
@@ -37,7 +40,7 @@ func memDetail(ctx *Context, n model.Node) string {
 		free = " " + ctx.Theme.Sym.Separator + " OS reports " + units.FormatMB(float64(n.MemFreeMB)) + " free"
 	}
 	if !n.MemTracked() {
-		return "not tracked by Slurm (jobs here did not request memory) of " + units.FormatMB(float64(n.MemTotalMB)) + free
+		return units.FormatMB(float64(n.MemTotalMB)) + " total; allocation not tracked" + free
 	}
 	return units.FormatMB(float64(n.MemAllocMB)) + " of " + units.FormatMB(float64(n.MemTotalMB)) + " allocated" + free
 }

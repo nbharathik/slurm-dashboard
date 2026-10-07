@@ -2,13 +2,13 @@
 ───────────────────────━━━━━━━━─────────────────────────────────────────────────────────────────────────────────────────
                                                                                                                         
   11 jobs · 3 running · 8 pending                                                                                       
-    ID         NAME        STATE   TIME       RESOURCES     WHERE                                                       
+    ID         NAME        STATE   ELAPSED/LIMIT  RESOURCES     WHERE                                                   
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
-  ▶ 812        train-lora  ● RUN   5h46m/1d   1 GPU 8 CPU   gpu01                                                       
-    813        eval-bench  ● RUN   1h52m/2h   1 GPU 4 CPU   gpu01                                                       
-    816        preproc     ● RUN   30s/1h     16 CPU        cpu01                                                       
-    815_[3-9]  sweep       ◌ PD    -/4h       1 GPU 8 CPU   #2/5 Resources                                              
-    818        big-sweep   ‖ HELD  -/12h      4 GPU 32 CPU  JobHeldUser                                                 
+  ▶ 812        train-lora  ● RUN   5h46m/1d       1 GPU 8 CPU   gpu01                                                   
+    813        eval-bench  ● RUN   1h52m/2h       1 GPU 4 CPU   gpu01                                                   
+    816        preproc     ● RUN   30s/1h         16 CPU        cpu01                                                   
+    815_[3-9]  sweep       ◌ PD    -/4h           1 GPU 8 CPU   #2/5 Resources                                          
+    818        big-sweep   ‖ HELD  -/12h          4 GPU 32 CPU  JobHeldUser                                             
                                                                                                                         
                                                                                                                         
                                                                                                                         

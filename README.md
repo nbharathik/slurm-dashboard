@@ -23,8 +23,8 @@ sdash --demo
 
 Installs one executable in `~/.local/bin`, without root, Go or a source checkout.
 Install once on a login node or shared home; compute nodes need no installation.
-Release validation requires **under 20 MiB installed**. Bash completion is optional.
-See [installation](docs/install.md) for measured sizes, PATH, offline setup and updates.
+Prebuilt installation uses **less than 20 MiB**. Bash completion is optional.
+See [installation](docs/install.md) for PATH, offline setup and updates.
 
 Press `?` for help, `,` for settings and `q` to quit.
 

@@ -4,8 +4,9 @@ package debuglog
 import (
 	"io"
 	"log/slog"
-	"os"
 	"path/filepath"
+
+	"github.com/nbharathik/slurm-dashboard/internal/privatefile"
 )
 
 // Rotation limits for debug.log.
@@ -26,7 +27,7 @@ func Open(cacheDir string, verbose bool) (*slog.Logger, io.Closer, error) {
 }
 
 func open(cacheDir string, verbose bool, maxSize int64) (*slog.Logger, io.Closer, error) {
-	if err := os.MkdirAll(cacheDir, 0o700); err != nil {
+	if err := privatefile.Directory(cacheDir); err != nil {
 		return Discard(), nopCloser{}, err
 	}
 	f, err := openRotating(filepath.Join(cacheDir, FileName), maxSize, KeepLogs)

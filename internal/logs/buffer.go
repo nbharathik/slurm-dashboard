@@ -1,7 +1,9 @@
 package logs
 
 import (
+	"bytes"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/charmbracelet/x/ansi"
 
@@ -9,7 +11,12 @@ import (
 )
 
 // MaxLines is the default line cap of a Buffer.
-const MaxLines = 50000
+const (
+	MaxLines      = 50000
+	MaxBytes      = 8 << 20
+	MaxLineBytes  = 64 << 10
+	truncatedLine = " [line truncated]"
+)
 
 // Line is one display line with its highlight level.
 type Line struct {
@@ -24,12 +31,14 @@ type Buffer struct {
 	keepANSI bool
 	hl       *Highlighter
 
-	ring    []Line
-	start   int // index of the oldest line in ring
-	n       int
-	partial string // text after the last newline
-	dropped int    // lines dropped from the front
-	gen     int    // incremented on every change
+	ring     []Line
+	start    int // index of the oldest line in ring
+	n        int
+	partial  string // text after the last newline
+	dropped  int    // lines dropped from the front
+	bytes    int
+	overflow bool
+	gen      int // incremented on every change
 }
 
 // NewBuffer returns an empty buffer holding up to max lines.
@@ -37,12 +46,13 @@ func NewBuffer(maxLines int, keepANSI bool, hl *Highlighter) *Buffer {
 	if maxLines <= 0 {
 		maxLines = MaxLines
 	}
-	return &Buffer{max: maxLines, keepANSI: keepANSI, hl: hl}
+	return &Buffer{max: min(maxLines, MaxLines), keepANSI: keepANSI, hl: hl}
 }
 
 // Reset empties the buffer.
 func (b *Buffer) Reset() {
 	b.ring, b.start, b.n, b.partial, b.dropped = nil, 0, 0, "", 0
+	b.bytes, b.overflow = 0, false
 	b.gen++
 }
 
@@ -51,12 +61,36 @@ func (b *Buffer) Write(data []byte) {
 	if len(data) == 0 {
 		return
 	}
-	s := b.partial + string(data)
-	parts := strings.Split(s, "\n")
-	b.partial = parts[len(parts)-1]
-	for _, p := range parts[:len(parts)-1] {
-		b.push(b.clean(p))
+	for len(data) > 0 {
+		i := bytes.IndexByte(data, '\n')
+		n := len(data)
+		if i >= 0 {
+			n = i
+		}
+		room := MaxLineBytes - len(truncatedLine) - len(b.partial)
+		if !b.overflow && n > 0 {
+			take := min(n, max(room, 0))
+			b.partial += string(data[:take])
+			if take < n {
+				b.overflow = true
+			}
+		}
+		if i < 0 {
+			break
+		}
+		text := b.clean(b.partial)
+		if b.overflow {
+			text = clipLine(text, MaxLineBytes-len(truncatedLine)) + truncatedLine
+		}
+		b.push(text)
+		b.partial = ""
+		b.overflow = false
+		data = data[i+1:]
 	}
+	for b.n > 0 && b.bytes+len(b.partial) > MaxBytes {
+		b.drop()
+	}
+
 	b.gen++
 }
 
@@ -71,21 +105,19 @@ func (b *Buffer) push(text string) {
 	if b.hl != nil {
 		l.Level = b.hl.Level(ansi.Strip(text))
 	}
-	if b.ring == nil {
-		b.ring = make([]Line, 0, min(b.max, 1024))
+	for b.n > 0 && (b.n == b.max || b.bytes+len(text) > MaxBytes-MaxLineBytes) {
+		b.drop()
 	}
-	if b.n < b.max {
-		if len(b.ring) < b.max {
-			b.ring = append(b.ring, l)
-		} else {
-			b.ring[(b.start+b.n)%b.max] = l
+	if b.n == len(b.ring) && b.n < b.max {
+		next := make([]Line, min(b.max, max(128, len(b.ring)*2)))
+		for i := 0; i < b.n; i++ {
+			next[i] = b.ring[(b.start+i)%len(b.ring)]
 		}
-		b.n++
-		return
+		b.ring, b.start = next, 0
 	}
-	b.ring[b.start] = l
-	b.start = (b.start + 1) % b.max
-	b.dropped++
+	b.ring[(b.start+b.n)%len(b.ring)] = l
+	b.n++
+	b.bytes += len(text)
 }
 
 // clean collapses carriage returns and strips ANSI codes unless kept.
@@ -98,7 +130,10 @@ func (b *Buffer) clean(s string) string {
 	if !b.keepANSI {
 		s = textsafe.Field(s)
 	}
-	return s
+	if len(s) > MaxLineBytes {
+		return clipLine(s, MaxLineBytes-len(truncatedLine)) + truncatedLine
+	}
+	return clipLine(s, MaxLineBytes)
 }
 
 // Len is the number of lines, including an unterminated last line.
@@ -113,6 +148,9 @@ func (b *Buffer) Len() int {
 func (b *Buffer) Line(i int) Line {
 	if i == b.n && b.partial != "" {
 		t := b.clean(b.partial)
+		if b.overflow {
+			t = clipLine(t, MaxLineBytes-len(truncatedLine)) + truncatedLine
+		}
 		l := Line{Text: t}
 		if b.hl != nil {
 			l.Level = b.hl.Level(ansi.Strip(t))
@@ -122,10 +160,7 @@ func (b *Buffer) Line(i int) Line {
 	if i < 0 || i >= b.n {
 		return Line{}
 	}
-	if len(b.ring) < b.max {
-		return b.ring[i]
-	}
-	return b.ring[(b.start+i)%b.max]
+	return b.ring[(b.start+i)%len(b.ring)]
 }
 
 // Dropped counts lines dropped from the front to respect the cap.
@@ -133,3 +168,24 @@ func (b *Buffer) Dropped() int { return b.dropped }
 
 // Gen changes whenever the content changes.
 func (b *Buffer) Gen() int { return b.gen }
+
+func (b *Buffer) drop() {
+	b.bytes -= len(b.ring[b.start].Text)
+	b.ring[b.start] = Line{}
+	b.start = (b.start + 1) % len(b.ring)
+	b.n--
+	b.dropped++
+}
+
+// Bytes reports retained text bytes, including an unfinished line.
+func (b *Buffer) Bytes() int { return b.bytes + len(b.partial) }
+
+func clipLine(s string, n int) string {
+	if len(s) <= n {
+		return strings.Clone(s)
+	}
+	for n > 0 && !utf8.RuneStart(s[n]) {
+		n--
+	}
+	return strings.Clone(s[:n])
+}

@@ -59,10 +59,13 @@ func (s *Source[T]) Freshness(now time.Time, interval time.Duration) Freshness {
 
 // Store is the latest data from every source.
 type Store struct {
-	User        string
-	UID         string // numeric user ID
-	ClusterName string
-	Caps        model.Capabilities
+	derived       bool
+	nodeUsage     []NodeUsage
+	partSummaries []PartSummary
+	User          string
+	UID           string // numeric user ID
+	ClusterName   string
+	Caps          model.Capabilities
 	// PrivateJobs: the site sets PrivateData=jobs, so other users' jobs
 	// are not visible.
 	PrivateJobs bool
@@ -111,6 +114,10 @@ type Store struct {
 // Apply records an update and returns the job transitions it revealed
 // (only for "myjobs").
 func (s *Store) Apply(u Update) []Transition {
+	switch u.Source {
+	case "nodes", "cluster", "partitions", "alljobs", "queuerank", "myjobs":
+		s.derived = false
+	}
 	switch u.Source {
 	case "myjobs":
 		if s.MyJobs.apply(u) {
@@ -247,4 +254,15 @@ func Diff(prev, cur map[string]model.Job) []Transition {
 	}
 	sortTransitions(out)
 	return out
+}
+
+// Capacity reuses the same derived snapshot across capacity views.
+func (s *Store) Capacity() ([]NodeUsage, []PartSummary) {
+	if !s.derived {
+		s.nodeUsage = NodeGPUUsage(s.Nodes.Data, s.Cluster.Data.Jobs, s.User)
+		pending, known := PendingByPartition(s)
+		s.partSummaries = PartitionSummaries(s.Partitions.Data, s.nodeUsage, pending, known)
+		s.derived = true
+	}
+	return s.nodeUsage, s.partSummaries
 }

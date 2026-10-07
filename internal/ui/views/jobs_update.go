@@ -42,6 +42,9 @@ func (v *Jobs) restoreSort(ctx *Context) {
 }
 
 func (v *Jobs) update(ctx *Context, msg tea.Msg) tea.Cmd {
+	if v.detail && v.input == nil && v.menu == nil && v.pane.update(ctx, msg) {
+		return nil
+	}
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		return v.key(ctx, msg)
@@ -49,6 +52,7 @@ func (v *Jobs) update(ctx *Context, msg tea.Msg) tea.Cmd {
 		return v.click(ctx, msg)
 	case tea.MouseWheelMsg:
 		navigate(&v.table, ctx.Keys, msg)
+		return v.followDetail(ctx)
 	}
 	return nil
 }
@@ -98,6 +102,7 @@ func (v *Jobs) key(ctx *Context, msg tea.KeyPressMsg) tea.Cmd {
 	}
 	switch {
 	case navigate(&v.table, k, msg):
+		return v.followDetail(ctx)
 	case key.Matches(msg, k.Back):
 		switch {
 		case v.detail:
@@ -114,7 +119,7 @@ func (v *Jobs) key(ctx *Context, msg tea.KeyPressMsg) tea.Cmd {
 			return nil
 		}
 		if hasCur {
-			return v.openDetail(cur)
+			return v.openDetail(ctx, cur)
 		}
 	case key.Matches(msg, k.Select):
 		if !v.toggleGroup(ctx) {
@@ -174,7 +179,7 @@ func (v *Jobs) key(ctx *Context, msg tea.KeyPressMsg) tea.Cmd {
 		}
 	case key.Matches(msg, k.Why):
 		if hasCur {
-			return v.openDetail(cur)
+			return v.openDetail(ctx, cur)
 		}
 	case key.Matches(msg, k.Script):
 		if hasCur {
@@ -193,12 +198,24 @@ func actionOn(id string, jobs []model.Job) tea.Cmd {
 	return Emit(ActionMsg{Action: id, Jobs: jobs})
 }
 
-func (v *Jobs) openDetail(j model.Job) tea.Cmd {
+func (v *Jobs) openDetail(ctx *Context, j model.Job) tea.Cmd {
 	v.detail, v.detailID, v.allFields = true, j.ID.Raw, false
+	if !j.OwnedBy(ctx.Store.User) {
+		return Emit(DetailMsg{})
+	}
 	return Emit(DetailMsg{ID: j.ID.Raw})
 }
 
 func (v *Jobs) closeDetail() { v.detail, v.detailID = false, "" }
+
+func (v *Jobs) followDetail(ctx *Context) tea.Cmd {
+	if v.detail {
+		if j, ok := v.cursorJob(); ok && j.ID.Raw != v.detailID {
+			return v.openDetail(ctx, j)
+		}
+	}
+	return nil
+}
 
 // toggleGroup expands or collapses the array or queue group under the
 // cursor.
@@ -328,9 +345,10 @@ func (v *Jobs) click(ctx *Context, msg tea.MouseClickMsg) tea.Cmd {
 					return nil
 				}
 				if j, ok := v.cursorJob(); ok {
-					return v.openDetail(j)
+					return v.openDetail(ctx, j)
 				}
 			}
+			return v.followDetail(ctx)
 		}
 		return nil
 	}

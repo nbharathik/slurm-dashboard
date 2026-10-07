@@ -14,6 +14,7 @@ import (
 	"github.com/nbharathik/slurm-dashboard/internal/execx"
 	"github.com/nbharathik/slurm-dashboard/internal/model"
 	"github.com/nbharathik/slurm-dashboard/internal/slurm"
+	"github.com/nbharathik/slurm-dashboard/internal/slurm/parse"
 	"github.com/nbharathik/slurm-dashboard/internal/state"
 )
 
@@ -117,14 +118,25 @@ func (a *app) record(ctx context.Context, w io.Writer, out string, anonymize boo
 				continue
 			}
 			label := "jobdetail-" + strings.ToLower(string(want))
+			if _, err := src.OwnJob(ctx, j.ID.Raw); err != nil {
+				note(label, err)
+				continue
+			}
 			res, err := rec.Run(execx.WithLabel(ctx, label), rt.sources.Cmd.JobDetail(j.ID.Raw)...)
 			note(label, err)
 			if err == nil {
-				if d, _ := (&state.Sources{Runner: fixedRunner(res), Cmd: rt.sources.Cmd}).JobDetail(ctx, j.ID.Raw); d != nil {
-					details = append(details, d)
+				parsed, _ := parse.JobDetails(res.Stdout)
+				for i := range parsed {
+					if parsed[i].OwnedBy(src.Cmd.User) {
+						details = append(details, &parsed[i])
+					}
 				}
 			}
 			if want == model.StateRunning && caps.HasSstat {
+				if _, err := src.OwnJob(ctx, j.ID.Raw); err != nil {
+					note("jobstat-running", err)
+					continue
+				}
 				_, err = rec.Run(execx.WithLabel(ctx, "jobstat-running"), rt.sources.Cmd.Sstat(j.ID.Raw)...)
 				note("jobstat-running", err)
 			}
@@ -209,12 +221,4 @@ func keepLines(path string, prefixes ...string) error {
 		}
 	}
 	return os.WriteFile(path, []byte(strings.Join(kept, "\n")+"\n"), 0o600) //nolint:gosec // a fixture sdash wrote under --out
-}
-
-// fixedRunner answers every command with one recorded result; record uses
-// it to parse output it already captured without running it again.
-type fixedRunner execx.Result
-
-func (f fixedRunner) Run(context.Context, ...string) (execx.Result, error) {
-	return execx.Result(f), nil
 }

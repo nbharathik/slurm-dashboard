@@ -51,7 +51,7 @@ func (a *App) startEstimate(j model.Job) tea.Cmd {
 	a.setFlash("Asking the scheduler about "+id+a.th.Sym.Ellipsis, false)
 	now := a.now()
 	return func() tea.Msg {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(a.runCtx, 10*time.Second)
 		defer cancel()
 		est, ok, err := src.StartEstimate(ctx, id)
 		return startEstimateMsg{id: id, est: est, ok: ok, err: err, at: now}

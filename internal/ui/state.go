@@ -2,10 +2,11 @@ package ui
 
 import (
 	"encoding/json"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/nbharathik/slurm-dashboard/internal/privatefile"
 )
 
 // uiState is what the dashboard remembers between runs
@@ -23,7 +24,7 @@ func loadState(dir string) *uiState {
 	if dir == "" {
 		return s
 	}
-	b, err := os.ReadFile(filepath.Join(dir, "state.json"))
+	b, err := privatefile.Read(filepath.Join(dir, "state.json"), 1<<20)
 	if err != nil {
 		return s
 	}
@@ -75,25 +76,8 @@ func saveState(dir string, s *uiState) {
 	if dir == "" || s == nil {
 		return
 	}
-	if err := os.MkdirAll(dir, 0o700); err != nil {
-		return
-	}
 	b, err := json.MarshalIndent(s, "", "  ")
-	if err != nil {
-		return
+	if err == nil {
+		_ = privatefile.Write(filepath.Join(dir, "state.json"), b)
 	}
-	tmp, err := os.CreateTemp(dir, ".state-*")
-	if err != nil {
-		return
-	}
-	if _, err := tmp.Write(b); err != nil {
-		_ = tmp.Close()
-		_ = os.Remove(tmp.Name())
-		return
-	}
-	if err := tmp.Close(); err != nil {
-		_ = os.Remove(tmp.Name())
-		return
-	}
-	_ = os.Rename(tmp.Name(), filepath.Join(dir, "state.json"))
 }

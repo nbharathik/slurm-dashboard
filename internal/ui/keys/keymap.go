@@ -24,6 +24,7 @@ type Map struct {
 	Open, Select, SelectAll               key.Binding
 	Sort, SortReverse, Filter, Menu, Copy key.Binding
 	Expand, Collapse, Group               key.Binding
+	DetailUp, DetailDown                  key.Binding
 
 	// Jobs
 	Scope, Cancel, Hold, Release, Requeue key.Binding
@@ -71,6 +72,7 @@ func Default() *Map {
 		SelectAll: b("ctrl+a", "select all", "ctrl+a"), Sort: b("s", "sort", "s"), SortReverse: b("S", "reverse sort", "S"),
 		Filter: b("/", "filter", "/", "f"), Menu: b("m", "actions", "m"), Copy: b("y", "copy id", "y"),
 		Expand: b("→", "expand", "right"), Collapse: b("←", "collapse", "left"), Group: b("g", "group", "g"),
+		DetailUp: b("alt+↑", "scroll details up", "alt+up"), DetailDown: b("alt+↓", "scroll details down", "alt+down"),
 
 		Scope: b("a", "everyone's jobs", "a"), Cancel: b("c", "cancel", "c"), Hold: b("h", "hold", "h"),
 		Release: b("u", "release", "u"), Requeue: b("Q", "requeue", "Q"), Stdout: b("l", "logs", "l"),
@@ -121,6 +123,7 @@ func (m *Map) Groups() []Group {
 	return []Group{
 		{"Global", []key.Binding{shown("1-6", "go to a tab"), m.NextFocus, m.Palette, m.Refresh, m.RefreshAll, m.Pause, m.Settings, m.Help, m.Back, m.Quit, m.Debug}},
 		{"Tables", []key.Binding{m.Up, m.Down, shown("pgup pgdn", "page"), shown("home end", "top / bottom"), m.Open, m.Select, m.SelectAll, shown("s S", "sort / reverse"), m.Filter, m.Menu, m.Copy, shown("← →", "fold / unfold")}},
+		{"Details", []key.Binding{m.DetailUp, m.DetailDown, m.Back}},
 		{"Jobs", []key.Binding{m.Scope, m.Cancel, m.Hold, m.Release, m.Requeue, m.Stdout, m.Stderr, m.Pager, m.Shell, m.GPU, m.Why, m.Script}},
 		{"Queue", []key.Binding{m.Estimate, m.ScopeCycle, m.Group, m.Open}},
 		{"Overview", []key.Binding{m.Open, m.Dismiss}},

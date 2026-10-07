@@ -11,7 +11,7 @@ import (
 func TestNoConflictsPerContext(t *testing.T) {
 	m := Default()
 	global := append(m.Tabs, m.NextFocus, m.PrevFocus, m.Palette, m.Refresh, m.RefreshAll, m.Pause, m.Settings, m.Help, m.Back, m.Quit, m.Debug)
-	table := []key.Binding{m.Up, m.Down, m.PageUp, m.PageDown, m.Home, m.End, m.Open, m.Select, m.SelectAll, m.Sort, m.SortReverse, m.Filter, m.Menu, m.Copy, m.Expand, m.Collapse}
+	table := []key.Binding{m.Up, m.Down, m.PageUp, m.PageDown, m.Home, m.End, m.Open, m.Select, m.SelectAll, m.Sort, m.SortReverse, m.Filter, m.Menu, m.Copy, m.Expand, m.Collapse, m.DetailUp, m.DetailDown}
 	jobs := []key.Binding{m.Scope, m.Cancel, m.Hold, m.Release, m.Requeue, m.Stdout, m.Stderr, m.Pager, m.Shell, m.GPU, m.Why, m.Script}
 	if c := conflicts(append(append(slices.Clone(global), table...), jobs...)...); len(c) > 0 {
 		t.Fatalf("jobs context conflicts: %v", c)
@@ -47,7 +47,7 @@ func TestNoConflictsPerContext(t *testing.T) {
 // The help lists tabs once ("1-6"), not six times, and sorting once.
 func TestGroups(t *testing.T) {
 	groups := Default().Groups()
-	if len(groups) != 9 {
+	if len(groups) != 10 {
 		t.Fatal("groups")
 	}
 	global := groups[0].Bindings

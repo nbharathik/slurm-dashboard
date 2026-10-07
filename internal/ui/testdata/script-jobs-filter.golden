@@ -2,10 +2,10 @@
 ───────────────────────━━━━━━━━─────────────────────────────────────────────────────────────────────────────────────────
                                                                                                                         
   11 jobs · 3 running · 8 pending · filter: state:PD                                                                    
-    ID         NAME       STATE   TIME       RESOURCES     WHERE                                                        
+    ID         NAME       STATE   ELAPSED/LIMIT  RESOURCES     WHERE                                                    
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
-  ▶ 815_[3-9]  sweep      ◌ PD    -/4h       1 GPU 8 CPU   #2/5 Resources                                               
-    818        big-sweep  ‖ HELD  -/12h      4 GPU 32 CPU  JobHeldUser                                                  
+  ▶ 815_[3-9]  sweep      ◌ PD    -/4h           1 GPU 8 CPU   #2/5 Resources                                           
+    818        big-sweep  ‖ HELD  -/12h          4 GPU 32 CPU  JobHeldUser                                              
                                                                                                                         
                                                                                                                         
                                                                                                                         

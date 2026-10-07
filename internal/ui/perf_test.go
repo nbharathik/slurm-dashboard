@@ -12,7 +12,6 @@ import (
 	"github.com/nbharathik/slurm-dashboard/internal/state"
 )
 
-// bigApp is the Jobs tab in all-users scope with n jobs.
 func bigApp(tb testing.TB, n int) *App {
 	tb.Helper()
 	st := &state.Store{User: "you", ClusterName: "big"}
@@ -35,10 +34,13 @@ func bigApp(tb testing.TB, n int) *App {
 	now := time.Date(2026, 9, 28, 12, 0, 0, 0, time.UTC)
 	st.Apply(state.Update{Source: "alljobs", Data: jobs, At: now})
 	st.Apply(state.Update{Source: "myjobs", Data: jobs[:5], At: now})
-	a := New(Options{Config: config.Default(), Store: st, Theme: "dark", Now: func() time.Time { return now }, StartTab: "jobs"})
+	a := New(Options{Config: config.Default(), Store: st, Theme: "dark", Now: func() time.Time { return now }, StartTab: "queue"})
 	tb.Cleanup(a.Close)
 	for _, v := range a.views {
 		v.Refresh(a.ctx)
+	}
+	if a.views[a.tab].Name() != "queue" {
+		tb.Fatal("benchmark must display Queue")
 	}
 	a.Update(tea.WindowSizeMsg{Width: 160, Height: 45})
 	_ = a.View()
@@ -48,6 +50,7 @@ func bigApp(tb testing.TB, n int) *App {
 func BenchmarkKeypress10k(b *testing.B) {
 	a := bigApp(b, 10000)
 	down := keyPress("j")
+	b.ReportAllocs()
 	b.ResetTimer()
 	for range b.N {
 		a.Update(down)

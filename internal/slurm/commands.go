@@ -107,7 +107,7 @@ func (c Commands) History(days int) []string {
 
 // HistoryJob is one job's accounting record, with steps.
 func (c Commands) HistoryJob(id string) []string {
-	return []string{"sacct", "-n", "-P", "--delimiter=" + parse.Sep, "-j", id, "-o", historyFields}
+	return []string{"sacct", "-n", "-P", "--delimiter=" + parse.Sep, "-u", c.User, "-j", id, "-o", historyFields}
 }
 
 // Fairshare is the user's fairshare associations.
@@ -133,12 +133,12 @@ func (c Commands) BatchScript(id string) []string {
 
 // SacctBatchScript prints a finished job's script where accounting stores scripts.
 func (c Commands) SacctBatchScript(id string) []string {
-	return []string{"sacct", "-j", id, "--batch-script"}
+	return []string{"sacct", "-u", c.User, "-j", id, "--batch-script"}
 }
 
 // SubmitLine is a job's submit command line and WorkDir (Slurm 23.02+).
 func (c Commands) SubmitLine(id string) []string {
-	return []string{"sacct", "-n", "-P", "--delimiter=" + parse.Sep, "-X", "-j", id, "-o", "SubmitLine,WorkDir"}
+	return []string{"sacct", "-n", "-P", "--delimiter=" + parse.Sep, "-X", "-u", c.User, "-j", id, "-o", "SubmitLine,WorkDir"}
 }
 
 // FinalStates reads the outcome of jobs that left the queue.

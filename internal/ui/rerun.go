@@ -71,7 +71,7 @@ func (a *App) openRerun(id string) tea.Cmd {
 	site := a.st.Site
 	a.setFlash("Loading the batch script of "+id+a.th.Sym.Ellipsis, false)
 	return func() tea.Msg {
-		ctx, cancel := context.WithTimeout(context.Background(), lookupTimeout)
+		ctx, cancel := context.WithTimeout(a.runCtx, lookupTimeout)
 		defer cancel()
 		script, err := src.BatchScript(ctx, id)
 		if err != nil {
@@ -109,17 +109,26 @@ func (a *App) handleRerunMsg(msg tea.Msg) (tea.Cmd, bool) {
 		a.closeLog()
 		a.flash = flash{}
 		a.rerun = views.NewRerun(m.in)
+		a.syncVisible()
 	case views.CloseRerunMsg:
 		a.rerun = nil
+		a.syncVisible()
 	case views.RerunEstimateMsg:
 		r := a.opt.Runner
 		if r == nil {
 			return nil, true
 		}
+		if a.rerun == nil {
+			return nil, true
+		}
+		origin := a.rerun.ID
 		now := a.now()
 		return func() tea.Msg {
-			ctx, cancel := context.WithTimeout(context.Background(), SubmitTimeout)
+			ctx, cancel := context.WithTimeout(a.runCtx, SubmitTimeout)
 			defer cancel()
+			if err := a.opt.Sources.RequireOwn(ctx, origin); err != nil {
+				return estimateMsg{err: err}
+			}
 			est, err := actions.Estimate(ctx, r, m.Script, m.Dir, m.Opts)
 			if err != nil {
 				return estimateMsg{err: err}
@@ -153,6 +162,7 @@ func (a *App) handleRerunMsg(msg tea.Msg) (tea.Cmd, bool) {
 			return nil, true
 		}
 		a.rerun = nil
+		a.syncVisible()
 		a.state.LastSubmitted = m.id
 		saveState(a.opt.StateDir, a.state)
 		a.setFlash("Submitted job "+m.id+" (rerun of "+m.from+"; @last)", false)
@@ -174,8 +184,11 @@ func (a *App) acceptRerun(req *rerunReq) tea.Cmd {
 	from, _, _ := strings.Cut(req.Title, " ")
 	a.setFlash("Submitting"+a.th.Sym.Ellipsis, false)
 	return func() tea.Msg {
-		ctx, cancel := context.WithTimeout(context.Background(), SubmitTimeout)
+		ctx, cancel := context.WithTimeout(a.runCtx, SubmitTimeout)
 		defer cancel()
+		if err := a.opt.Sources.RequireOwn(ctx, from); err != nil {
+			return submittedMsg{from: from, err: err}
+		}
 		s, err := actions.Rerun(ctx, r, req.Argv, req.Script, req.Dir)
 		return submittedMsg{id: s.JobID, from: from, err: err}
 	}

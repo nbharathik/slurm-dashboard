@@ -26,10 +26,14 @@ type Sample struct {
 
 // KeyOf names a location in the log: its path, else its label.
 func KeyOf(q model.Quota) string {
-	if q.Path != "" {
-		return q.Path
+	key := q.Path
+	if key == "" {
+		key = q.Label
 	}
-	return q.Label
+	if q.IsFilesystemTotal && key != "" {
+		return "filesystem:" + key
+	}
+	return key
 }
 
 // SampleOf reads a quota. It reports false when there is nothing worth
@@ -41,6 +45,9 @@ func SampleOf(q model.Quota, now time.Time) (Sample, bool) {
 	limit := q.SoftBytes
 	if limit <= 0 {
 		limit = q.HardBytes
+	}
+	if q.IsFilesystemTotal && q.FilesystemBytes > 0 {
+		limit = q.FilesystemBytes
 	}
 	return Sample{T: now.UTC().Truncate(time.Second), Key: KeyOf(q), Used: q.UsedBytes, Limit: limit}, true
 }
@@ -58,13 +65,14 @@ type Log struct {
 func New(samples []Sample, now time.Time) *Log {
 	l := &Log{by: map[string][]Sample{}}
 	for _, s := range samples {
-		if now.Sub(s.T) <= Keep {
+		if now.Sub(s.T) <= Keep && !s.T.After(now) && s.Key != "" && len(s.Key) <= 4096 && (len(l.by) < 128 || l.by[s.Key] != nil) {
 			l.by[s.Key] = append(l.by[s.Key], s)
 		}
 	}
 	for k := range l.by {
 		slices.SortStableFunc(l.by[k], func(a, b Sample) int { return a.T.Compare(b.T) })
 	}
+	l.prune(now)
 	return l
 }
 
@@ -89,19 +97,27 @@ func (l *Log) Add(quotas []model.Quota, now time.Time) []Sample {
 	if l.by == nil {
 		l.by = map[string][]Sample{}
 	}
+	l.prune(now)
 	var added []Sample
-	for _, q := range quotas {
+	add := func(q model.Quota) {
 		s, ok := SampleOf(q, now)
-		if !ok {
-			continue
+		if !ok || len(s.Key) > 4096 || (len(l.by) >= 128 && l.by[s.Key] == nil) {
+			return
 		}
 		series := l.by[s.Key]
 		if n := len(series); n > 0 && s.T.Sub(series[n-1].T) < MinGap {
-			continue
+			return
 		}
 		l.by[s.Key] = append(series, s)
 		added = append(added, s)
 	}
+	for _, q := range quotas {
+		add(q)
+		if q.Filesystem != nil {
+			add(*q.Filesystem)
+		}
+	}
+	l.prune(now)
 	return added
 }
 
@@ -190,4 +206,47 @@ func Points(series []Sample, now time.Time, n int) []float64 {
 		out[i] = cur
 	}
 	return out
+}
+
+func (l *Log) prune(now time.Time) {
+	for key, series := range l.by {
+		first := 0
+		for first < len(series) && now.Sub(series[first].T) > Keep {
+			first++
+		}
+		series = series[first:]
+		if len(series) == 0 {
+			delete(l.by, key)
+			continue
+		}
+		compact := make([]Sample, 0, min(len(series), 2161))
+		for _, s := range series {
+			if len(compact) == 0 || s.T.Sub(compact[len(compact)-1].T) >= MinGap {
+				compact = append(compact, s)
+			}
+		}
+		if len(compact) > 2161 {
+			compact = compact[len(compact)-2161:]
+		}
+		l.by[key] = compact
+	}
+	total := 0
+	for _, series := range l.by {
+		total += len(series)
+	}
+	for total > 32768 {
+		key := ""
+		var oldest time.Time
+		for k, series := range l.by {
+			if len(series) > 0 && (oldest.IsZero() || series[0].T.Before(oldest)) {
+				key = k
+				oldest = series[0].T
+			}
+		}
+		if key == "" {
+			break
+		}
+		l.by[key] = l.by[key][1:]
+		total--
+	}
 }

@@ -47,6 +47,7 @@ type Nodes struct {
 	parts    []state.PartSummary
 	res      []model.Reservation
 	detail   string // open node
+	pane     detailPane
 	anyGPU   bool
 	anyMIG   bool
 }
@@ -176,7 +177,7 @@ func (v *Nodes) kindMatch(n model.Node) bool {
 // Refresh implements View.
 func (v *Nodes) Refresh(ctx *Context) {
 	st := ctx.Store
-	all := state.NodeGPUUsage(st.Nodes.Data, st.Cluster.Data.Jobs, st.User)
+	all, summaries := st.Capacity()
 	v.usage = make(map[string]state.NodeUsage, len(all))
 	v.anyGPU, v.anyMIG = false, false
 	var list []state.NodeUsage
@@ -194,14 +195,12 @@ func (v *Nodes) Refresh(ctx *Context) {
 	state.SortNodes(list, v.sortBy, v.sortDesc)
 	v.listed = list
 
-	var parts []model.Partition
-	for _, p := range st.Partitions.Data {
-		if !slices.Contains(ctx.Config.HidePartitions, p.Name) {
-			parts = append(parts, p)
+	v.parts = nil
+	for _, p := range summaries {
+		if !slices.Contains(ctx.Config.HidePartitions, p.Partition.Name) {
+			v.parts = append(v.parts, p)
 		}
 	}
-	pending, known := state.PendingByPartition(st)
-	v.parts = state.PartitionSummaries(parts, all, pending, known)
 
 	v.table.Cols = v.columns(ctx.Config.Detailed())
 	v.table.SortCol = map[string]string{"name": "node", "state": "state", "cpu": "cpu", "gpu": "gpus", "load": "load"}[v.sortBy]
@@ -308,6 +307,9 @@ func (v *Nodes) Update(ctx *Context, msg tea.Msg) tea.Cmd {
 }
 
 func (v *Nodes) update(ctx *Context, msg tea.Msg) tea.Cmd {
+	if v.detail != "" && v.input == nil && v.pane.update(ctx, msg) {
+		return nil
+	}
 	k := ctx.Keys
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
@@ -326,6 +328,7 @@ func (v *Nodes) update(ctx *Context, msg tea.Msg) tea.Cmd {
 				v.Refresh(ctx)
 			}
 		case navigate(&v.table, k, msg):
+			v.followDetail()
 		case key.Matches(msg, k.Open), key.Matches(msg, k.Select):
 			if strings.HasPrefix(id, "part:") {
 				v.toggleGroup(ctx, strings.TrimPrefix(id, "part:"))
@@ -365,10 +368,19 @@ func (v *Nodes) update(ctx *Context, msg tea.Msg) tea.Cmd {
 		}
 	case tea.MouseWheelMsg:
 		navigate(&v.table, ctx.Keys, msg)
+		v.followDetail()
 	case tea.MouseClickMsg:
 		return v.click(ctx, msg)
 	}
 	return nil
+}
+
+func (v *Nodes) followDetail() {
+	if v.detail != "" {
+		if n := nodeOfRow(v.table.CursorID()); n != "" {
+			v.detail = n
+		}
+	}
 }
 
 func (v *Nodes) updateInput(ctx *Context, msg tea.KeyPressMsg) {

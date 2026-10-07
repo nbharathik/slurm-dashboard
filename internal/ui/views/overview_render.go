@@ -3,6 +3,7 @@ package views
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/x/ansi"
 
@@ -18,7 +19,7 @@ import (
 // Render implements View: Alerts (if any), Cluster, Your jobs and Storage in one column.
 func (v *Overview) Render(ctx *Context, w, h int) string {
 	alertsB := block{min: min(len(v.alerts), 2) + 2, want: min(len(v.alerts), 4) + 2, render: v.alertsPanel(ctx)}
-	clusterB := block{min: 3, want: max(len(v.parts), 1) + 2, render: v.clusterPanel(ctx)}
+	clusterB := block{min: 4, want: capacityHeight(ctx, v.parts, w-2) + 3, render: v.clusterPanel(ctx)}
 	jobsB := block{min: 4, want: min(len(v.jobs.Rows), 10) + 3, render: v.jobsPanel(ctx)}
 	storageB := block{min: 3, want: max(v.count(panelStorage), 1) + 2, render: v.storagePanel(ctx)}
 
@@ -67,6 +68,10 @@ func (v *Overview) section(ctx *Context, p, title, extra, body string, w, h int)
 // line is one selectable line of a section, with the cursor column in front
 // as in the tables, so the text of every screen starts at the same column.
 func (v *Overview) line(ctx *Context, p string, i int, s string, w int) string {
+	return ctx.Mark(fmt.Sprintf("ov:%s:%d", p, i), v.lineBody(ctx, p, i, s, w))
+}
+
+func (v *Overview) lineBody(ctx *Context, p string, i int, s string, w int) string {
 	th := ctx.Theme
 	s = layout.Pad(s, w-2, false, th.Sym.Ellipsis)
 	prefix := "  "
@@ -74,7 +79,7 @@ func (v *Overview) line(ctx *Context, p string, i int, s string, w int) string {
 		prefix = th.Accent.Render(th.Sym.Cursor) + " "
 		s = th.Selected.Render(ansi.Strip(s))
 	}
-	return ctx.Mark(fmt.Sprintf("ov:%s:%d", p, i), prefix+s)
+	return prefix + s
 }
 
 // note is a line of plain text in a section (loading, an error, nothing).
@@ -121,7 +126,7 @@ func (v *Overview) alertsPanel(ctx *Context) func(w, h int) string {
 func (v *Overview) clusterPanel(ctx *Context) func(w, h int) string {
 	return func(w, h int) string {
 		th := ctx.Theme
-		rows := h - 2
+		rows := h - 3
 		var lines []string
 		switch st := ctx.Store; {
 		case len(v.parts) == 0 && st.Partitions.Err != nil:
@@ -129,79 +134,27 @@ func (v *Overview) clusterPanel(ctx *Context) func(w, h int) string {
 		case len(v.parts) == 0:
 			lines = append(lines, note(th.Muted.Render("loading"+th.Sym.Ellipsis)))
 		}
-		start := scrollStart(v.cur[panelCluster], rows, len(v.parts))
-		table := partitionLines(ctx, v.parts)
+		header, table := capacityLines(ctx, v.parts, w-2)
+		start := min(v.cur[panelCluster], max(len(table)-1, 0))
+		used := 0
+		if len(table) > 0 {
+			used = len(table[start])
+		}
+		for start > 0 && used+len(table[start-1]) <= rows {
+			start--
+			used += len(table[start])
+		}
 		for i := start; i < len(v.parts) && len(lines) < rows; i++ {
-			lines = append(lines, v.line(ctx, panelCluster, i, table[i], w))
-		}
-		extra := ""
-		if len(v.parts) > rows {
-			extra = th.Faint.Render(fmt.Sprintf("%d partitions  ", len(v.parts)))
-		}
-		return v.section(ctx, panelCluster, "Cluster", extra+th.Faint.Render("free / total"), strings.Join(lines, "\n"), w, h)
-	}
-}
-
-// partitionLines renders one aligned line per partition; unused columns are left out.
-func partitionLines(ctx *Context, parts []state.PartSummary) []string {
-	th := ctx.Theme
-	const cols = 6 // name, CPUs, GPUs, MIG, waiting, note
-	cells := make([][cols]string, len(parts))
-	var width [cols]int
-	for i, s := range parts {
-		p := s.Partition
-		name := p.Name
-		if p.Default {
-			name += "*"
-		}
-		cells[i][0] = th.Bold.Render(name)
-		if s.CPUTotal > 0 {
-			used := float64(s.CPUTotal-s.CPUFree) / float64(s.CPUTotal)
-			cells[i][1] = components.Gauge(th, used, 5) + " " + fmt.Sprintf("%d/%d CPUs", s.CPUFree, s.CPUTotal)
-		}
-		var gpus []string
-		for _, t := range s.GPUTypes {
-			gpus = append(gpus, fmt.Sprintf("%d/%d %s", t.Free, t.Total, units.GPUDisplayName(t.Type, ctx.Config.GPUNames)))
-		}
-		if len(gpus) > 0 {
-			style := th.OK
-			if s.GPUFree == 0 {
-				style = th.Muted
+			var group []string
+			for _, line := range table[i][:min(len(table[i]), rows-len(lines))] {
+				group = append(group, v.lineBody(ctx, panelCluster, i, line, w))
 			}
-			cells[i][2] = style.Render("GPUs " + strings.Join(gpus, ", "))
+			marked := ctx.Mark(fmt.Sprintf("ov:%s:%d", panelCluster, i), strings.Join(group, "\n"))
+			lines = append(lines, strings.Split(marked, "\n")...)
 		}
-		if s.MIGTotal > 0 {
-			cells[i][3] = fmt.Sprintf("MIG %d/%d", s.MIGFree, s.MIGTotal)
-		}
-		if s.PendingKnown && s.Pending > 0 {
-			cells[i][4] = th.Muted.Render(fmt.Sprintf("%d waiting", s.Pending))
-		}
-		var notes []string
-		if p.State != "UP" {
-			notes = append(notes, th.Warn.Render(strings.ToLower(p.State)))
-		}
-		switch {
-		case s.Down == 1 && len(s.DownReasons) == 1:
-			notes = append(notes, th.Warn.Render(s.DownReasons[0]))
-		case s.Down > 0:
-			notes = append(notes, th.Warn.Render(fmt.Sprintf("%d down", s.Down)))
-		}
-		cells[i][5] = strings.Join(notes, " ")
-		for c := range cols {
-			width[c] = max(width[c], layout.Width(cells[i][c]))
-		}
+		extra := clusterFreshness(ctx)
+		return v.section(ctx, panelCluster, "Cluster", extra, "  "+header+"\n"+strings.Join(lines, "\n"), w, h)
 	}
-	out := make([]string, len(parts))
-	for i := range parts {
-		var line []string
-		for c := range cols {
-			if width[c] > 0 {
-				line = append(line, layout.Pad(cells[i][c], width[c], false, ""))
-			}
-		}
-		out[i] = strings.TrimRight(strings.Join(line, "  "), " ")
-	}
-	return out
 }
 
 func (v *Overview) jobsPanel(ctx *Context) func(w, h int) string {
@@ -234,7 +187,7 @@ func (v *Overview) jobsPanel(ctx *Context) func(w, h int) string {
 				body = v.jobs.Render(th, ctx.Zones, w, h-1)
 			}
 		}
-		head := v.heading(ctx, panelJobs, "Your jobs", strings.Join(parts, "  "), w)
+		head := v.heading(ctx, panelJobs, "Your jobs", freshness(ctx, "myjobs", ctx.Store.MyJobs.At, ctx.Store.MyJobs.Has, ctx.Store.MyJobs.Err)+"  "+strings.Join(parts, "  "), w)
 		return layout.FitLines(head+"\n"+body, w, h)
 	}
 }
@@ -261,7 +214,7 @@ func (v *Overview) jobsSummary(ctx *Context) string {
 		}
 	}
 	if next != nil {
-		parts = append(parts, th.Muted.Render("next to end: ")+next.ID.Raw+" "+next.Name+th.Muted.Render(" in "+units.FormatShort(max(next.EndTime.Sub(ctx.Now), 0))))
+		parts = append(parts, th.Muted.Render("estimated next end: ")+next.ID.Raw+" "+next.Name+th.Muted.Render(" in "+units.FormatShort(max(next.EndTime.Sub(ctx.Now), 0))))
 	}
 	if len(order) > 0 {
 		var w []string
@@ -299,15 +252,20 @@ func (v *Overview) storagePanel(ctx *Context) func(w, h int) string {
 		}
 		if s := v.share; s != nil && len(lines) < rows { // storage first when space is short
 			gw := min(max(inner-labelW-24, 5), 20)
-			fs := layout.Pad("Fairshare", labelW, false, "") + "  " + fairGauge(th, s.FairShare, gw) + fmt.Sprintf("  %.2f", s.FairShare) +
-				th.Muted.Render(fmt.Sprintf("  usage %s of %s share", pctText(s.EffectiveUsage), pctText(s.NormShares)))
+			fs := layout.Pad("Fairshare", labelW, false, "") + "  " + fairGauge(th, s.FairShare, gw) + fmt.Sprintf("  %.2f", s.FairShare)
+			if ctx.Config.Detailed() {
+				fs += th.Muted.Render(fmt.Sprintf("  usage %s of %s share", pctText(s.EffectiveUsage), pctText(s.NormShares)))
+			}
+			interval := 10 * time.Second
+			if ctx.Interval != nil {
+				interval = ctx.Interval("fairshare")
+			}
+			if f := ctx.Store.Fairshare; f.Err != nil || !f.Has || (interval > 0 && ctx.Now.Sub(f.At) > 2*interval) {
+				fs = "Fairshare " + freshness(ctx, "fairshare", f.At, f.Has, f.Err)
+			}
 			lines = append(lines, v.line(ctx, panelStorage, len(v.quotas), fs, w))
 		}
-		title := "Storage"
-		if v.share != nil {
-			title += " " + th.Sym.Separator + " fairshare"
-		}
-		return v.section(ctx, panelStorage, title, "", strings.Join(lines, "\n"), w, h)
+		return v.section(ctx, panelStorage, "Storage", storageFreshness(ctx), strings.Join(lines, "\n"), w, h)
 	}
 }
 
@@ -315,6 +273,7 @@ func (v *Overview) storagePanel(ctx *Context) func(w, h int) string {
 func quotaLine(ctx *Context, q model.Quota, labelW, w int) string {
 	th := ctx.Theme
 	label := layout.Pad(q.Label, labelW, false, th.Sym.Ellipsis)
+	q = displayQuota(q)
 	u := q.Usage()
 	warn, crit := insights.Thresholds(ctx.Config.StorageWarn, ctx.Config.StorageCrit)
 	limit := q.SoftBytes
@@ -327,7 +286,10 @@ func quotaLine(ctx *Context, q model.Quota, labelW, w int) string {
 	case q.Err != "" && q.At.IsZero():
 		return label + "  " + th.Warn.Render(q.Err)
 	case limit > 0:
-		usage = components.QuotaGauge(th, u.BlocksPct, warn, crit, gw) + "  " + units.FormatBytes(q.UsedBytes) + "/" + units.FormatBytes(limit)
+		usage = components.QuotaGauge(th, u.BlocksPct, warn, crit, gw) + "  " + units.FormatBytes(q.UsedBytes) + " used / " + units.FormatBytes(limit)
+		if w < 55 {
+			usage = components.QuotaGauge(th, u.BlocksPct, warn, crit, 5) + " " + units.FormatBytes(q.UsedBytes) + "/" + units.FormatBytes(limit)
+		}
 	case q.UsedBytes > 0:
 		usage = strings.Repeat(" ", gw) + "  " + units.FormatBytes(q.UsedBytes) + th.Faint.Render(" no limit")
 	default:
@@ -341,10 +303,16 @@ func quotaLine(ctx *Context, q model.Quota, labelW, w int) string {
 		usage += "  " + style.Render(fmt.Sprintf("files %d%%", u.FilesPct))
 	}
 	if q.IsFilesystemTotal {
-		usage += th.Faint.Render("  shared")
+		usage += th.Faint.Render(" shared")
+		if q.AvailabilityKnown {
+			usage += "  " + units.FormatBytes(q.AvailableBytes) + " available"
+		}
 	}
 	if q.Err != "" {
 		usage += th.Warn.Render("  stale")
+	}
+	if !q.IsFilesystemTotal && limit > 0 {
+		usage += th.Faint.Render(" quota")
 	}
 	return label + "  " + usage
 }

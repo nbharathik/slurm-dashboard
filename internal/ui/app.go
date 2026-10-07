@@ -40,6 +40,7 @@ const FlashFor = 4 * time.Second
 
 // Options configure the App.
 type Options struct {
+	Context   context.Context
 	Config    config.Config
 	Store     *state.Store
 	Scheduler *state.Scheduler // nil in tests that feed updates directly
@@ -111,17 +112,20 @@ const (
 
 // App is the root Bubble Tea model.
 type App struct {
-	opt   Options
-	st    *state.Store
-	sched *state.Scheduler
-	keys  *keys.Map
-	th    theme.Theme
-	zm    *zone.Manager
-	ctx   *views.Context
-	views []views.View
-	tab   int
-	w, h  int
-	mode  layout.Mode
+	runCtx context.Context
+	cancel context.CancelFunc
+	dirty  map[string]bool
+	opt    Options
+	st     *state.Store
+	sched  *state.Scheduler
+	keys   *keys.Map
+	th     theme.Theme
+	zm     *zone.Manager
+	ctx    *views.Context
+	views  []views.View
+	tab    int
+	w, h   int
+	mode   layout.Mode
 
 	dark      bool
 	themeName string
@@ -175,9 +179,14 @@ func New(opt Options) *App {
 	if opt.Interval == nil {
 		opt.Interval = func(string) time.Duration { return 10 * time.Second }
 	}
+	if opt.Context == nil {
+		opt.Context = context.Background()
+	}
+	runCtx, cancel := context.WithCancel(opt.Context)
 	cfg := opt.Config
 	a := &App{
-		opt:       opt,
+		opt:    opt,
+		runCtx: runCtx, cancel: cancel, dirty: map[string]bool{},
 		st:        opt.Store,
 		sched:     opt.Scheduler,
 		keys:      keys.Default(),
@@ -191,9 +200,12 @@ func New(opt Options) *App {
 	a.rebuildTheme()
 	a.ctx = &views.Context{
 		Store: a.st, Theme: a.th, Keys: a.keys, Zones: a.zm, Config: cfg, Now: opt.Now(),
-		Dismissed: a.state.Dismissed, Prefs: a.state.Prefs,
+		Dismissed: a.state.Dismissed, Prefs: a.state.Prefs, Interval: opt.Interval,
 	}
 	a.views = views.All(a.ctx)
+	for _, v := range a.views {
+		a.dirty[v.Name()] = true
+	}
 	if u, ok := a.viewByName(model.TabUsage).(interface{ Days() int }); ok && opt.OnViewState != nil {
 		opt.OnViewState(views.HistoryRangeMsg{Days: u.Days()}) // the range chosen last time
 	}
@@ -201,6 +213,10 @@ func New(opt Options) *App {
 		testViewHook(a)
 	}
 	a.openTab(firstNonEmpty(opt.StartTab, cfg.StartTab, a.state.LastTab))
+	if a.dirty[a.views[a.tab].Name()] {
+		a.views[a.tab].Refresh(a.ctx)
+		delete(a.dirty, a.views[a.tab].Name())
+	}
 	if opt.Notice != "" {
 		a.setFlash(opt.Notice, false)
 	}
@@ -337,6 +353,9 @@ func (a *App) Update(msg tea.Msg) (m tea.Model, cmd tea.Cmd) {
 	case updateMsg:
 		return a, tea.Batch(a.applyUpdate(state.Update(msg)), a.waitUpdate())
 	case tickMsg:
+		if ov, ok := a.viewByName("overview").(interface{ RefreshAlerts(*views.Context) }); ok {
+			ov.RefreshAlerts(a.ctx)
+		}
 		a.checkIdle()
 		return a, tick()
 	case tea.FocusMsg:
@@ -366,12 +385,29 @@ func (a *App) resize(w, h int) {
 // applyUpdate records collector results and refreshes the views.
 func (a *App) applyUpdate(u state.Update) tea.Cmd {
 	transitions := a.st.Apply(u)
+	if viewDepends("overview", u.Source) {
+		if ov, ok := a.viewByName("overview").(interface{ RefreshAlerts(*views.Context) }); ok {
+			ov.RefreshAlerts(a.ctx)
+		}
+	}
 	if u.Err != nil {
 		a.opt.Log.Debug("source failed", "source", u.Source, "err", u.Err)
 	}
-	for _, v := range a.views {
-		v.Refresh(a.ctx)
+	for i, v := range a.views {
+		if !viewDepends(v.Name(), u.Source) {
+			continue
+		}
+		if i == a.tab {
+			v.Refresh(a.ctx)
+			delete(a.dirty, v.Name())
+		} else {
+			a.dirty[v.Name()] = true
+			if hidden, ok := v.(interface{ Invalidate() }); ok {
+				hidden.Invalidate()
+			}
+		}
 	}
+	a.syncVisible()
 	cmd := a.onTransitions(transitions)
 	if u.Source == "myjobs" || u.Source == "mystats" {
 		cmd = tea.Batch(cmd, a.warnNotices())
@@ -399,9 +435,26 @@ func (a *App) setIdle(idle bool) {
 	}
 }
 
+func (a *App) activeDetailID() string {
+	if a.logView != nil || a.rerun != nil {
+		return ""
+	}
+	if v, ok := a.views[a.tab].(interface{ ActiveDetailID(*views.Context) string }); ok {
+		return v.ActiveDetailID(a.ctx)
+	}
+	return ""
+}
+
 func (a *App) syncVisible() {
+	if a.opt.OnViewState != nil {
+		a.opt.OnViewState(views.DetailMsg{ID: a.activeDetailID()})
+	}
 	if a.sched != nil {
-		a.sched.SetVisible(a.views[a.tab].Name())
+		visible := a.views[a.tab].Name()
+		if a.logView != nil || a.rerun != nil {
+			visible = "viewer"
+		}
+		a.sched.SetVisible(visible)
 	}
 }
 
@@ -415,8 +468,11 @@ func (a *App) switchTab(i int) {
 	}
 	a.tab = i
 	a.state.LastTab = a.views[i].Name()
+	if a.dirty[a.views[i].Name()] {
+		a.views[i].Refresh(a.ctx)
+		delete(a.dirty, a.views[i].Name())
+	}
 	a.syncVisible()
-	a.views[i].Refresh(a.ctx)
 	// Sources that only poll while their tab is open catch up at once.
 	src := a.views[i].Source()
 	if interval, at, has, _, _ := a.sourceState(src); !has || a.now().Sub(at) > interval {
@@ -510,6 +566,7 @@ func (a *App) handleKey(msg tea.KeyPressMsg) tea.Cmd {
 
 func (a *App) quit() tea.Cmd {
 	saveState(a.opt.StateDir, a.state)
+	a.cancel()
 	return tea.Quit
 }
 
@@ -774,10 +831,17 @@ func (a *App) schedStates() []state.State {
 }
 
 // Close releases the zone manager.
-func (a *App) Close() { a.zm.Close() }
+func (a *App) Close() {
+	a.cancel()
+	if a.duCancel != nil {
+		a.duCancel()
+	}
+	a.zm.Close()
+}
 
 // Run starts the TUI and blocks until the user quits.
 func Run(ctx context.Context, opt Options) error {
+	opt.Context = ctx
 	a := New(opt)
 	defer a.Close()
 	popts := []tea.ProgramOption{tea.WithContext(ctx)}

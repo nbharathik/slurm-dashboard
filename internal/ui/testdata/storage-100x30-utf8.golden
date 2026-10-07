@@ -2,14 +2,14 @@
 ──────────────────────────────────────────────────────────━━━━━━━━━━━───────────────────────────────
                                                                                                     
   3 locations · checked 14:00                                                                       
-    LOCATION  SPACE              FILES     30 DAYS               PATH                               
+    LOCATION  SCOPE   SPACE USED          FILES     CHECK / TREND         PATH                      
   ────────────────────────────────────────────────────────────────────────────────────────────────  
-  ▶ Home      █████░░░ 31G/50G   212k/1M   ▁▁▂▃▄▅▅▆▇█ full ~6mo  /home/you                          
-    Scratch   ███████░ 9.2T/10T  3.1M/5M   ▁▂▂▃▄▅▅▆▇█ full ~19d  /scratch/you                       
-    Project   ██░░░░░░ 1.2T/5T   900k/10M  ▁▁▂▃▄▅▅▆▇█            /project/ml-lab                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
+  ▶ Home      Yours   █████░░░ 31G/50G    212k/1M   ▁▁▂▃▄▅▅▆▇█ full ~6mo  /home/you                 
+    Scratch   Yours   ███████░ 9.2T/10T   3.1M/5M   ▁▂▂▃▄▅▅▆▇█ full ~19d  /scratch/you              
+    Project   Yours   ██░░░░░░ 1.2T/5T    900k/10M  ▁▁▂▃▄▅▅▆▇█            /project/ml-lab           
+    Home      Shared  Unavailable  stale            collecting            /home/you                 
+    Scratch   Shared  Unavailable  stale            collecting            /scratch/you              
+    Project   Shared  Unavailable  stale            collecting            /project/ml-lab           
                                                                                                     
                                                                                                     
                                                                                                     
@@ -27,4 +27,4 @@
                                                                                                     
                                                                                                     
 ────────────────────────────────────────────────────────────────────────────────────────────────────
-  enter raw output · R refresh storage · a analyse · , settings · ? help            updated 0s ago  
+  enter details · R refresh storage · a analyse yours · , settings · ? help         updated 0s ago  

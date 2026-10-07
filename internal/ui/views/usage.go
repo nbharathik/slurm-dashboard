@@ -55,6 +55,7 @@ type Usage struct {
 	jobs     []model.HistoryJob
 	byID     map[string]model.HistoryJob
 	detail   string
+	pane     detailPane
 	summary  historySummary
 	sum      insights.Summary // of every finished job in the range, ignoring the filter
 	acct     insights.Account
@@ -357,6 +358,9 @@ func effCell(ctx *Context, f float64) string {
 
 // Update implements View.
 func (v *Usage) Update(ctx *Context, msg tea.Msg) tea.Cmd {
+	if v.detail != "" && v.input == nil && v.pane.update(ctx, msg) {
+		return nil
+	}
 	k := ctx.Keys
 	if v.input != nil {
 		if m, ok := msg.(tea.KeyPressMsg); ok {
@@ -392,6 +396,7 @@ func (v *Usage) Update(ctx *Context, msg tea.Msg) tea.Cmd {
 				v.Refresh(ctx)
 			}
 		case navigate(&v.table, k, msg):
+			v.followDetail()
 		case key.Matches(msg, k.Open):
 			if ok {
 				if v.detail == j.ID.Raw {
@@ -429,6 +434,7 @@ func (v *Usage) Update(ctx *Context, msg tea.Msg) tea.Cmd {
 		}
 	case tea.MouseWheelMsg:
 		navigate(&v.table, ctx.Keys, msg)
+		v.followDetail()
 	case tea.MouseClickMsg:
 		return v.click(ctx, msg)
 	}
@@ -550,17 +556,10 @@ func (v *Usage) Render(ctx *Context, w, h int) string {
 		h -= len(panel) + 1
 	}
 	var body string
-	switch {
-	case v.detail == "":
+	if v.detail == "" {
 		body = v.tablePanel(ctx, w, h)
-	case ctx.Mode >= layout.Wide:
-		tw := w * 55 / 100
-		body = joinH(v.tablePanel(ctx, tw, h), tw, v.card(ctx, w-tw, h))
-	case ctx.Mode == layout.Normal:
-		half := h / 2
-		body = v.tablePanel(ctx, w, h-half) + "\n" + v.card(ctx, w, half)
-	default:
-		body = v.card(ctx, w, h)
+	} else {
+		body = detailLayout(w, h, func(w, h int) string { return v.tablePanel(ctx, w, h) }, func(w, h int) string { return v.card(ctx, w, h) })
 	}
 	out += "\n" + body
 	if foot != "" {
@@ -769,6 +768,13 @@ func (v *Usage) card(ctx *Context, w, h int) string {
 		btn("copy", "Copy #SBATCH")
 	}
 	b = append(b, "", strings.Join(btns, " "))
-	title := j.ID.Raw + " " + j.Name + " " + ctx.Mark("usage:btn:close", th.Faint.Render("[esc]"))
-	return components.PaddedPanel(th, title, strings.Join(b, "\n"), w, h, false)
+	return v.pane.render(ctx, j.ID.Raw, j.ID.Raw+" "+j.Name, "usage:btn:close", strings.Join(b, "\n"), w, h)
+}
+
+func (v *Usage) followDetail() {
+	if v.detail != "" {
+		if j, ok := v.Selected(); ok {
+			v.detail = j.ID.Raw
+		}
+	}
 }

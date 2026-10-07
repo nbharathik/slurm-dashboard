@@ -24,7 +24,7 @@ type File interface {
 
 type osFS struct{}
 
-func (osFS) Open(name string) (File, error) { return os.Open(name) }
+func (osFS) Open(name string) (File, error) { return openLogFile(name) }
 
 // OS is the real filesystem.
 var OS FS = osFS{}
@@ -60,6 +60,7 @@ type Reader struct {
 	fs         FS
 	path       string
 	maxInitial int64
+	ChunkLimit int64
 	offset     int64
 	started    bool
 	previous   fs.FileInfo
@@ -98,8 +99,8 @@ func (r *Reader) Poll() Chunk {
 	if err != nil {
 		return Chunk{State: stateOf(err), Err: err}
 	}
-	if fi.IsDir() {
-		return Chunk{State: Failed, Err: errors.New("is a directory")}
+	if !fi.Mode().IsRegular() {
+		return Chunk{State: Failed, Err: errors.New("log is not a regular file")}
 	}
 	size := fi.Size()
 	var c Chunk
@@ -119,8 +120,12 @@ func (r *Reader) Poll() Chunk {
 		return c
 	}
 	end := size
-	if end-start > MaxChunk {
-		end, c.More = start+MaxChunk, true
+	limit := r.ChunkLimit
+	if limit <= 0 || limit > MaxChunk {
+		limit = MaxChunk
+	}
+	if end-start > limit {
+		end, c.More = start+limit, true
 	}
 	buf := make([]byte, end-start)
 	n, err := f.ReadAt(buf, start)
