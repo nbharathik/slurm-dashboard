@@ -123,7 +123,7 @@ func TestFollowedLogShowsNewLines(t *testing.T) {
 	driveTimeout = 15 * time.Second
 	t.Cleanup(func() { driveTimeout = defaultDriveTimeout })
 	out := t.TempDir() + "/follow.out"
-	id := c.Submit("follow", "-o", out, "-t", "5", "--wrap", "for i in $(seq 1 120); do echo tick $i; sleep 1; done")
+	id := c.Submit("follow", "-o", out, "-t", "5", "--wrap", `for i in $(seq 1 120); do echo "tick $i $(date +%s.%N)"; sleep 1; done`)
 	c.WaitState(id, "RUNNING")
 	a, src := realApp(t, c)
 	reload(t, a, src)
@@ -153,7 +153,8 @@ func TestFollowedLogShowsNewLines(t *testing.T) {
 		time.Sleep(logPoll)
 		poll()
 		raw, _ := os.ReadFile(out)
-		t.Logf("%v: %q in the file: %v", time.Since(start).Round(10*time.Millisecond), want, strings.Contains(string(raw), want+"\n"))
+		lines := strings.Split(strings.TrimSpace(string(raw)), "\n")
+		t.Logf("%v (now %.2f): file ends %q", time.Since(start).Round(10*time.Millisecond), float64(time.Now().UnixNano())/1e9, lines[max(len(lines)-3, 0):])
 		if strings.Contains(screen(a), want) {
 			if d := time.Since(start); d > 2*time.Second+500*time.Millisecond {
 				t.Fatalf("the new line took %v to appear", d)
@@ -175,7 +176,13 @@ func TestRerunAndNotifyOnRealCluster(t *testing.T) {
 	driveTimeout = 15 * time.Second
 	t.Cleanup(func() { driveTimeout = defaultDriveTimeout })
 	work := t.TempDir()
-	orig := c.Submit("rerunui", "--hold", "-t", "5", "--wrap", "sleep 2")
+	// The options sit in the script so that Slurm before 23.02, which stores no submit line, keeps them.
+	script := work + "/rerun.sh"
+	body := "#!/bin/sh\n#SBATCH --job-name=sdash-test-rerunui\n#SBATCH --time=5\n#SBATCH --output=/dev/null\nsleep 2\n"
+	if err := os.WriteFile(script, []byte(body), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	orig := c.Submit("rerunui", "--hold", "-t", "5", script)
 	a, src := realApp(t, c)
 	hookOut := work + "/hook.env"
 	hr := execx.NewReal(execx.Options{})
