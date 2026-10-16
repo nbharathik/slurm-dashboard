@@ -57,6 +57,17 @@ build_binaries() {
 	) || { result build fail "go build failed"; return 1; }
 }
 
+# wait_nodes waits until c1, c2 and g1 have registered and are usable.
+wait_nodes() {
+	local deadline=$((SECONDS + 150)) n
+	while [ "$SECONDS" -lt "$deadline" ]; do
+		n=$(as_root sinfo -h -N -o '%N %t' 2>/dev/null | awk '($1 == "c1" || $1 == "c2" || $1 == "g1") && $2 ~ /^(idle|mix|alloc)$/' | wc -l)
+		[ "$n" -ge 3 ] && return 0
+		sleep 3
+	done
+	return 1
+}
+
 # wait_states waits until the seeded jobs have reached the states the checks need.
 wait_states() {
 	local deadline=$((SECONDS + 240)) missing hist queue s
@@ -126,6 +137,14 @@ if [[ $sv == *"$ver"* ]]; then
 else
 	result slurm-version fail "$base installs $sv (package $pkg), expected $ver"
 fi
+
+if ! wait_nodes; then
+	result nodes-up fail "c1, c2 or g1 never became usable: $(as_root sinfo -h -N -o '%N %t' 2>&1)"
+	dc ps -a >&2
+	dc logs --no-color --tail 30 c1 g1 >&2
+	finish
+fi
+result nodes-up ok "slurmd cgroup mode: $(dc exec -T g1 cat /var/log/slurm/cgroup-mode 2>&1)"
 
 if as_root /opt/sdash/seed.sh >"$out/seed.log" 2>&1 && ! grep -q 'sbatch as .* failed' "$out/seed.log"; then
 	result seed ok ""

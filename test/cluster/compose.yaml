@@ -1,8 +1,20 @@
+x-home: &home
+  type: volume
+  source: home
+  target: /home
+  volume:
+    nocopy: true
+
 x-common: &common
   image: sdash-cluster:${SLURM:-dev}
   init: true
   volumes:
-    - home:/home
+    - *home
+
+x-node: &node
+  <<: *common
+  privileged: true
+  cgroup: host
 
 services:
   db:
@@ -27,17 +39,17 @@ services:
       retries: 100
 
   c1:
-    <<: *common
+    <<: *node
     hostname: c1
     command: ["/opt/sdash/entrypoint.sh", "node"]
 
   c2:
-    <<: *common
+    <<: *node
     hostname: c2
     command: ["/opt/sdash/entrypoint.sh", "node"]
 
   g1:
-    <<: *common
+    <<: *node
     hostname: g1
     command: ["/opt/sdash/entrypoint.sh", "node"]
 
@@ -53,7 +65,7 @@ services:
       ctld:
         condition: service_healthy
     volumes:
-      - home:/home
+      - *home
       - ${SDASH_ROOT:-../..}:/src:ro
       - ${SDASH_ROOT:-../..}/build:/opt/build:ro
       - ${SDASH_ROOT:-../..}/build/compat:/out

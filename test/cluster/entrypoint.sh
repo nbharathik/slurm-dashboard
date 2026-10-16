@@ -61,11 +61,32 @@ role_ctld() {
 	exec tail -F /var/log/slurm/slurmctld.log /var/log/slurm/slurmdbd.log
 }
 
+# slurmd 22.05+ needs systemd for its cgroup scope. Try the cgroup settings that
+# work without it, in order, and record the first one that keeps slurmd up.
 role_node() {
+	local name mode pid
 	start_munge
 	run_dirs
 	wait_tcp ctld 6817
-	exec slurmd -D -N "$(hostname -s)"
+	name=$(hostname -s)
+	for mode in none disabled ignoresystemd; do
+		case $mode in
+		none) rm -f /etc/slurm/cgroup.conf ;;
+		disabled) echo 'CgroupPlugin=disabled' >/etc/slurm/cgroup.conf ;;
+		ignoresystemd) printf 'CgroupPlugin=autodetect\nIgnoreSystemd=yes\n' >/etc/slurm/cgroup.conf ;;
+		esac
+		slurmd -D -N "$name" >>/var/log/slurm/slurmd.log 2>&1 &
+		pid=$!
+		sleep 5
+		if kill -0 "$pid" 2>/dev/null; then
+			echo "$mode" >/var/log/slurm/cgroup-mode
+			wait "$pid"
+			exit $?
+		fi
+		echo "slurmd failed with cgroup mode '$mode'" >&2
+		tail -n 5 /var/log/slurm/slurmd.log >&2
+	done
+	exit 1
 }
 
 role_login() {

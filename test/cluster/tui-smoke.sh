@@ -22,6 +22,8 @@ run_mode() {
 	tmux kill-session -t "$S" 2>/dev/null
 	tmux new-session -d -s "$S" -x "$cols" -y "$rows" "SDASH_CONFIG=$conf sdash"
 	sleep 8
+	key Escape
+	sleep 1
 	snap "$label-1-overview"
 	for k in 2 3 4 5 6; do
 		key "$k"
