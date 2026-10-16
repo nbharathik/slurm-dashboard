@@ -66,7 +66,7 @@ role_ctld() {
 evacuate_cgroup() {
 	local p
 	[ -f /sys/fs/cgroup/cgroup.controllers ] || return 0
-	mkdir -p /sys/fs/cgroup/init
+	mkdir -p /sys/fs/cgroup/init /sys/fs/cgroup/system.slice
 	while read -r p; do
 		echo "$p" >/sys/fs/cgroup/init/cgroup.procs 2>/dev/null || true
 	done </sys/fs/cgroup/cgroup.procs

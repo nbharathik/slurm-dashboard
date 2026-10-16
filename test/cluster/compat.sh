@@ -101,7 +101,7 @@ integ() {
 	if [ "$rc" -ne 0 ] || [ "$failed" -gt 0 ]; then
 		result "$name" fail "$pass passed, $failed failed: $(grep -m1 -e '--- FAIL' "$log")"
 		echo "== $name failures" >&2
-		grep -A12 -e '--- FAIL' "$log" | head -n 80 >&2
+		grep -B15 -A2 -e '--- FAIL' "$log" | head -n 150 >&2
 	elif [ "$pass" -eq 0 ]; then
 		result "$name" fail "no test ran ($skip skipped)"
 	else
