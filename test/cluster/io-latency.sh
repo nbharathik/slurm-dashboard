@@ -1,6 +1,6 @@
 #!/bin/bash
-# Measure how fast the output of a running job reaches the login node, as "you".
-# Warns when lines arrive in bursts, which slows any log viewer down.
+# Measure how long a running job's output takes to reach the login node, as "you".
+# Each line carries the time the job wrote it; the arrival time is read here.
 set -u
 # shellcheck source=lib.sh
 . /opt/sdash/lib.sh
@@ -9,7 +9,7 @@ f=/home/you/runs/latency.out
 log=$OUT/io-latency.txt
 rm -f "$f" "$log"
 
-id=$(sbatch --parsable -J latency -p cpu -t 2 -o "$f" --wrap 'for i in $(seq 1 12); do echo tick $i; sleep 1; done') || {
+id=$(sbatch --parsable -J latency -p cpu -t 2 -o "$f" --wrap 'for i in $(seq 1 12); do echo "$i $(date +%s.%N)"; sleep 1; done') || {
 	result job-output-latency warn "sbatch failed"
 	exit 0
 }
@@ -30,14 +30,14 @@ while [ "$SECONDS" -lt "$end" ]; do
 		last=$n
 	fi
 	[ "$n" -ge 12 ] && break
-	sleep 0.2
+	sleep 0.1
 done
 scancel "$id" >/dev/null 2>&1
 
-gap=$(awk 'NR > 1 { d = $2 - prev; if (d > m) m = d } { prev = $2 } END { printf "%.1f", m }' "$log")
+lag=$(awk 'NR == FNR { st[NR] = $2; next } { for (k = seen + 1; k <= $1; k++) { d = $2 - st[k]; if (d > m) m = d } seen = $1 } END { printf "%.1f", m }' "$f" "$log")
 lines=$(wc -l <"$log")
-if awk -v g="$gap" 'BEGIN { exit !(g > 2.2) }'; then
-	result job-output-latency warn "$lines updates, longest wait for a new line ${gap}s"
+if awk -v g="$lag" 'BEGIN { exit !(g > 1.5) }'; then
+	result job-output-latency warn "$lines updates, a line reached the login node up to ${lag}s after it was written"
 else
-	result job-output-latency ok "$lines updates, longest wait ${gap}s"
+	result job-output-latency ok "$lines updates, a line reached the login node within ${lag}s"
 fi

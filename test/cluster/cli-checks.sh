@@ -83,6 +83,11 @@ else
 fi
 check free-test - free --cpus 1 --test --json
 
+run_ids=$(squeue --me -h -t R -o '%i' | grep -E '^[0-9]+$' | paste -sd, -)
+if [ -n "$run_ids" ]; then
+	result sstat-raw ok "$(sstat -a -n -P -j "$run_ids" -o JobID,NTasks,MaxRSS,AveRSS,AveCPU,TRESUsageInTot 2>&1 | head -n 3)"
+fi
+
 big=$(id_of big-gpu)
 dep=$(id_of after-fail)
 held=$(id_of on-hold)

@@ -120,11 +120,13 @@ type Estimate struct {
 	Partition string
 }
 
-var testOnlyRe = regexp.MustCompile(`Job (\d+) to start at (\S+) using (\d+) processors on nodes (\S+) in partition (\S+)`)
+var testOnlyRe = regexp.MustCompile(`Job (\d+) to start at (\S+).*?\s+using (\d+) processors on nodes (\S+) in partition (\S+)`)
 
 // TestOnly parses the stderr of "sbatch --test-only", e.g.
 //
 //	sbatch: Job 23 to start at 2026-09-28T13:38:41 using 1 processors on nodes node01 in partition gpu
+//
+// Slurm 25.11 adds a stray word after the time ("... 13:38:41 a using ..."), which is skipped.
 func TestOnly(stderr []byte) (Estimate, error) {
 	m := testOnlyRe.FindStringSubmatch(string(stderr))
 	if m == nil {

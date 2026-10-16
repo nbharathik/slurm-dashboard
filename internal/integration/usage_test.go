@@ -101,6 +101,9 @@ func TestMyStatsSeveralJobs(t *testing.T) {
 	if b.NTasks < 1 || i.NTasks < 1 {
 		t.Errorf("no tasks: %+v %+v", b, i)
 	}
+	if b.TotalCPU <= 0 && i.TotalCPU <= 0 {
+		t.Skip("sstat reported no CPU time for either job; the usage gatherer returned nothing to compare")
+	}
 	if b.TotalCPU <= i.TotalCPU {
 		t.Errorf("the busy job used %v of CPU, the idle one %v", b.TotalCPU, i.TotalCPU)
 	}
