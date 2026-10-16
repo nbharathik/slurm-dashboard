@@ -85,6 +85,9 @@ func TestMyStatsSeveralJobs(t *testing.T) {
 	c.WaitState(busy, "RUNNING")
 	c.WaitState(idle, "RUNNING")
 	time.Sleep(6 * time.Second) // let the gatherer take a sample
+	if _, err := src.MyJobs(context.Background()); err != nil {
+		t.Fatal(err) // MyStats only samples jobs in a fresh ownership snapshot
+	}
 
 	stats, err := src.MyStats(context.Background(), []string{busy, idle, busy + "_1", "not-a-job"})
 	if err != nil {

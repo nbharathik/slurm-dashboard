@@ -74,6 +74,15 @@ check history wasteful history --json
 check free g1 free --gpus 1 --json
 check quota - quota --json
 
+est=$(sbatch --test-only -p cpu -t 5 --wrap 'sleep 1' 2>&1)
+rc=$?
+if [ "$rc" -eq 0 ]; then
+	result sbatch-test-only ok "$est"
+else
+	result sbatch-test-only fail "exit $rc: $est"
+fi
+check free-test - free --cpus 1 --test --json
+
 big=$(id_of big-gpu)
 dep=$(id_of after-fail)
 held=$(id_of on-hold)

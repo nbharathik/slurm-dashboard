@@ -39,5 +39,5 @@ RUN dpkg-query -W -f='${Version}\n' slurm-wlm > /etc/sdash-slurm-package
 COPY etc/ /etc/slurm/
 RUN chown slurm:slurm /etc/slurm/slurmdbd.conf && chmod 0600 /etc/slurm/slurmdbd.conf
 
-COPY entrypoint.sh seed.sh lib.sh cli-checks.sh tui-smoke.sh /opt/sdash/
+COPY entrypoint.sh seed.sh lib.sh cli-checks.sh tui-smoke.sh io-latency.sh /opt/sdash/
 RUN chmod +x /opt/sdash/*.sh && ln -s /opt/build/sdash /usr/local/bin/sdash

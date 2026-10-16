@@ -81,7 +81,7 @@ role_node() {
 	run_dirs
 	wait_tcp ctld 6817
 	name=$(hostname -s)
-	for mode in none disabled ignoresystemd lenient; do
+	for mode in none ignoresystemd lenient disabled; do
 		case $mode in
 		none) rm -f /etc/slurm/cgroup.conf ;;
 		disabled) echo 'CgroupPlugin=disabled' >/etc/slurm/cgroup.conf ;;
