@@ -20,7 +20,12 @@ const (
 	DurUnknown
 )
 
+// maxDurationSeconds is about 95 years; larger values are unset markers or garbage
+// (Slurm 25.11.2 prints "213503982334-14:25:51" for CPU time it never measured).
+const maxDurationSeconds = 3e9
+
 // ParseDuration parses Slurm durations (MM:SS, HH:MM:SS, D-HH[:MM[:SS]], optional .mmm, bare minutes).
+// A value beyond maxDurationSeconds is reported as DurUnknown.
 func ParseDuration(s string) (time.Duration, DurKind, error) {
 	s = strings.TrimSpace(s)
 	switch strings.ToUpper(s) {
@@ -82,6 +87,9 @@ func ParseDuration(s string) (time.Duration, DurKind, error) {
 		sec = nums[0]
 	default:
 		return 0, DurUnknown, fmt.Errorf("duration %q: unrecognised form", s)
+	}
+	if float64(days)*86400+float64(h)*3600+float64(m)*60+float64(sec) > maxDurationSeconds {
+		return 0, DurUnknown, nil
 	}
 	total := time.Duration(days)*24*time.Hour + time.Duration(h)*time.Hour +
 		time.Duration(m)*time.Minute + time.Duration(sec)*time.Second + frac

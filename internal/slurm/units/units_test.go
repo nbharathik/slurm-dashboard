@@ -37,6 +37,7 @@ func TestParseDuration(t *testing.T) {
 		{"N/A", 0, DurUnknown},
 		{"NONE", 0, DurUnknown},
 		{"", 0, DurUnknown},
+		{"213503982334-14:25:51", 0, DurUnknown},
 	}
 	for _, tc := range cases {
 		got, kind, err := ParseDuration(tc.in)

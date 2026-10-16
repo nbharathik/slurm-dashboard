@@ -158,7 +158,8 @@ result nodes-cgroup ok "slurmd cgroup mode: $(dc exec -T g1 cat /var/log/slurm/c
 
 as_you /opt/sdash/cli-checks.sh >"$out/cli-checks.log" 2>&1 || result cli-checks fail "script exited with an error"
 as_you /opt/sdash/tui-smoke.sh >"$out/tui-smoke.log" 2>&1 || result tui-smoke fail "script exited with an error"
-as_you /opt/sdash/io-latency.sh >"$out/io-latency.log" 2>&1 || result job-output-latency fail "script exited with an error"
+as_you /opt/sdash/io-latency.sh stamped >"$out/io-latency.log" 2>&1 || result job-output-latency fail "script exited with an error"
+as_root /opt/sdash/io-latency.sh plain /home/tmp >"$out/io-timeline.log" 2>&1 || result job-output-timeline fail "script exited with an error"
 
 if as_you sdash record --out "/out/$ver/fixtures" >"$out/record.log" 2>&1; then
 	if grep -q '^!' "$out/record.log"; then

@@ -99,5 +99,6 @@ func (c *Cluster) WaitState(id string, states ...string) {
 		}
 		time.Sleep(time.Second)
 	}
-	c.t.Fatalf("job %s never reached %v", id, states)
+	res, _ := c.Runner.Run(context.Background(), "squeue", "-h", "-j", id, "-o", "%T %r")
+	c.t.Fatalf("job %s never reached %v (squeue says %q)", id, states, strings.TrimSpace(string(res.Stdout)))
 }
