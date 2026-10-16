@@ -2,6 +2,7 @@
 package state
 
 import (
+	"slices"
 	"strings"
 	"time"
 
@@ -106,6 +107,7 @@ type Store struct {
 	Limits       Source[[]model.LimitScope]
 	MyStats      Source[map[string]model.JobStat]
 	Storage      Source[[]model.Quota]
+	Groups       Source[[]string]
 
 	prevJobs map[string]model.Job
 	havePrev bool
@@ -115,7 +117,7 @@ type Store struct {
 // (only for "myjobs").
 func (s *Store) Apply(u Update) []Transition {
 	switch u.Source {
-	case "nodes", "cluster", "partitions", "alljobs", "queuerank", "myjobs":
+	case "nodes", "cluster", "partitions", "alljobs", "queuerank", "myjobs", "groups", "fairshare":
 		s.derived = false
 	}
 	switch u.Source {
@@ -149,8 +151,42 @@ func (s *Store) Apply(u Update) []Transition {
 		s.MyStats.apply(u)
 	case "storage":
 		s.Storage.apply(u)
+	case "groups":
+		s.Groups.apply(u)
 	}
 	return nil
+}
+
+// Identity gathers what partition access checks know about the user. Groups
+// and accounts stay unknown until their sources have loaded.
+func (s *Store) Identity() Identity {
+	id := Identity{Root: s.UID == "0"}
+	if s.Groups.Has && len(s.Groups.Data) > 0 {
+		id.Groups, id.GroupsKnown = s.Groups.Data, true
+	}
+	if s.Fairshare.Has && s.User != "" {
+		for _, sh := range s.Fairshare.Data {
+			if sh.User == s.User && sh.Account != "" && !slices.Contains(id.Accounts, sh.Account) {
+				id.Accounts = append(id.Accounts, sh.Account)
+			}
+		}
+		id.AccountsKnown = len(id.Accounts) > 0
+	}
+	return id
+}
+
+// RateLimited reports whether the controller is throttling this user: the
+// latest attempt of any source failed with the rate limit error.
+func (s *Store) RateLimited() bool {
+	for _, err := range []error{
+		s.MyJobs.Err, s.AllJobs.Err, s.Cluster.Err, s.QueueRank.Err, s.Nodes.Err, s.Partitions.Err, s.Reservations.Err,
+		s.Detail.Err, s.History.Err, s.Fairshare.Err, s.Priorities.Err, s.Limits.Err, s.MyStats.Err,
+	} {
+		if err != nil && KindOf(err) == ErrRateLimited {
+			return true
+		}
+	}
+	return false
 }
 
 // MaxEnded bounds Store.Ended.
@@ -262,6 +298,7 @@ func (s *Store) Capacity() ([]NodeUsage, []PartSummary) {
 		s.nodeUsage = NodeGPUUsage(s.Nodes.Data, s.Cluster.Data.Jobs, s.User)
 		pending, known := PendingByPartition(s)
 		s.partSummaries = PartitionSummaries(s.Partitions.Data, s.nodeUsage, pending, known)
+		ApplyAccess(s.partSummaries, s.Identity())
 		s.derived = true
 	}
 	return s.nodeUsage, s.partSummaries

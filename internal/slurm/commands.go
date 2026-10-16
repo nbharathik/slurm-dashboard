@@ -40,6 +40,9 @@ func Version() []string { return []string{"sinfo", "--version"} }
 // Config is "scontrol show config" (read for ClusterName).
 func Config() []string { return []string{"scontrol", "show", "config"} }
 
+// Groups is "id -Gn": the user's group names, for AllowGroups checks.
+func Groups() []string { return []string{"id", "-Gn"} }
+
 // MyJobs lists the user's jobs; below Slurm 20.11 it uses -u instead of --me.
 func (c Commands) MyJobs() []string {
 	if c.Caps.HasMe || c.Caps.Major == 0 {

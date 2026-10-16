@@ -71,6 +71,13 @@ func (s *Sim) dispatch(ctx context.Context, now time.Time, argv []string) (strin
 	args := argv[1:]
 	switch argv[0] {
 	case "id":
+		if has(args, "-Gn") {
+			groups := s.sc.Groups
+			if len(groups) == 0 {
+				groups = []string{s.sc.User}
+			}
+			return strings.Join(groups, " ") + "\n", nil
+		}
 		return s.sc.User + "\n", nil
 	case "sinfo":
 		switch {
@@ -541,10 +548,29 @@ func (s *Sim) partitions() string {
 		if gpus > 0 {
 			tres += fmt.Sprintf(",gres/gpu=%d", gpus)
 		}
-		fmt.Fprintf(&b, "PartitionName=%s AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL AllocNodes=ALL Default=%s QoS=N/A DefaultTime=NONE MaxNodes=UNLIMITED MaxTime=%s MinNodes=0 Nodes=%s State=UP TotalCPUs=%d TotalNodes=%d TRES=%s\n",
-			p.Name, def, p.MaxTime, p.Nodes, cpus, count, tres)
+		fmt.Fprintf(&b, "PartitionName=%s %s AllocNodes=ALL Default=%s QoS=N/A DefaultTime=NONE MaxNodes=UNLIMITED MaxTime=%s MinNodes=0 Nodes=%s State=UP TotalCPUs=%d TotalNodes=%d TRES=%s\n",
+			p.Name, accessFields(p), def, p.MaxTime, p.Nodes, cpus, count, tres)
 	}
 	return b.String()
+}
+
+// accessFields prints the access lists as scontrol does: ALL when unset, and
+// a Deny list in place of the Allow list it excludes.
+func accessFields(p Partition) string {
+	field := func(key string, items []string) string {
+		if len(items) == 0 {
+			return key + "=ALL"
+		}
+		return key + "=" + strings.Join(items, ",")
+	}
+	accounts, qos := field("AllowAccounts", p.AllowAccounts), field("AllowQos", p.AllowQOS)
+	if len(p.AllowAccounts) == 0 && len(p.DenyAccounts) > 0 {
+		accounts = field("DenyAccounts", p.DenyAccounts)
+	}
+	if len(p.AllowQOS) == 0 && len(p.DenyQOS) > 0 {
+		qos = field("DenyQos", p.DenyQOS)
+	}
+	return field("AllowGroups", p.AllowGroups) + " " + accounts + " " + qos
 }
 
 func (s *Sim) reservations(now time.Time) string {

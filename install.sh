@@ -5,6 +5,11 @@ set -eu
 REPO=nbharathik/slurm-dashboard
 API_URL=${SDASH_API_URL:-https://api.github.com/repos/$REPO}
 DOWNLOAD_URL=${SDASH_DOWNLOAD_URL:-https://github.com/$REPO/releases/download}
+# The /releases/latest redirect has no API rate limit; mirrors skip it.
+WEB_URL=${SDASH_WEB_URL:-}
+if [ -z "$WEB_URL" ] && [ -z "${SDASH_API_URL:-}" ] && [ -z "${SDASH_DOWNLOAD_URL:-}" ]; then
+	WEB_URL=https://github.com/$REPO
+fi
 INSTALL_DIR=${SDASH_INSTALL_DIR:-${HOME:?HOME is not set}/.local/bin}
 VERSION=
 COMPLETIONS=
@@ -97,6 +102,45 @@ fetch() {
 	fi
 }
 
+# The tag goes into URLs and file names: digits, letters, dots and dashes only.
+valid_tag() {
+	case $1 in
+	v[0-9]*.[0-9]*.[0-9]*) ;;
+	*) return 1 ;;
+	esac
+	case ${1#v} in
+	*[!0-9A-Za-z.-]*) return 1 ;;
+	esac
+}
+
+# Print the latest tag named by the redirect of $WEB_URL/releases/latest.
+redirect_tag() {
+	if [ "$fetcher" = curl ]; then
+		rt_url=$(curl -fsSL --retry 2 -o /dev/null -w '%{url_effective}' "$WEB_URL/releases/latest") || return 1
+	else
+		rt_url=$(wget -S --spider "$WEB_URL/releases/latest" 2>&1 |
+			sed -n 's|^[[:space:]]*[Ll][Oo][Cc][Aa][Tt][Ii][Oo][Nn]:[[:space:]]*\([^[:space:]]*/releases/tag/[^[:space:]]*\).*$|\1|p' |
+			head -n 1)
+	fi
+	rt_tag=${rt_url##*/releases/tag/}
+	[ "$rt_tag" != "$rt_url" ] || return 1
+	rt_tag=${rt_tag%%[?#]*}
+	rt_tag=${rt_tag%/}
+	valid_tag "$rt_tag" || return 1
+	printf '%s\n' "$rt_tag"
+}
+
+# Print the HTTP status of a GET, or nothing when the host cannot be reached.
+http_status() {
+	if [ "$fetcher" = curl ]; then
+		curl -s -o /dev/null -w '%{http_code}' "$1" || true
+	else
+		wget -S -O /dev/null "$1" 2>&1 |
+			sed -n 's|^[[:space:]]*HTTP/[0-9.]*[[:space:]]*\([0-9][0-9][0-9]\).*$|\1|p' |
+			head -n 1
+	fi
+}
+
 if command -v sha256sum >/dev/null 2>&1; then
 	sha256() { sha256sum "$1" | cut -d ' ' -f 1; }
 elif command -v shasum >/dev/null 2>&1; then
@@ -116,11 +160,19 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 1' HUP INT PIPE TERM
 
+if [ -z "$VERSION" ] && [ -n "$WEB_URL" ]; then
+	VERSION=$(redirect_tag) || VERSION=
+fi
 if [ -z "$VERSION" ]; then
 	if ! fetch "$API_URL/releases/latest" "$tmp/latest.json"; then
-		if [ "$fetcher" = curl ] && [ "$(curl -s -o /dev/null -w '%{http_code}' "$API_URL/releases/latest")" = 404 ]; then
+		case $(http_status "$API_URL/releases/latest") in
+		404)
 			die "no release has been published yet; install from source instead: git clone https://github.com/$REPO && cd slurm-dashboard && make build install"
-		fi
+			;;
+		403 | 429)
+			die "the release API refused the request, which is usually GitHub's rate limit (it counts per IP address, and login nodes share one). Retry later, or name a release with --version vX.Y.Z (see https://github.com/$REPO/releases)"
+			;;
+		esac
 		die "could not ask $API_URL for the latest release (offline? see the offline install in the README)"
 	fi
 	VERSION=$(sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$tmp/latest.json" | head -n 1)
@@ -130,14 +182,7 @@ case $VERSION in
 v*) ;;
 *) VERSION=v$VERSION ;;
 esac
-# The tag goes into URLs and file names: digits, letters, dots and dashes only.
-case $VERSION in
-v[0-9]*.[0-9]*.[0-9]*) ;;
-*) die "invalid version: $VERSION" ;;
-esac
-case ${VERSION#v} in
-*[!0-9A-Za-z.-]*) die "invalid version: $VERSION" ;;
-esac
+valid_tag "$VERSION" || die "invalid version: $VERSION"
 
 archive=sdash_${VERSION#v}_${os}_${arch}.tar.gz
 say "Downloading sdash $VERSION for $os/$arch..."
@@ -217,6 +262,12 @@ case :${PATH:-}: in
 	say ""
 	say "$INSTALL_DIR is not on your PATH. Add this line to ~/.bashrc (or ~/.zshrc):"
 	say "  export PATH=\"$shown:\$PATH\""
+	case ${SHELL:-} in
+	*csh)
+		say "For csh or tcsh, add this line to ~/.cshrc (or ~/.tcshrc):"
+		say "  set path = ($shown \$path)"
+		;;
+	esac
 	;;
 esac
 

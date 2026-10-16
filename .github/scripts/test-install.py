@@ -37,24 +37,59 @@ if release_archive := os.environ.get("SDASH_PACKAGING_ARCHIVE"):
 SUMS = f"{hashlib.sha256(ARCHIVE).hexdigest()}  {NAME}\n".encode()
 
 
+REDIRECTS = {"/web/releases/latest": "/web/releases/tag/v0.1.0",
+             "/web-none/releases/latest": "/web-none/releases"}
+RATE_LIMITED = "/limited/api/releases/latest"
+
+
 class Handler(http.server.BaseHTTPRequestHandler):
     def log_message(self, *_):
         pass
 
-    def do_GET(self):
+    def respond(self, head):
+        if self.path in REDIRECTS:
+            host = self.headers.get("Host", f"127.0.0.1:{self.server.server_port}")
+            self.send_response(302)
+            self.send_header("Location", f"http://{host}{REDIRECTS[self.path]}")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
         files = {"/api/releases/latest": b'{"tag_name":"v0.1.0"}',
+                 "/web/releases/tag/v0.1.0": b"<html>release page</html>",
                  f"/dl/v0.1.0/{NAME}": ARCHIVE,
                  "/dl/v0.1.0/checksums.txt": SUMS,
                  "/bad/v0.1.0/checksums.txt": b"0" * 64 + f"  {NAME}\n".encode(),
                  f"/bad/v0.1.0/{NAME}": ARCHIVE}
         data = files.get(self.path)
-        self.send_response(200 if data is not None else 404)
+        status = 200 if data is not None else 404
+        if self.path == RATE_LIMITED:
+            data, status = b'{"message":"API rate limit exceeded"}', 403
+        self.send_response(status)
+        if status == 403:
+            self.send_header("X-RateLimit-Remaining", "0")
+        data = data or b""
+        self.send_header("Content-Length", str(len(data)))
         self.end_headers()
-        if data is not None:
+        if not head:
             self.wfile.write(data)
+
+    def do_GET(self):
+        self.respond(head=False)
+
+    def do_HEAD(self):
+        self.respond(head=True)
+
+
+def serve(port):
+    """Serve the mock release server until killed (used by the container matrix)."""
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    print(f"mock release server on 127.0.0.1:{port}", flush=True)
+    server.serve_forever()
 
 
 class Installer(unittest.TestCase):
+    FETCHER = "curl"
+
     @classmethod
     def setUpClass(cls):
         cls.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
@@ -75,13 +110,14 @@ class Installer(unittest.TestCase):
         self.home, self.tmp, self.tools = [self.root / p for p in ("home", "tmp", "tools")]
         for directory in (self.home, self.tmp, self.tools):
             directory.mkdir()
-        for tool in ("uname", "curl", "sha256sum", "cut", "mktemp", "rm", "sed", "head",
+        for tool in ("uname", self.FETCHER, "sha256sum", "cut", "mktemp", "rm", "sed", "head",
                      "awk", "mkdir", "tar", "gzip", "chmod", "mv", "wc", "tr", "cat"):
             (self.tools / tool).symlink_to(shutil.which(tool))
         self.env = dict(os.environ, HOME=str(self.home), TMPDIR=str(self.tmp),
                         PATH=str(self.tools), XDG_DATA_HOME=str(self.home / "data"),
                         SDASH_API_URL=self.url + "/api", SDASH_DOWNLOAD_URL=self.url + "/dl")
-        self.env.pop("SDASH_INSTALL_DIR", None)
+        for key in ("SDASH_INSTALL_DIR", "SDASH_WEB_URL"):
+            self.env.pop(key, None)
         for key in ("http_proxy", "https_proxy", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY"):
             self.env.pop(key, None)
         self.env["NO_PROXY"] = "127.0.0.1"
@@ -119,7 +155,7 @@ os.execv({shutil.which('mv')!r}, ['mv'] + sys.argv[1:])
 
     def report(self, label):
         peak = json.loads(self.metrics.read_text())
-        line = (f"{label} ({ARCH}): archive={len(ARCHIVE)} B; installed={len(PAYLOAD)} B; "
+        line = (f"{label} ({ARCH}, {self.FETCHER}): archive={len(ARCHIVE)} B; installed={len(PAYLOAD)} B; "
                 f"peak file bytes={peak['file_bytes']} B; allocated={peak['allocated_bytes']} B")
         print(line, flush=True)
         if summary := os.environ.get("GITHUB_STEP_SUMMARY"):
@@ -131,7 +167,8 @@ os.execv({shutil.which('mv')!r}, ['mv'] + sys.argv[1:])
         result = self.run_install()
         self.assertIn("Installed size:", result.stdout)
         self.assertIn("not on your PATH", result.stdout)
-        self.assertEqual([p for p in self.home.rglob("*") if p.is_file()], [self.target])
+        self.assertEqual([p for p in self.home.rglob("*") if p.is_file() and p.name != ".wget-hsts"],
+                         [self.target])
         self.assertEqual(self.target.read_bytes(), PAYLOAD)
         self.report("clean install")
         for args in (["version"], ["--demo", "status", "--json"]):
@@ -157,14 +194,56 @@ os.execv({shutil.which('mv')!r}, ['mv'] + sys.argv[1:])
         self.run_install("--version", "v0.1.0")
         self.assertTrue((self.home / "env-bin/sdash").exists())
 
+    def test_latest_through_redirect(self):
+        self.env["SDASH_API_URL"] = self.url + "/missing/api"
+        self.env["SDASH_WEB_URL"] = self.url + "/web"
+        result = self.run_install()
+        self.assertIn("Installed sdash v0.1.0", result.stdout)
+        self.assertEqual(self.target.read_bytes(), PAYLOAD)
+
+    def test_rate_limited_api_installs_through_redirect(self):
+        self.env["SDASH_API_URL"] = self.url + "/limited/api"
+        self.env["SDASH_WEB_URL"] = self.url + "/web"
+        self.run_install()
+        self.assertEqual(self.target.read_bytes(), PAYLOAD)
+
+    def test_rate_limit_message(self):
+        self.env["SDASH_API_URL"] = self.url + "/limited/api"
+        self.env["SDASH_WEB_URL"] = self.url + "/web-none"
+        result = self.run_install(success=False)
+        self.assertIn("rate limit", result.stderr)
+        self.assertIn("--version", result.stderr)
+        self.assertNotIn("offline", result.stderr)
+        self.assertFalse(self.target.exists())
+
+    def test_no_release_message(self):
+        self.env["SDASH_API_URL"] = self.url + "/missing/api"
+        self.env["SDASH_WEB_URL"] = self.url + "/web-none"
+        result = self.run_install(success=False)
+        self.assertIn("no release has been published yet", result.stderr)
+
+    def test_offline_message(self):
+        self.env["SDASH_API_URL"] = "http://127.0.0.1:1/api"
+        result = self.run_install(success=False)
+        self.assertIn("offline?", result.stderr)
+
+    def test_csh_path_hint(self):
+        self.env["SHELL"] = "/bin/tcsh"
+        out = self.run_install().stdout
+        self.assertIn('export PATH="$HOME/.local/bin:$PATH"', out)
+        self.assertIn("set path = ($HOME/.local/bin $path)", out)
+        self.env["SHELL"] = "/bin/bash"
+        self.assertNotIn("set path", self.run_install().stdout)
+
     def test_failures_preserve_binary(self):
+        grab = {"curl": "$5", "wget": "$3"}[self.FETCHER]
         cases = {
             "checksum": (None, None),
             "unsupported platform": ("uname", "#!/bin/sh\necho unsupported\n"),
             "failed extraction": ("tar", "#!/bin/sh\nprintf partial\nexit 1\n"),
             "failed staging": ("chmod", "#!/bin/sh\nexit 1\n"),
             "failed replacement": ("mv", "#!/bin/sh\nexit 1\n"),
-            "interrupted download": ("curl", '#!/bin/sh\nprintf partial > "$5"\nkill -TERM "$PPID"\nexit 1\n'),
+            "interrupted download": (self.FETCHER, f'#!/bin/sh\nprintf partial > "{grab}"\nkill -TERM "$PPID"\nexit 1\n'),
             "interrupted staging": ("tar", '#!/bin/sh\nprintf partial\nkill -TERM "$PPID"\nexit 1\n'),
         }
         for name, (tool, body) in cases.items():
@@ -216,5 +295,15 @@ os.execv({shutil.which('mv')!r}, ['mv'] + sys.argv[1:])
             self.assertEqual(result.returncode == 0, success, result.stdout + result.stderr)
 
 
+@unittest.skipUnless(shutil.which("wget"), "wget is not installed")
+class InstallerWget(Installer):
+    """The same suite on a PATH that has wget and no curl."""
+
+    FETCHER = "wget"
+
+
 if __name__ == "__main__":
-    unittest.main(verbosity=2)
+    if port := os.environ.get("SDASH_MOCK_PORT"):
+        serve(int(port))
+    else:
+        unittest.main(verbosity=2)

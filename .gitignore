@@ -1,6 +1,8 @@
 /sdash
 /sdash.exe
 /dist/
+/build/
+/demo/out/
 /completions/
 /version.txt
 /dev/

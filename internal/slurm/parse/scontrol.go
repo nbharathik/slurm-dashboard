@@ -1,6 +1,7 @@
 package parse
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/nbharathik/slurm-dashboard/internal/model"
@@ -87,6 +88,12 @@ func Partitions(raw []byte) (parts []model.Partition, warns []model.ParseWarning
 			Nodes:     nodes,
 			TotalCPUs: fe.atoi(kv["TotalCPUs"]),
 			TotalGPUs: gpus,
+
+			AllowGroups:   accessList(kv["AllowGroups"]),
+			AllowAccounts: accessList(kv["AllowAccounts"]),
+			AllowQOS:      accessList(kv["AllowQos"]),
+			DenyAccounts:  accessList(kv["DenyAccounts"]),
+			DenyQOS:       accessList(kv["DenyQos"]),
 		}
 		if fe.err != nil {
 			w.add(n, line, "%v", fe.err)
@@ -95,6 +102,15 @@ func Partitions(raw []byte) (parts []model.Partition, warns []model.ParseWarning
 		parts = append(parts, p)
 	})
 	return parts, w.list
+}
+
+// accessList reads an Allow* or Deny* value; "ALL" and an unset value are no list.
+func accessList(v string) []string {
+	items := splitList(v)
+	if slices.ContainsFunc(items, func(s string) bool { return strings.EqualFold(s, "ALL") }) {
+		return nil
+	}
+	return items
 }
 
 // Reservations parses "scontrol show reservation -o". "No reservations in

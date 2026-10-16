@@ -108,7 +108,7 @@ func intervalMap(iv config.Intervals) map[string]time.Duration {
 		"myjobs": iv.MyJobs, "alljobs": iv.AllJobs, "cluster": iv.Cluster, "queuerank": iv.QueueRank,
 		"nodes": iv.Nodes, "partitions": iv.Partitions, "reservations": iv.Resv,
 		"jobdetail": 10 * time.Second, "history": iv.History, "fairshare": iv.Fairshare, "sprio": iv.Fairshare,
-		"storage": iv.Storage, "limits": 10 * time.Minute, "mystats": iv.Stats,
+		"storage": iv.Storage, "limits": 10 * time.Minute, "mystats": iv.Stats, "groups": time.Hour,
 	}
 }
 
@@ -200,6 +200,7 @@ func addCollectors(s *state.Scheduler, src *state.Sources, site parse.ClusterInf
 	add("nodes", state.Options{Timeout: state.TimeoutNodes}, func(ctx context.Context) (any, error) { return src.Nodes(ctx) })
 	add("partitions", state.Options{Timeout: state.TimeoutPartitions}, func(ctx context.Context) (any, error) { return src.Partitions(ctx) })
 	add("reservations", state.Options{Timeout: state.TimeoutPartitions}, func(ctx context.Context) (any, error) { return src.Reservations(ctx) })
+	add("groups", state.Options{Timeout: state.TimeoutPartitions, Once: true}, func(ctx context.Context) (any, error) { return src.Groups(ctx) })
 	add("jobdetail", state.Options{Timeout: state.TimeoutDetail, Tabs: []string{model.TabJobs, model.TabQueue}, OnlyVisible: true, Active: func() bool { return vs.get().detailID != "" }},
 		func(ctx context.Context) (any, error) {
 			return vs.collectDetail(ctx, src, caps.HasSstat && !site.NoUsageGather())

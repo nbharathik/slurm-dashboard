@@ -1,0 +1,229 @@
+name: install-test
+
+on:
+  push:
+    branches: ["release/**"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Newest published release tag to install with the real one-liner, e.g. v0.2.0 (empty skips that job)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: install-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  installer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0   # the v0.1.2 tag holds the old config
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - run: make build VERSION=v0.0.0-ci
+      - name: Installer against the mock release server (curl and wget)
+        run: python3 .github/scripts/test-install.py ./sdash
+      - name: A v0.1.2 config still validates
+        env:
+          OLD_TAG: v0.1.2
+        run: |
+          if git rev-parse -q --verify "refs/tags/$OLD_TAG" >/dev/null; then
+            git show "$OLD_TAG:internal/config/default.toml" > "$RUNNER_TEMP/old-config.toml"
+          else
+            echo "::warning::tag $OLD_TAG not found; using the current internal/config/default.toml"
+            cp internal/config/default.toml "$RUNNER_TEMP/old-config.toml"
+          fi
+          ./sdash --config "$RUNNER_TEMP/old-config.toml" config validate
+          ./sdash --config internal/config/default.toml config validate
+
+  containers:
+    name: install (${{ matrix.image }})
+    runs-on: ubuntu-latest
+    env:
+      GOTOOLCHAIN: local
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ["ubuntu:22.04", "ubuntu:24.04", "debian:12", "rockylinux:8", "rockylinux:9", "alpine:3"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - run: make build VERSION=v0.0.0-ci
+      - name: Start the mock release server
+        run: |
+          SDASH_MOCK_PORT=8765 python3 .github/scripts/test-install.py ./sdash > "$RUNNER_TEMP/mock.log" 2>&1 &
+          for _ in $(seq 1 20); do
+            if curl -fsS -o /dev/null http://127.0.0.1:8765/api/releases/latest; then
+              exit 0
+            fi
+            sleep 0.5
+          done
+          cat "$RUNNER_TEMP/mock.log"
+          exit 1
+      - name: Install with each shell and fetcher
+        env:
+          IMAGE: ${{ matrix.image }}
+        run: |
+          cat > "$RUNNER_TEMP/matrix.sh" <<'EOF'
+          set -eu
+          M=http://127.0.0.1:8765
+
+          if command -v apt-get >/dev/null 2>&1; then
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends ca-certificates curl wget >/dev/null
+            apt-get install -y -qq --no-install-recommends busybox-static >/dev/null 2>&1 || echo "busybox-static is not available"
+          elif command -v dnf >/dev/null 2>&1; then
+            dnf install -y -q wget tar gzip gawk >/dev/null
+            if dnf install -y -q epel-release >/dev/null 2>&1; then
+              dnf install -y -q dash busybox >/dev/null 2>&1 || echo "dash or busybox is not available"
+            fi
+          elif command -v apk >/dev/null 2>&1; then
+            apk add -q --no-cache curl bash dash
+          fi
+
+          BB=$(command -v busybox || true)
+          BBWGET=
+          if [ -n "$BB" ] && "$BB" --list 2>/dev/null | grep -qx wget; then
+            BBWGET=$BB
+          fi
+
+          # A PATH holding the installer's tools and exactly one fetcher.
+          mktools() {
+            TOOLDIR=/tmp/tools-$1
+            rm -rf "$TOOLDIR"
+            mkdir -p "$TOOLDIR"
+            for t in uname sha256sum cut mktemp rm sed head awk mkdir tar gzip chmod mv wc tr cat; do
+              ln -s "$(command -v "$t")" "$TOOLDIR/$t"
+            done
+            src=
+            name=$1
+            case $1 in
+            curl) src=$(command -v curl) || src= ;;
+            wget) src=$(command -v wget) || src= ;;
+            bbwget) src=$BBWGET; name=wget ;;
+            esac
+            [ -n "$src" ] || return 1
+            ln -s "$src" "$TOOLDIR/$name"
+          }
+
+          shell_cmd() {
+            case $1 in
+            dash) command -v dash ;;
+            bash) command -v bash ;;
+            busybox) [ -n "$BB" ] && echo "$BB sh" ;;
+            esac
+          }
+
+          fail=0
+          for f in curl wget bbwget; do
+            mktools "$f" || { echo "skip fetcher $f"; continue; }
+            for s in dash bash busybox; do
+              cmd=$(shell_cmd "$s") || { echo "skip shell $s"; continue; }
+              for mode in redirect api pinned limited; do
+                dest=$(mktemp -d)
+                args=
+                case $mode in
+                redirect) extra="SDASH_API_URL=$M/limited/api SDASH_WEB_URL=$M/web" ;;
+                api) extra="SDASH_API_URL=$M/api" ;;
+                pinned) extra="SDASH_API_URL=$M/missing/api"; args="--version v0.1.0" ;;
+                limited) extra="SDASH_API_URL=$M/limited/api SDASH_WEB_URL=$M/web-none" ;;
+                esac
+                rc=0
+                out=$(env -i PATH="$TOOLDIR" HOME="$dest" TMPDIR="$dest" SDASH_INSTALL_DIR="$dest/bin" \
+                  SDASH_DOWNLOAD_URL="$M/dl" $extra $cmd /install.sh $args 2>&1) || rc=$?
+                label="$f/$s/$mode"
+                if [ "$mode" = limited ]; then
+                  if [ "$rc" -ne 0 ] && printf '%s\n' "$out" | grep -q 'rate limit' && printf '%s\n' "$out" | grep -q -- '--version'; then
+                    echo "ok   $label"
+                  else
+                    echo "FAIL $label (exit $rc, expected the rate limit message)"
+                    printf '%s\n' "$out"
+                    fail=1
+                  fi
+                elif [ "$rc" -eq 0 ] && printf '%s\n' "$out" | grep -q 'Installed sdash v0.1.0' &&
+                  HOME="$dest" "$dest/bin/sdash" version >/dev/null && HOME="$dest" "$dest/bin/sdash" --demo status --json >/dev/null; then
+                  echo "ok   $label"
+                else
+                  echo "FAIL $label (exit $rc)"
+                  printf '%s\n' "$out"
+                  fail=1
+                fi
+                rm -rf "$dest"
+              done
+            done
+          done
+          exit "$fail"
+          EOF
+          docker run --rm --network host \
+            -v "$PWD/install.sh:/install.sh:ro" \
+            -v "$RUNNER_TEMP/matrix.sh:/matrix.sh:ro" \
+            "$IMAGE" sh /matrix.sh
+
+  published:
+    name: published release
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.version != '' }}
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check the version input
+        run: |
+          case $VERSION in
+          v[0-9]*.[0-9]*.[0-9]*) ;;
+          *) echo "version must look like v0.2.0, got: $VERSION" >&2; exit 1 ;;
+          esac
+          case ${VERSION#v} in
+          *[!0-9A-Za-z.-]*) echo "invalid version: $VERSION" >&2; exit 1 ;;
+          esac
+      - name: Documented one-liner with --version
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/nbharathik/slurm-dashboard/main/install.sh |
+            sh -s -- --version "$VERSION" --dir "$RUNNER_TEMP/oneliner"
+          test "$("$RUNNER_TEMP/oneliner/sdash" version | sed -n 1p)" = "sdash $VERSION"
+      - name: The installed binary starts
+        run: |
+          bin="$RUNNER_TEMP/oneliner/sdash"
+          "$bin" --demo status --json > /dev/null
+          rc=0
+          sleep 5 | script -qec "stty cols 120 rows 40; exec timeout 3 '$bin' --demo" "$RUNNER_TEMP/demo.log" > /dev/null || rc=$?
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 124 ]; then
+            echo "sdash --demo exited with $rc" >&2
+            cat -v "$RUNNER_TEMP/demo.log"
+            exit 1
+          fi
+      - name: Latest release resolves through the redirect (curl, then wget only)
+        run: |
+          check() {
+            test "$("$1/sdash" version | sed -n 1p)" = "sdash $VERSION"
+          }
+          # The API answers 404, so only the /releases/latest redirect can name the tag.
+          export SDASH_WEB_URL=https://github.com/nbharathik/slurm-dashboard
+          export SDASH_API_URL=https://api.github.com/repos/nbharathik/no-such-repo
+          sh install.sh --dir "$RUNNER_TEMP/latest-curl"
+          tools="$RUNNER_TEMP/wget-tools"
+          mkdir -p "$tools"
+          for t in uname wget sha256sum cut mktemp rm sed head awk mkdir tar gzip chmod mv wc tr cat; do
+            ln -s "$(command -v "$t")" "$tools/$t"
+          done
+          PATH="$tools" /bin/sh install.sh --dir "$RUNNER_TEMP/latest-wget"
+          # A pre-release input is never the latest, so only compare final releases.
+          case $VERSION in
+          *-*) ;;
+          *) check "$RUNNER_TEMP/latest-curl"; check "$RUNNER_TEMP/latest-wget" ;;
+          esac

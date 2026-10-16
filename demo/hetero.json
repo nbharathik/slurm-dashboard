@@ -25,9 +25,9 @@
     {"name": "cpu", "nodes": "cpu[01-06]", "max_time": "7-00:00:00", "default": true},
     {"name": "gpu", "nodes": "h200-[01-02]", "max_time": "2-00:00:00"},
     {"name": "ws", "nodes": "ws[01-02]", "max_time": "1-00:00:00"},
-    {"name": "mig", "nodes": "mig01", "max_time": "12:00:00"},
+    {"name": "mig", "nodes": "mig01", "max_time": "12:00:00", "allow_accounts": ["lab-you", "lab-nlp"]},
     {"name": "debug", "nodes": "cpu01,ws01", "max_time": "1:00:00"},
-    {"name": "login", "nodes": "login01", "max_time": "1:00:00"}
+    {"name": "login", "nodes": "login01", "max_time": "1:00:00", "allow_groups": ["admins"]}
   ],
   "reservations": [
     {"name": "gpu-maint", "start_in": "3d2h", "duration": "8h", "nodes": "h200-[01-02]", "flags": ["MAINT", "IGNORE_JOBS"]}

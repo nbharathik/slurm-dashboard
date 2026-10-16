@@ -55,6 +55,27 @@ func (rt *slurmRuntime) scopedPartitions() []model.Partition {
 	return out
 }
 
+// accessIdentity reads the groups and accounts that partition access checks
+// need, but only when a partition restricts them. A failed read leaves them
+// unknown, which never hides a partition.
+func (rt *slurmRuntime) accessIdentity(ctx context.Context) state.Identity {
+	st := rt.store
+	var groups, accounts bool
+	for _, p := range st.Partitions.Data {
+		groups = groups || len(p.AllowGroups) > 0
+		accounts = accounts || len(p.AllowAccounts) > 0 || len(p.DenyAccounts) > 0
+	}
+	if groups {
+		g, err := rt.sources.Groups(ctx)
+		st.Groups.Data, st.Groups.Has = g, err == nil
+	}
+	if accounts && st.Caps.HasSshare {
+		s, err := rt.sources.Fairshare(ctx)
+		st.Fairshare.Data, st.Fairshare.Has = s, err == nil
+	}
+	return st.Identity()
+}
+
 func newNodesCmd(a *app) *cobra.Command {
 	var (
 		asJSON, gpu, cpu, partitions bool
@@ -310,6 +331,7 @@ func (a *app) runPartitions(cmd *cobra.Command, asJSON bool) error {
 	rt.loadCluster(ctx, true)
 	pending, known := state.PendingByPartition(rt.store)
 	sums := state.PartitionSummaries(rt.scopedPartitions(), rt.scopedUsage(), pending, known)
+	state.ApplyAccess(sums, rt.accessIdentity(ctx))
 	doc := report.Partitions(report.NewHeader(rt.store, a.clock()), sums, rt.cfg.GPUNames)
 	if asJSON {
 		err = writeJSON(cmd.OutOrStdout(), doc)
@@ -332,6 +354,9 @@ func renderPartitions(w io.Writer, doc report.PartitionsDoc) error {
 		name := p.Name
 		if p.Default {
 			name += "*"
+		}
+		if p.Access == "denied" {
+			name += " (no access)"
 		}
 		limit := "unlimited"
 		if p.MaxTimeS != nil {

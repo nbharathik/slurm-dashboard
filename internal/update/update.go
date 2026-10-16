@@ -28,6 +28,7 @@ import (
 const (
 	DefaultAPI      = "https://api.github.com/repos/" + meta.Repo
 	DefaultDownload = "https://github.com/" + meta.Repo + "/releases/download"
+	DefaultWeb      = "https://github.com/" + meta.Repo
 )
 
 // Bound downloads and extracted data from release servers.
@@ -63,6 +64,7 @@ type Updater struct {
 	Client   *http.Client
 	API      string // e.g. DefaultAPI
 	Download string // e.g. DefaultDownload
+	Web      string // e.g. DefaultWeb; empty skips the redirect lookup
 	Current  string // the running version, e.g. meta.Version
 	GOOS     string
 	GOARCH   string
@@ -91,6 +93,7 @@ func New(goos, goarch string) *Updater {
 		Client:   &http.Client{Timeout: 2 * time.Minute},
 		API:      DefaultAPI,
 		Download: DefaultDownload,
+		Web:      DefaultWeb,
 		Current:  meta.Version,
 		Build:    meta.Build,
 		GOOS:     goos,
@@ -120,12 +123,56 @@ func (u *Updater) Check(ctx context.Context) (Status, error) {
 	return st, nil
 }
 
-// Latest returns the tag of the latest release.
+// Latest returns the tag of the latest release. The redirect of
+// /releases/latest on the website comes first, since it has no API rate limit
+// and skips pre-releases; the API is the fallback.
 func (u *Updater) Latest(ctx context.Context) (string, error) {
+	if u.Web != "" {
+		if tag, ok := u.latestFromRedirect(ctx); ok {
+			return tag, nil
+		}
+	}
+	return u.latestFromAPI(ctx)
+}
+
+// latestFromRedirect reads the tag from the Location of /releases/latest
+// without following it; any surprise reports false.
+func (u *Updater) latestFromRedirect(ctx context.Context) (string, bool) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.TrimRight(u.Web, "/")+"/releases/latest", nil)
+	if err != nil {
+		return "", false
+	}
+	req.Header.Set("User-Agent", meta.AppName+"/"+u.Current)
+	client := *u.Client
+	client.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", false
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode/100 != 3 {
+		return "", false
+	}
+	loc, err := resp.Location()
+	if err != nil {
+		return "", false
+	}
+	_, tag, found := strings.Cut(loc.Path, "/releases/tag/")
+	tag = strings.TrimSuffix(tag, "/")
+	return tag, found && tagPattern.MatchString(tag)
+}
+
+// latestFromAPI asks the GitHub API for the latest release.
+func (u *Updater) latestFromAPI(ctx context.Context) (string, error) {
 	body, err := u.get(ctx, strings.TrimRight(u.API, "/")+"/releases/latest", maxJSON)
 	var he httpError
-	if errors.As(err, &he) && he.status == http.StatusNotFound {
-		return "", ErrNoRelease
+	if errors.As(err, &he) {
+		switch he.status {
+		case http.StatusNotFound:
+			return "", ErrNoRelease
+		case http.StatusForbidden, http.StatusTooManyRequests:
+			return "", fmt.Errorf("latest release: %w (GitHub API rate limit? retry later, or install a named release with: sdash update --version vX.Y.Z)", err)
+		}
 	}
 	if err != nil {
 		return "", fmt.Errorf("latest release: %w", err)

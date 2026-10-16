@@ -1,0 +1,98 @@
+name: compat
+
+# sdash against real Slurm 21.08 to 26.05 (distro packages) in throwaway
+# Docker clusters. See test/cluster/README.md.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 4 * * 1"
+  push:
+    branches: ["release/**"]
+  pull_request:
+    paths:
+      - "internal/slurm/**"
+      - "internal/state/**"
+      - "test/cluster/**"
+      - ".github/workflows/compat.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: compat-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: shellcheck -S warning -s bash test/cluster/*.sh
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Build sdash and the integration test binaries
+        run: |
+          mkdir -p build
+          CGO_ENABLED=0 go build -trimpath -o build/sdash ./cmd/sdash
+          CGO_ENABLED=0 go test -c -tags integration -o build/integ.test ./internal/integration
+          CGO_ENABLED=0 go test -c -tags integration -o build/ui-integ.test ./internal/ui
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: build
+          path: |
+            build/sdash
+            build/integ.test
+            build/ui-integ.test
+          retention-days: 1
+
+  cluster:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        slurm: ["21.08", "22.05", "23.11", "24.11", "25.11", "26.05"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: build
+          path: build
+      - name: Run Slurm ${{ matrix.slurm }}
+        run: |
+          chmod +x build/sdash build/integ.test build/ui-integ.test
+          bash test/cluster/compat.sh "${{ matrix.slurm }}"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: compat-${{ matrix.slurm }}
+          path: build/compat/${{ matrix.slurm }}
+          retention-days: 14
+
+  report:
+    needs: cluster
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: compat-*
+          path: build/compat
+      - name: Grid of Slurm versions and checks
+        run: python3 test/cluster/report.py build/compat

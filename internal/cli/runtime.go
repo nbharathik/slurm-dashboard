@@ -204,6 +204,11 @@ func (rt *slurmRuntime) hardFail() error {
 			return fmt.Errorf("%w: %v", errSlurmMissing, e)
 		}
 	}
+	for _, e := range rt.errs {
+		if state.KindOf(e) == state.ErrRateLimited {
+			return fmt.Errorf("controller is rate-limiting your requests; wait a moment and try again (%v)", e)
+		}
+	}
 	if len(rt.errs) > 0 {
 		return fmt.Errorf("%s", rt.errs[0].Error())
 	}

@@ -22,11 +22,14 @@ import (
 
 var fakeELF = append([]byte("\x7fELF"), bytes.Repeat([]byte{1}, 64)...)
 
-// release is a fake GitHub API and download server.
+// release is a fake GitHub API, website and download server.
 type release struct {
 	tag      string
 	files    map[string][]byte // download name -> content
 	requests []string
+	// webLatest is where /web/releases/latest redirects; empty means the
+	// page of the release tag.
+	webLatest string
 }
 
 func (r *release) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -34,6 +37,17 @@ func (r *release) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	switch {
 	case req.URL.Path == "/api/releases/latest":
 		_, _ = fmt.Fprintf(w, `{"tag_name": %q, "name": "release"}`, r.tag)
+	case req.URL.Path == "/limited/releases/latest":
+		w.Header().Set("X-RateLimit-Remaining", "0")
+		http.Error(w, `{"message":"API rate limit exceeded"}`, http.StatusForbidden)
+	case req.URL.Path == "/web/releases/latest":
+		to := r.webLatest
+		if to == "" {
+			to = "/web/releases/tag/" + r.tag
+		}
+		http.Redirect(w, req, to, http.StatusFound)
+	case strings.HasPrefix(req.URL.Path, "/web/releases/"):
+		_, _ = w.Write([]byte("<html>release page</html>"))
 	case strings.HasPrefix(req.URL.Path, "/dl/"+r.tag+"/"):
 		b, ok := r.files[strings.TrimPrefix(req.URL.Path, "/dl/"+r.tag+"/")]
 		if !ok {
@@ -139,6 +153,83 @@ func TestLatestRejectsOddTags(t *testing.T) {
 		if _, err := u.Latest(context.Background()); err == nil {
 			t.Errorf("tag %q accepted", tag)
 		}
+	}
+}
+
+// withWeb points u at the fake website of rel and returns the root URL.
+func withWeb(u *Updater) string {
+	root := strings.TrimSuffix(u.API, "/api")
+	u.Web = root + "/web"
+	return root
+}
+
+func TestLatestFromRedirect(t *testing.T) {
+	u, rel, _ := setup(t, nil)
+	withWeb(u)
+	tag, err := u.Latest(context.Background())
+	if err != nil || tag != "v0.2.0" {
+		t.Fatalf("got %q, %v, want v0.2.0", tag, err)
+	}
+	if got := strings.Join(rel.requests, " "); got != "/web/releases/latest" {
+		t.Errorf("requests %q: want only the redirect, not the API or the release page", got)
+	}
+	if u.Client.CheckRedirect != nil {
+		t.Error("the shared client was changed")
+	}
+	st, err := u.Check(context.Background())
+	if err != nil || st.Latest != "v0.2.0" || !st.Newer {
+		t.Errorf("Check: got %+v, %v", st, err)
+	}
+}
+
+func TestLatestRedirectFallsBackToAPI(t *testing.T) {
+	for name, webLatest := range map[string]string{
+		"no releases":   "/web/releases",
+		"not a tag":     "/web/releases/tag/not-a-tag",
+		"encoded slash": "/web/releases/tag/v0.2.0%2F..%2Fx",
+		"tag with junk": "/web/releases/tag/v0.2.0%20x",
+	} {
+		t.Run(name, func(t *testing.T) {
+			u, rel, _ := setup(t, func(r *release) { r.webLatest = webLatest })
+			withWeb(u)
+			tag, err := u.Latest(context.Background())
+			if err != nil || tag != "v0.2.0" {
+				t.Fatalf("got %q, %v, want v0.2.0 from the API", tag, err)
+			}
+			if !strings.Contains(strings.Join(rel.requests, " "), "/api/releases/latest") {
+				t.Errorf("requests %v: the API was not used", rel.requests)
+			}
+		})
+	}
+	t.Run("website unavailable", func(t *testing.T) {
+		u, _, _ := setup(t, nil)
+		root := withWeb(u)
+		u.Web = root + "/missing"
+		if tag, err := u.Latest(context.Background()); err != nil || tag != "v0.2.0" {
+			t.Fatalf("got %q, %v, want v0.2.0 from the API", tag, err)
+		}
+	})
+	t.Run("no release", func(t *testing.T) {
+		u, _, _ := setup(t, func(r *release) { r.webLatest = "/web/releases" })
+		withWeb(u)
+		u.API += "/missing"
+		if _, err := u.Latest(context.Background()); !errors.Is(err, ErrNoRelease) {
+			t.Fatalf("err = %v, want ErrNoRelease", err)
+		}
+	})
+}
+
+func TestLatestSurvivesRateLimit(t *testing.T) {
+	u, _, _ := setup(t, nil)
+	root := withWeb(u)
+	u.API = root + "/limited"
+	if tag, err := u.Latest(context.Background()); err != nil || tag != "v0.2.0" {
+		t.Fatalf("redirect should avoid the limited API: got %q, %v", tag, err)
+	}
+	u.Web = root + "/missing"
+	_, err := u.Latest(context.Background())
+	if err == nil || !strings.Contains(err.Error(), "rate limit") || !strings.Contains(err.Error(), "--version") {
+		t.Fatalf("err = %v, want a rate limit hint with --version", err)
 	}
 }
 
