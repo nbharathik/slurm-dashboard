@@ -14,7 +14,6 @@ x-common: &common
 x-node: &node
   <<: *common
   privileged: true
-  cgroup: host
 
 services:
   db:

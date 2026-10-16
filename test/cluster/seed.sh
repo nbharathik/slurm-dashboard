@@ -20,6 +20,7 @@ sa() { sacctmgr -i "$@" >/dev/null 2>&1 || true; }
 for u in you alice bob carol; do
 	install -d -o "$u" -g "$u" "/home/$u" "/home/$u/runs"
 done
+install -d -m 1777 /home/tmp
 
 # --- accounting -----------------------------------------------------------
 sa add account ml-lab Description=ml-lab Organization=lab

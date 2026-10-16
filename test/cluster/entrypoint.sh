@@ -61,19 +61,35 @@ role_ctld() {
 	exec tail -F /var/log/slurm/slurmctld.log /var/log/slurm/slurmdbd.log
 }
 
-# slurmd 22.05+ needs systemd for its cgroup scope. Try the cgroup settings that
-# work without it, in order, and record the first one that keeps slurmd up.
+# Move every process into a leaf group and enable the controllers for children,
+# so slurmd can create cgroups itself (cgroup v2, private namespace, no systemd).
+evacuate_cgroup() {
+	local p
+	[ -f /sys/fs/cgroup/cgroup.controllers ] || return 0
+	mkdir -p /sys/fs/cgroup/init
+	while read -r p; do
+		echo "$p" >/sys/fs/cgroup/init/cgroup.procs 2>/dev/null || true
+	done </sys/fs/cgroup/cgroup.procs
+	sed -e 's/ / +/g' -e 's/^/+/' /sys/fs/cgroup/cgroup.controllers >/sys/fs/cgroup/cgroup.subtree_control 2>/dev/null || true
+}
+
+# slurmd 22.05+ wants systemd for its cgroup scope. Try the settings that work
+# without it, in order, and record the first one that keeps slurmd up.
 role_node() {
 	local name mode pid
 	start_munge
 	run_dirs
 	wait_tcp ctld 6817
 	name=$(hostname -s)
-	for mode in none disabled ignoresystemd; do
+	for mode in none disabled ignoresystemd lenient; do
 		case $mode in
 		none) rm -f /etc/slurm/cgroup.conf ;;
 		disabled) echo 'CgroupPlugin=disabled' >/etc/slurm/cgroup.conf ;;
-		ignoresystemd) printf 'CgroupPlugin=autodetect\nIgnoreSystemd=yes\n' >/etc/slurm/cgroup.conf ;;
+		ignoresystemd)
+			evacuate_cgroup
+			echo 'IgnoreSystemd=yes' >/etc/slurm/cgroup.conf
+			;;
+		lenient) printf 'IgnoreSystemd=yes\nIgnoreSystemdOnFailure=yes\n' >/etc/slurm/cgroup.conf ;;
 		esac
 		slurmd -D -N "$name" >>/var/log/slurm/slurmd.log 2>&1 &
 		pid=$!
@@ -83,8 +99,8 @@ role_node() {
 			wait "$pid"
 			exit $?
 		fi
-		echo "slurmd failed with cgroup mode '$mode'" >&2
-		tail -n 5 /var/log/slurm/slurmd.log >&2
+		echo "== slurmd failed with cgroup mode '$mode'" >&2
+		tail -n 12 /var/log/slurm/slurmd.log >&2
 	done
 	exit 1
 }

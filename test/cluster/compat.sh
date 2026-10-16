@@ -93,13 +93,15 @@ integ() {
 	local -a args=(-test.v -test.count=1 -test.timeout=15m)
 	[ -n "$pattern" ] && args+=("-test.run=$pattern")
 	log=$out/$name.log
-	dc exec -T -e SDASH_INTEGRATION=local -w "$dir" login "$bin" "${args[@]}" >"$log" 2>&1
+	dc exec -T -e SDASH_INTEGRATION=local -e TMPDIR=/home/tmp -w "$dir" login "$bin" "${args[@]}" >"$log" 2>&1
 	rc=$?
 	pass=$(grep -c '^--- PASS' "$log")
 	failed=$(grep -c '^--- FAIL' "$log")
 	skip=$(grep -c '^--- SKIP' "$log")
 	if [ "$rc" -ne 0 ] || [ "$failed" -gt 0 ]; then
 		result "$name" fail "$pass passed, $failed failed: $(grep -m1 -e '--- FAIL' "$log")"
+		echo "== $name failures" >&2
+		grep -A12 -e '--- FAIL' "$log" | head -n 80 >&2
 	elif [ "$pass" -eq 0 ]; then
 		result "$name" fail "no test ran ($skip skipped)"
 	else
@@ -141,10 +143,10 @@ fi
 if ! wait_nodes; then
 	result nodes-up fail "c1, c2 or g1 never became usable: $(as_root sinfo -h -N -o '%N %t' 2>&1)"
 	dc ps -a >&2
-	dc logs --no-color --tail 30 c1 g1 >&2
+	dc logs --no-color --tail 80 c1 g1 >&2
 	finish
 fi
-result nodes-up ok "slurmd cgroup mode: $(dc exec -T g1 cat /var/log/slurm/cgroup-mode 2>&1)"
+result nodes-up ok ""
 
 if as_root /opt/sdash/seed.sh >"$out/seed.log" 2>&1 && ! grep -q 'sbatch as .* failed' "$out/seed.log"; then
 	result seed ok ""
@@ -152,6 +154,7 @@ else
 	result seed fail "$(grep -m1 -e 'failed' -e 'rror' "$out/seed.log")"
 fi
 wait_states
+result nodes-cgroup ok "slurmd cgroup mode: $(dc exec -T g1 cat /var/log/slurm/cgroup-mode 2>&1)"
 
 as_you /opt/sdash/cli-checks.sh >"$out/cli-checks.log" 2>&1 || result cli-checks fail "script exited with an error"
 as_you /opt/sdash/tui-smoke.sh >"$out/tui-smoke.log" 2>&1 || result tui-smoke fail "script exited with an error"
