@@ -1,0 +1,17 @@
+{
+  "items": null,
+  "warnings": [
+    {
+      "source": "jobstat",
+      "line": 1,
+      "raw": "21.batch|1|||213503982334-14:25:51|energy=0",
+      "msg": "AveCPU \"213503982334-14:25:51\" is not a measured time"
+    },
+    {
+      "source": "jobstat",
+      "line": 2,
+      "raw": "22.batch|1|||213503982334-14:25:51|energy=0",
+      "msg": "AveCPU \"213503982334-14:25:51\" is not a measured time"
+    }
+  ]
+}

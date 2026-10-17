@@ -2,14 +2,14 @@
 ──────────────────────────────────────────────────────────━━━━━━━━━━━───────────────────────────────
                                                                                                     
   3 locations · checked 14:00                                                                       
-    LOCATION  SCOPE   SPACE USED          FILES     CHECK / TREND         PATH                      
+    LOCATION  SCOPE   SPACE USED                     FILES     CHECK / TREND         PATH           
   ────────────────────────────────────────────────────────────────────────────────────────────────  
-  ▶ Home      Yours   █████░░░ 31G/50G    212k/1M   ▁▁▂▃▄▅▅▆▇█ full ~6mo  /home/you                 
-    Scratch   Yours   ███████░ 9.2T/10T   3.1M/5M   ▁▂▂▃▄▅▅▆▇█ full ~19d  /scratch/you              
-    Project   Yours   ██░░░░░░ 1.2T/5T    900k/10M  ▁▁▂▃▄▅▅▆▇█            /project/ml-lab           
-    Home      Shared  Unavailable  stale            collecting            /home/you                 
-    Scratch   Shared  Unavailable  stale            collecting            /scratch/you              
-    Project   Shared  Unavailable  stale            collecting            /project/ml-lab           
+  ▶ Home      Yours   █████░░░ 31G/50G               212k/1M   ▁▁▂▃▄▅▅▆▇█ full ~6mo  /home/you      
+    Scratch   Yours   ███████░ 9.2T/10T              3.1M/5M   ▁▂▂▃▄▅▅▆▇█ full ~19d  /scratch/you   
+    Project   Yours   ██░░░░░░ 1.2T/5T               900k/10M  ▁▁▂▃▄▅▅▆▇█            /project/ml-…  
+    Home      Shared  █████░░░ 1.3T/2.1T 836G avail            collecting            /home/you      
+    Scratch   Shared  █████░░░ 273T/440T 167T avail            collecting            /scratch/you   
+    Project   Shared  █████░░░ 124T/200T 76T avail             collecting            /project/ml-…  
                                                                                                     
   ╭─ Home / Yours [esc] ─────────────────────────────────────────────────────────────────────────╮  
   │ Path     /home/you                                                                           │  

@@ -22,7 +22,7 @@ func TestPartitionAccess(t *testing.T) {
 	}{
 		{"open", model.Partition{}, me, AccessAllowed, ""},
 		{"group member", model.Partition{AllowGroups: []string{"chem", "physics"}}, me, AccessAllowed, ""},
-		{"not in the group", model.Partition{AllowGroups: []string{"chem"}}, me, AccessDenied, "AllowGroups"},
+		{"not in the group", model.Partition{AllowGroups: []string{"chem"}}, me, AccessUnknown, "AllowGroups"},
 		{"groups unknown", model.Partition{AllowGroups: []string{"chem"}}, Identity{}, AccessUnknown, "AllowGroups"},
 		{"account listed", model.Partition{AllowAccounts: []string{"lab-b", "lab-a"}}, me, AccessAllowed, ""},
 		{"account may match through a parent", model.Partition{AllowAccounts: []string{"dept"}}, me, AccessUnknown, "AllowAccounts"},
@@ -33,7 +33,7 @@ func TestPartitionAccess(t *testing.T) {
 		{"deny accounts with unknown accounts", model.Partition{DenyAccounts: []string{"x"}}, Identity{}, AccessUnknown, "DenyAccounts"},
 		{"allow qos", model.Partition{AllowQOS: []string{"high"}}, me, AccessUnknown, "AllowQos"},
 		{"deny qos", model.Partition{DenyQOS: []string{"low"}}, me, AccessUnknown, "DenyQos"},
-		{"denied beats unknown", model.Partition{AllowGroups: []string{"chem"}, AllowQOS: []string{"high"}}, me, AccessDenied, "AllowGroups"},
+		{"denied beats unknown", model.Partition{DenyAccounts: []string{"lab-a"}, AllowQOS: []string{"high"}}, me, AccessDenied, "DenyAccounts"},
 		{"unknown beats allowed", model.Partition{AllowGroups: []string{"physics"}, AllowQOS: []string{"high"}}, me, AccessUnknown, "AllowQos"},
 		{"root", model.Partition{AllowGroups: []string{"chem"}}, Identity{Root: true}, AccessAllowed, ""},
 	}
@@ -54,10 +54,10 @@ func TestStoreIdentityAndCapacityAccess(t *testing.T) {
 	if id := st.Identity(); id.Root || id.GroupsKnown || id.AccountsKnown {
 		t.Fatalf("empty store knows %+v", id)
 	}
-	parts := []model.Partition{{Name: "open", State: "UP"}, {Name: "closed", State: "UP", AllowGroups: []string{"chem"}}}
+	parts := []model.Partition{{Name: "open", State: "UP"}, {Name: "closed", State: "UP", DenyAccounts: []string{"lab-a"}}}
 	st.Apply(Update{Source: "partitions", Data: parts, At: t0})
-	if _, sums := st.Capacity(); sums[1].Access != AccessUnknown || sums[1].AccessWhy != "AllowGroups" {
-		t.Fatalf("before the groups load: %+v", sums[1])
+	if _, sums := st.Capacity(); sums[1].Access != AccessUnknown || sums[1].AccessWhy != "DenyAccounts" {
+		t.Fatalf("before the accounts load: %+v", sums[1])
 	}
 	st.Apply(Update{Source: "groups", Data: []string{"alice", "physics"}, At: t0})
 	shares := []model.Share{
@@ -69,8 +69,8 @@ func TestStoreIdentityAndCapacityAccess(t *testing.T) {
 		t.Fatalf("identity = %+v", id)
 	}
 	_, sums := st.Capacity()
-	if sums[0].Access != AccessAllowed || sums[1].Access != AccessDenied || sums[1].AccessWhy != "AllowGroups" {
-		t.Fatalf("after the groups load: %+v / %+v", sums[0], sums[1])
+	if sums[0].Access != AccessAllowed || sums[1].Access != AccessDenied || sums[1].AccessWhy != "DenyAccounts" {
+		t.Fatalf("after the accounts load: %+v / %+v", sums[0], sums[1])
 	}
 	if !(&Store{User: "root", UID: "0"}).Identity().Root {
 		t.Fatal("uid 0 is root")
@@ -87,10 +87,10 @@ func TestFitNodesSkipsClosedPartitions(t *testing.T) {
 	usage := NodeGPUUsage(nodes, nil, "me")
 	parts := []model.Partition{
 		{Name: "open", State: "UP", MaxTime: &day, Nodes: []string{"a01"}},
-		{Name: "closed", State: "UP", MaxTime: &day, Nodes: []string{"b01"}, AllowGroups: []string{"chem"}},
+		{Name: "closed", State: "UP", MaxTime: &day, Nodes: []string{"b01"}, DenyAccounts: []string{"lab-a"}},
 		{Name: "maybe", State: "UP", MaxTime: &day, Nodes: []string{"c01"}, AllowQOS: []string{"high"}},
 	}
-	who := Identity{Groups: []string{"physics"}, GroupsKnown: true}
+	who := Identity{Groups: []string{"physics"}, GroupsKnown: true, Accounts: []string{"lab-a"}, AccountsKnown: true}
 
 	r := FitNodes(usage, parts, Request{CPUs: 8, Who: &who}, nil)
 	if len(r.Now) != 2 || r.Now[0].Node != "a01" || r.Now[1].Node != "c01" {
@@ -101,7 +101,7 @@ func TestFitNodesSkipsClosedPartitions(t *testing.T) {
 	}
 
 	r = FitNodes(usage, parts, Request{CPUs: 8, Partition: "closed", Who: &who}, nil)
-	if len(r.Now) != 0 || len(r.Reasons) != 1 || r.Reasons[0] != "you may not submit to partition closed (AllowGroups)" {
+	if len(r.Now) != 0 || len(r.Reasons) != 1 || r.Reasons[0] != "you may not submit to partition closed (DenyAccounts)" {
 		t.Fatalf("closed partition asked for: %+v", r)
 	}
 	r = FitNodes(usage, parts[1:2], Request{CPUs: 8, Who: &who}, nil)
@@ -143,15 +143,18 @@ func TestRateLimitIsRecognised(t *testing.T) {
 	st := &Store{}
 	limited := Classify(&execx.ExitError{Code: 1}, []byte("Rate limit exceeded, please retry later"))
 	st.Apply(Update{Source: "nodes", Err: limited, At: t0})
-	if !st.RateLimited() {
+	if !st.RateLimited(t0.Add(time.Second)) {
 		t.Fatal("a rate-limited source must show")
 	}
+	if st.RateLimited(t0.Add(5 * time.Minute)) {
+		t.Fatal("a source that stopped running must not keep it on")
+	}
 	st.Apply(Update{Source: "nodes", Data: []model.Node{}, At: t0.Add(time.Minute)})
-	if st.RateLimited() {
+	if st.RateLimited(t0.Add(time.Minute)) {
 		t.Fatal("a recovered source must clear it")
 	}
 	st.Apply(Update{Source: "nodes", Err: errors.New("other"), At: t0})
-	if st.RateLimited() {
+	if st.RateLimited(t0) {
 		t.Fatal("other errors are not rate limits")
 	}
 }

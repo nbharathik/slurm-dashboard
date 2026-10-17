@@ -1,0 +1,7 @@
+AccountingStorageType   = accounting_storage/slurmdbd
+AccountingStoreFlags    = job_env,job_script
+ClusterName             = sdashtest
+JobAcctGatherType       = jobacct_gather/linux
+PriorityType            = priority/multifactor
+PrivateData             = none
+SLURM_VERSION           = 23.11.4

@@ -16,7 +16,7 @@
     ws         GPU [████    ]     1     2  1 waiting, RTX PRO 6000 BW                                                                       
     mig        MIG [███     ]     7    11                                                                                                   
     debug      GPU [        ]     1     1  RTX PRO 6000 BW                                                                                  
-    login      CPU [        ]    16    16                                                                                                   
+    login      CPU no access      -     -  closed to you (DenyAccounts)                                                                     
                                                                                                                                             
   Your jobs                                                                             0s ago  ● 4 running  ◌ 2 pending  ✗ 1 failed today  
     ID          NAME         STATE  ELAPSED/LIMIT  RESOURCES     WHERE                                                                      

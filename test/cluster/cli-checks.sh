@@ -103,6 +103,6 @@ wasteful=$(sacct -X -n -P -u "$me" -S now-2hours -o JobID,JobName | awk -F'|' '$
 
 for v in big dep held run wasteful; do
 	if [ -z "${!v}" ]; then
-		result "seed-$v" warn "seeded job not found"
+		result "seed-$v" fail "seeded job not found, so its checks did not run"
 	fi
 done

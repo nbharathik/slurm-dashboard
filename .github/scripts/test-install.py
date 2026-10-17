@@ -38,7 +38,8 @@ SUMS = f"{hashlib.sha256(ARCHIVE).hexdigest()}  {NAME}\n".encode()
 
 
 REDIRECTS = {"/web/releases/latest": "/web/releases/tag/v0.1.0",
-             "/web-none/releases/latest": "/web-none/releases"}
+             "/web-none/releases/latest": "/web-none/releases",
+             "/web-bad/releases/latest": "/web-bad/releases/tag/v0.1.0;x"}
 RATE_LIMITED = "/limited/api/releases/latest"
 
 
@@ -56,6 +57,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return
         files = {"/api/releases/latest": b'{"tag_name":"v0.1.0"}',
                  "/web/releases/tag/v0.1.0": b"<html>release page</html>",
+                 "/web-none/releases": b"<html>no releases yet</html>",
                  f"/dl/v0.1.0/{NAME}": ARCHIVE,
                  "/dl/v0.1.0/checksums.txt": SUMS,
                  "/bad/v0.1.0/checksums.txt": b"0" * 64 + f"  {NAME}\n".encode(),
@@ -222,6 +224,17 @@ os.execv({shutil.which('mv')!r}, ['mv'] + sys.argv[1:])
         result = self.run_install(success=False)
         self.assertIn("no release has been published yet", result.stderr)
 
+    def test_malformed_redirect_tag_uses_the_api(self):
+        self.env["SDASH_WEB_URL"] = self.url + "/web-bad"
+        result = self.run_install()
+        self.assertIn("Installed sdash v0.1.0", result.stdout)
+        self.assertEqual(self.target.read_bytes(), PAYLOAD)
+
+    def test_invalid_version(self):
+        result = self.run_install("--version", "v0.1.0/x", success=False)
+        self.assertIn("invalid version", result.stderr)
+        self.assertFalse(self.target.exists())
+
     def test_offline_message(self):
         self.env["SDASH_API_URL"] = "http://127.0.0.1:1/api"
         result = self.run_install(success=False)
@@ -231,7 +244,7 @@ os.execv({shutil.which('mv')!r}, ['mv'] + sys.argv[1:])
         self.env["SHELL"] = "/bin/tcsh"
         out = self.run_install().stdout
         self.assertIn('export PATH="$HOME/.local/bin:$PATH"', out)
-        self.assertIn("set path = ($HOME/.local/bin $path)", out)
+        self.assertIn('set path = ("$HOME/.local/bin" $path)', out)
         self.env["SHELL"] = "/bin/bash"
         self.assertNotIn("set path", self.run_install().stdout)
 

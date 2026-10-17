@@ -175,14 +175,30 @@ func (s *Store) Identity() Identity {
 	return id
 }
 
-// RateLimited reports whether the controller is throttling this user: the
-// latest attempt of any source failed with the rate limit error.
-func (s *Store) RateLimited() bool {
-	for _, err := range []error{
-		s.MyJobs.Err, s.AllJobs.Err, s.Cluster.Err, s.QueueRank.Err, s.Nodes.Err, s.Partitions.Err, s.Reservations.Err,
-		s.Detail.Err, s.History.Err, s.Fairshare.Err, s.Priorities.Err, s.Limits.Err, s.MyStats.Err,
+// RateLimited reports whether the controller is throttling this user: a
+// recent latest attempt of any source failed with the rate limit error. A
+// source that stopped running (its tab is hidden) does not keep it on.
+func (s *Store) RateLimited(now time.Time) bool {
+	type attempt struct {
+		err   error
+		tried time.Time
+	}
+	for _, a := range []attempt{
+		{s.MyJobs.Err, s.MyJobs.Tried},
+		{s.AllJobs.Err, s.AllJobs.Tried},
+		{s.Cluster.Err, s.Cluster.Tried},
+		{s.QueueRank.Err, s.QueueRank.Tried},
+		{s.Nodes.Err, s.Nodes.Tried},
+		{s.Partitions.Err, s.Partitions.Tried},
+		{s.Reservations.Err, s.Reservations.Tried},
+		{s.Detail.Err, s.Detail.Tried},
+		{s.History.Err, s.History.Tried},
+		{s.Fairshare.Err, s.Fairshare.Tried},
+		{s.Priorities.Err, s.Priorities.Tried},
+		{s.Limits.Err, s.Limits.Tried},
+		{s.MyStats.Err, s.MyStats.Tried},
 	} {
-		if err != nil && KindOf(err) == ErrRateLimited {
+		if a.err != nil && KindOf(a.err) == ErrRateLimited && now.Sub(a.tried) < 2*RateLimitWait {
 			return true
 		}
 	}

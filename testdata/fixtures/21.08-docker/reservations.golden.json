@@ -1,0 +1,27 @@
+{
+  "items": [
+    {
+      "Name": "maint",
+      "Start": "2026-10-19T10:13:06Z",
+      "End": "2026-10-19T16:13:06Z",
+      "Nodes": [
+        "c1",
+        "c2",
+        "down1",
+        "g1"
+      ],
+      "Flags": [
+        "MAINT",
+        "IGNORE_JOBS",
+        "SPEC_NODES",
+        "ALL_NODES"
+      ],
+      "Users": [
+        "root"
+      ],
+      "Accounts": null,
+      "State": "INACTIVE"
+    }
+  ],
+  "warnings": null
+}

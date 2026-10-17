@@ -10,8 +10,10 @@ on:
     branches: ["release/**"]
   pull_request:
     paths:
-      - "internal/slurm/**"
-      - "internal/state/**"
+      - "cmd/**"
+      - "internal/**"
+      - "go.mod"
+      - "go.sum"
       - "test/cluster/**"
       - ".github/workflows/compat.yml"
 
@@ -41,11 +43,13 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Build sdash and the integration test binaries
+        env:
+          CGO_ENABLED: "0"
         run: |
           mkdir -p build
-          CGO_ENABLED=0 go build -trimpath -o build/sdash ./cmd/sdash
-          CGO_ENABLED=0 go test -c -tags integration -o build/integ.test ./internal/integration
-          CGO_ENABLED=0 go test -c -tags integration -o build/ui-integ.test ./internal/ui
+          go build -trimpath -o build/sdash ./cmd/sdash
+          go test -c -tags integration -o build/integ.test ./internal/integration
+          go test -c -tags integration -o build/ui-integ.test ./internal/ui
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: build
@@ -72,9 +76,15 @@ jobs:
           name: build
           path: build
       - name: Run Slurm ${{ matrix.slurm }}
+        timeout-minutes: 35
+        env:
+          SDASH_PREBUILT: "1"
         run: |
           chmod +x build/sdash build/integ.test build/ui-integ.test
           bash test/cluster/compat.sh "${{ matrix.slurm }}"
+      - name: Make the results readable for the upload
+        if: always()
+        run: sudo chmod -R a+rX build/compat
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:

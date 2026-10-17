@@ -123,7 +123,7 @@ func TestFollowedLogShowsNewLines(t *testing.T) {
 	driveTimeout = 15 * time.Second
 	t.Cleanup(func() { driveTimeout = defaultDriveTimeout })
 	out := t.TempDir() + "/follow.out"
-	id := c.Submit("follow", "-o", out, "-t", "5", "--wrap", `for i in $(seq 1 120); do echo "tick $i $(date +%s.%N)"; sleep 1; done`)
+	id := c.Submit("follow", "-o", out, "-t", "5", "--wrap", "for i in $(seq 1 120); do echo tick $i; sleep 1; done")
 	c.WaitState(id, "RUNNING")
 	a, src := realApp(t, c)
 	reload(t, a, src)
@@ -147,25 +147,12 @@ func TestFollowedLogShowsNewLines(t *testing.T) {
 	time.Sleep(3 * time.Second)
 	poll()
 	b, _ := os.ReadFile(out)
-	want := fmt.Sprintf("tick %d", strings.Count(string(b), "\n")+1)
+	// Count only the job's own lines: slurmstepd may add warnings to the same file.
+	want := fmt.Sprintf("tick %d ", strings.Count(string(b), "tick ")+1)
 	start := time.Now()
-	for first := true; time.Since(start) < 5*time.Second; first = false {
+	for time.Since(start) < 5*time.Second {
 		time.Sleep(logPoll)
 		poll()
-		if first {
-			t.Logf("window %dx%d, screen:\n%s", a.w, a.h, screen(a))
-		}
-		raw, _ := os.ReadFile(out)
-		lines := strings.Split(strings.TrimSpace(string(raw)), "\n")
-		var shown []string
-		for _, l := range strings.Split(screen(a), "\n") {
-			if i := strings.Index(l, "tick "); i >= 0 {
-				if f := strings.Fields(l[i:]); len(f) > 1 {
-					shown = append(shown, f[1])
-				}
-			}
-		}
-		t.Logf("%v: file has %d lines, buffer %d, screen ends %v", time.Since(start).Round(10*time.Millisecond), len(lines), a.logView.Buf.Len(), shown[max(len(shown)-3, 0):])
 		if strings.Contains(screen(a), want) {
 			if d := time.Since(start); d > 2*time.Second+500*time.Millisecond {
 				t.Fatalf("the new line took %v to appear", d)

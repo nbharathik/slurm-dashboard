@@ -18,7 +18,7 @@ n=0
 while IFS='|' read -r start end size text; do
 	[ -n "$start" ] || continue
 	n=$((n + 1))
-	printf '%b\n' "$text" >"$tmp/$n.txt"
+	printf '%b' "$text" >"$tmp/$n.txt"
 	filter="$filter,drawtext=fontfile=$font:textfile=$tmp/$n.txt:expansion=none:fontcolor=white:fontsize=$size:x=(w-text_w)/2:y=($band-text_h)/2:enable='between(t,$start,$end)'"
 done <"$captions"
 

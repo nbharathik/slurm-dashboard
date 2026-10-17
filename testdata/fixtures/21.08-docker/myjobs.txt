@@ -1,0 +1,10 @@
+1818N/Acpunormalml-labPENDING0:003-00:00:003-00:00:0011500MN/AReqNodeNotAvail, Reserved for maintenance2026-10-19T16:13:062026-10-22T16:13:062026-10-17T10:13:08113(null)youcrosses-maint
+2020N/Acpunormalml-labPENDING0:0010:0010:0011500MN/ABeginTime2026-10-17T13:13:082026-10-17T13:23:082026-10-17T10:13:08113(null)youlater
+14_[3-8%2]143-8%2cpunormalml-labPENDING0:001:00:001:00:0011500MN/AJobArrayTaskLimitN/AN/A2026-10-17T10:13:08113(null)yousweep
+55N/Acpunormalml-labPENDING0:005:005:0011500MN/ADependencyNeverSatisfiedN/AN/A2026-10-17T10:13:08113afterok:4(failed)youafter-fail
+1919N/Acpunormalml-labPENDING0:0010:0010:0011500MN/AJobHeldUserN/AN/A2026-10-17T10:13:080(null)youon-hold
+14_1141cpunormalml-labRUNNING3:121:00:0056:4811500MN/ANonec22026-10-17T10:13:092026-10-17T11:13:092026-10-17T10:13:08113(null)yousweep
+14_2142cpunormalml-labRUNNING3:121:00:0056:4811500MN/ANonec22026-10-17T10:13:092026-10-17T11:13:092026-10-17T10:13:08113(null)yousweep
+1717N/Adebugnormalml-labPENDING0:002:00:002:00:0011500MN/APartitionTimeLimitN/AN/A2026-10-17T10:13:08113(null)youtoo-long
+1515N/Agpunormalml-labPENDING0:001:00:001:00:0011500Mgres:gpu:2Resources2026-10-17T14:13:092026-10-17T15:13:092026-10-17T10:13:08113(null)youbig-gpu
+99N/Agpulimitedml-labRUNNING3:124:00:003:56:4812500Mgres:gpu:1Noneg12026-10-17T10:13:092026-10-17T14:13:092026-10-17T10:13:08114(null)youmy-train

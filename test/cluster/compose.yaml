@@ -14,6 +14,10 @@ x-common: &common
 x-node: &node
   <<: *common
   privileged: true
+  # Jobs submitted from /src (the integration tests) start in the same directory.
+  volumes:
+    - *home
+    - ${SDASH_ROOT:-../..}:/src:ro
 
 services:
   db:

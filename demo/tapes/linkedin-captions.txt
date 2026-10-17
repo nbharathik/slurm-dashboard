@@ -2,5 +2,5 @@
 10.5|16.4|44|When will it start?
 16.9|22.0|44|84 CPU-hours idle this week
 22.6|28.2|44|Rerun it right-sized
-28.5|33.2|44|Scratch full in ~19 days
+28.5|33.2|44|Scratch full in ~20 days
 34.0|99|32|curl -fsSL https://raw.githubusercontent.com/\nnbharathik/slurm-dashboard/main/install.sh | sh

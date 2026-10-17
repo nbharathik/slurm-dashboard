@@ -65,12 +65,13 @@ cross:
 	done
 
 SLURM ?= 24.11
-SLURM_BASE := $(shell awk '$$1 == "$(SLURM)" { print $$2 }' test/cluster/matrix.txt)
-CLUSTER = SLURM=$(SLURM) BASE=$(SLURM_BASE) SDASH_ROOT=$(CURDIR) docker compose -p sdash-$(subst .,-,$(SLURM)) -f test/cluster/compose.yaml
+SLURM_BASE = $(shell awk '$$1 == "$(SLURM)" { print $$2 }' test/cluster/matrix.txt)
+CLUSTER = SLURM=$(SLURM) BASE=$(SLURM_BASE) SDASH_ROOT="$(CURDIR)" docker compose -p sdash-$(subst .,-,$(SLURM)) -f test/cluster/compose.yaml
 
 cluster-up:
+	$(if $(SLURM_BASE),,$(error unknown SLURM=$(SLURM), see test/cluster/matrix.txt))
 	mkdir -p build/compat
-	CGO_ENABLED=0 go build -trimpath -o build/sdash ./cmd/sdash
+	CGO_ENABLED=0 GOOS=linux go build -trimpath -o build/sdash ./cmd/sdash
 	$(CLUSTER) build login
 	$(CLUSTER) up -d
 

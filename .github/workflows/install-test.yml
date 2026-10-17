@@ -88,7 +88,8 @@ jobs:
           elif command -v dnf >/dev/null 2>&1; then
             dnf install -y -q wget tar gzip gawk >/dev/null
             if dnf install -y -q epel-release >/dev/null 2>&1; then
-              dnf install -y -q dash busybox >/dev/null 2>&1 || echo "dash or busybox is not available"
+              dnf install -y -q dash >/dev/null 2>&1 || echo "dash is not available"
+              dnf install -y -q busybox >/dev/null 2>&1 || echo "busybox is not available"
             fi
           elif command -v apk >/dev/null 2>&1; then
             apk add -q --no-cache curl bash dash
@@ -128,6 +129,7 @@ jobs:
           }
 
           fail=0
+          passed=
           for f in curl wget bbwget; do
             mktools "$f" || { echo "skip fetcher $f"; continue; }
             for s in dash bash busybox; do
@@ -148,6 +150,7 @@ jobs:
                 if [ "$mode" = limited ]; then
                   if [ "$rc" -ne 0 ] && printf '%s\n' "$out" | grep -q 'rate limit' && printf '%s\n' "$out" | grep -q -- '--version'; then
                     echo "ok   $label"
+                    passed="$passed $label"
                   else
                     echo "FAIL $label (exit $rc, expected the rate limit message)"
                     printf '%s\n' "$out"
@@ -156,6 +159,7 @@ jobs:
                 elif [ "$rc" -eq 0 ] && printf '%s\n' "$out" | grep -q 'Installed sdash v0.1.0' &&
                   HOME="$dest" "$dest/bin/sdash" version >/dev/null && HOME="$dest" "$dest/bin/sdash" --demo status --json >/dev/null; then
                   echo "ok   $label"
+                  passed="$passed $label"
                 else
                   echo "FAIL $label (exit $rc)"
                   printf '%s\n' "$out"
@@ -164,6 +168,19 @@ jobs:
                 rm -rf "$dest"
               done
             done
+          done
+
+          # A skipped shell or fetcher must not pass silently where it should exist.
+          case $(. /etc/os-release && echo "$ID") in
+          alpine) need="bbwget/ /busybox/" ;;
+          debian | ubuntu) need="/dash/" ;;
+          *) need="/bash/" ;;
+          esac
+          for n in $need; do
+            case $passed in
+            *"$n"*) ;;
+            *) echo "FAIL no successful run used ${n%/}"; fail=1 ;;
+            esac
           done
           exit "$fail"
           EOF

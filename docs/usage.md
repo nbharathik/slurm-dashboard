@@ -154,7 +154,7 @@ when requested, against the configured directory.
 
 Quota and filesystem histories stay separate. The table draws the last 30 days
 of reported usage and, when use is
-rising towards a limit, says when it will be reached (`full ~19d`). It
+rising towards a limit, says when it will be reached (`full ~20d`). It
 needs at least four readings over a day and sees nothing while sdash is not
 running: readings (at most one an hour per location and scope, kept 90 days) go to
 `~/.local/state/sdash/storage.jsonl`. Delete that file to start over.

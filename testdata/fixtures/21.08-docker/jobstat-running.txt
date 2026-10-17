@@ -1,0 +1,2 @@
+21.batch|1|3540K|3540K|00:00:00|cpu=00:00:00,energy=0,fs/disk=8613,mem=3540K,pages=0,vmem=6120K
+22.batch|1|3380K|3380K|00:00:00|cpu=00:00:00,energy=0,fs/disk=8613,mem=3380K,pages=0,vmem=6120K

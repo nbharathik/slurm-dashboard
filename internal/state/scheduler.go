@@ -309,7 +309,7 @@ func (s *Scheduler) run(ctx context.Context, e *entry) {
 	limited := err != nil && KindOf(err) == ErrRateLimited
 	if limited {
 		for _, o := range s.entries {
-			o.backoff = max(o.backoff, min(RateLimitWait, max(MaxBackoff, s.baseIntervalLocked(o))))
+			o.backoff = max(o.backoff, RateLimitWait)
 		}
 	}
 	switch {

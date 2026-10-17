@@ -188,6 +188,8 @@ func TestLatestRedirectFallsBackToAPI(t *testing.T) {
 		"not a tag":     "/web/releases/tag/not-a-tag",
 		"encoded slash": "/web/releases/tag/v0.2.0%2F..%2Fx",
 		"tag with junk": "/web/releases/tag/v0.2.0%20x",
+		"other host":    "http://other.example/web/releases/tag/v9.9.9",
+		"other repo":    "/elsewhere/releases/tag/v9.9.9",
 	} {
 		t.Run(name, func(t *testing.T) {
 			u, rel, _ := setup(t, func(r *release) { r.webLatest = webLatest })

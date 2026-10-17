@@ -794,12 +794,23 @@ func (s *Sim) Quotas() []model.Quota {
 		if q.SharedFS {
 			raw = fmt.Sprintf("statfs %s (demo): %dG used of %dG, %d of %d files\n", q.Path, q.UsedGB, q.HardGB, q.Files, q.FilesHard)
 		}
-		out = append(out, model.Quota{
+		quota := model.Quota{
 			Label: q.Label, Path: q.Path, FSType: q.FS, Backend: q.Backend,
 			UsedBytes: q.UsedGB * gb, SoftBytes: q.SoftGB * gb, HardBytes: q.HardGB * gb,
 			UsedFiles: q.Files, SoftFiles: q.FilesSoft, HardFiles: q.FilesHard,
 			IsFilesystemTotal: q.SharedFS, Note: q.Note, At: now, Raw: raw,
-		})
+		}
+		if !q.SharedFS {
+			// A made-up shared filesystem around the quota, as statfs would report it.
+			total := max(q.HardGB, q.SoftGB, 1) * 40 * gb
+			used := total * 62 / 100
+			quota.Filesystem = &model.Quota{
+				Label: q.Label, Path: q.Path, FSType: q.FS, Backend: "statfs", IsFilesystemTotal: true,
+				UsedBytes: used, HardBytes: total, AvailableBytes: total - used, FilesystemBytes: total,
+				AvailabilityKnown: true, At: now, Raw: fmt.Sprintf("statfs %s (demo): shared filesystem\n", q.Path),
+			}
+		}
+		out = append(out, quota)
 	}
 	return out
 }

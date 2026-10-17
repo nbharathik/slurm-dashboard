@@ -36,9 +36,9 @@ type Identity struct {
 }
 
 // PartitionAccess classifies p for the user. why names the list behind a
-// denied or unknown answer. Only a list that provably excludes the user
-// denies; QOS lists and account lists that might match through a parent
-// account stay unknown.
+// denied or unknown answer. Only a deny list that holds every account of the
+// user denies; group lists, QOS lists and account lists that might match
+// through a parent account stay unknown.
 func PartitionAccess(p model.Partition, id Identity) (access Access, why string) {
 	if id.Root || !p.Restricted() {
 		return AccessAllowed, ""
@@ -49,13 +49,10 @@ func PartitionAccess(p model.Partition, id Identity) (access Access, why string)
 			unknown = list
 		}
 	}
-	if len(p.AllowGroups) > 0 {
-		switch {
-		case !id.GroupsKnown:
-			maybe("AllowGroups")
-		case !overlaps(p.AllowGroups, id.Groups):
-			return AccessDenied, "AllowGroups"
-		}
+	// scontrol without -a already hides partitions closed to the user's groups,
+	// so a miss here means the local group list is stale (id -Gn), not a deny.
+	if len(p.AllowGroups) > 0 && (!id.GroupsKnown || !overlaps(p.AllowGroups, id.Groups)) {
+		maybe("AllowGroups")
 	}
 	// Account lists include sub-accounts, so a miss on the user's own accounts proves nothing.
 	switch {

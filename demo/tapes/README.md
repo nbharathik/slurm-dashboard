@@ -1,6 +1,7 @@
 # Demo tapes
 
-Rendered by VHS in GitHub Actions only, on the default demo cluster (`sdash --demo`):
+Rendered by VHS in GitHub Actions only, on the default demo cluster (`sdash --demo`).
+A push to `release/**` that touches `demo/` renders them; once demo.yml is on main, also:
 
     gh workflow run demo.yml --ref release/v0.2.0
     gh run download RUN_ID -n demo-assets

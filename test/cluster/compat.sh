@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Run sdash against a throwaway Slurm cluster in Docker.
 #   test/cluster/compat.sh 24.11
-# Needs Docker with Compose. build/ must hold sdash, integ.test and
-# ui-integ.test (built here when Go is installed). Results go to
+# Needs Docker with Compose, and Go unless build/ already holds sdash,
+# integ.test and ui-integ.test (SDASH_PREBUILT=1). Results go to
 # build/compat/<version>/: results.tsv, raw output, captures and fixtures.
 set -uo pipefail
 
@@ -48,12 +48,12 @@ finish() {
 }
 
 build_binaries() {
-	command -v go >/dev/null || { result build fail "no Go toolchain and build/ is incomplete"; return 1; }
 	(
 		cd "$root" || exit 1
-		CGO_ENABLED=0 go build -trimpath -o build/sdash ./cmd/sdash &&
-			CGO_ENABLED=0 go test -c -tags integration -o build/integ.test ./internal/integration &&
-			CGO_ENABLED=0 go test -c -tags integration -o build/ui-integ.test ./internal/ui
+		export CGO_ENABLED=0 GOOS=linux
+		go build -trimpath -o build/sdash ./cmd/sdash &&
+			go test -c -tags integration -o build/integ.test ./internal/integration &&
+			go test -c -tags integration -o build/ui-integ.test ./internal/ui
 	) || { result build fail "go build failed"; return 1; }
 }
 
@@ -90,7 +90,7 @@ wait_states() {
 # integ NAME DIR BINARY [PATTERN] runs a Go test binary as root in the login container.
 integ() {
 	local name=$1 dir=$2 bin=$3 pattern=${4:-} log pass failed skip rc
-	local -a args=(-test.v -test.count=1 -test.timeout=15m)
+	local -a args=(-test.v -test.count=1 -test.timeout=10m)
 	[ -n "$pattern" ] && args+=("-test.run=$pattern")
 	log=$out/$name.log
 	dc exec -T -e SDASH_INTEGRATION=local -e TMPDIR=/home/tmp -w "$dir" login "$bin" "${args[@]}" >"$log" 2>&1
@@ -114,12 +114,18 @@ mkdir -p "$out"
 chmod 777 "$out"
 : >"$out/results.tsv"
 chmod 666 "$out/results.tsv"
+trap 'trap - INT TERM; result aborted fail "interrupted"; finish' INT TERM
 
+# CI builds once and sets SDASH_PREBUILT=1; elsewhere rebuild so the binaries match the code.
+if [ "${SDASH_PREBUILT:-}" != 1 ] && command -v go >/dev/null; then
+	build_binaries || finish
+fi
 for f in sdash integ.test ui-integ.test; do
 	[ -f "$build/$f" ] && chmod +x "$build/$f"
 done
 if [ ! -x "$build/sdash" ] || [ ! -x "$build/integ.test" ] || [ ! -x "$build/ui-integ.test" ]; then
-	build_binaries || finish
+	result build fail "build/ lacks sdash, integ.test or ui-integ.test and Go is not installed"
+	finish
 fi
 
 dc down -v --remove-orphans >/dev/null 2>&1

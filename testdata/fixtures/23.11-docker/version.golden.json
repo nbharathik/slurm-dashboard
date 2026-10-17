@@ -1,0 +1,15 @@
+{
+  "items": {
+    "version": "23.11.4",
+    "major": 23,
+    "minor": 11,
+    "patch": 4,
+    "has_me": true,
+    "has_overlap": true,
+    "has_sstat": false,
+    "has_sshare": false,
+    "has_sprio": false,
+    "has_sacct": false
+  },
+  "warnings": null
+}

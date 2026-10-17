@@ -2,14 +2,14 @@
 ──────────────────────────────────────────────────────────━━━━━━━━━━━───────────────────────────────────────────────────────────────────────────────────────────
                                                                                                                                                                 
   3 locations · checked 14:00                                                                   ╭─ Home / Yours [esc] ───────────────────────────────────────╮  
-    LOCATION  SCOPE   SPACE USED          FILES     CHECK / TREND         PATH                  │ Path     /home/you                                         │  
+    LOCATION  SCOPE   SPACE USED                     FILES     CHECK / TREND         PATH       │ Path     /home/you                                         │  
   ───────────────────────────────────────────────────────────────────────────────────────────── │ Scope    Your quota                                        │  
-  ▶ Home      Yours   █████░░░ 31G/50G    212k/1M   ▁▁▂▃▄▅▅▆▇█ full ~6mo  /home/you             │ Backend  quota  (nfs)                                      │  
-    Scratch   Yours   ███████░ 9.2T/10T   3.1M/5M   ▁▂▂▃▄▅▅▆▇█ full ~19d  /scratch/you          │ Trend    ▁▁▂▂▃▂▃▃▄▄▄▄▅▅▅▆▆▆▇▇▇█  28G to 31.1G over 29d18h  │  
-    Project   Yours   ██░░░░░░ 1.2T/5T    900k/10M  ▁▁▂▃▄▅▅▆▇█            /project/ml-lab       │          growing about 102M a day; full in about 6 months  │  
-    Home      Shared  Unavailable  stale            collecting            /home/you             │                                                            │  
-    Scratch   Shared  Unavailable  stale            collecting            /scratch/you          │ Backend output                                             │  
-    Project   Shared  Unavailable  stale            collecting            /project/ml-lab       │ Disk quotas for usr you (demo):                            │  
+  ▶ Home      Yours   █████░░░ 31G/50G               212k/1M   ▁▁▂▃▄▅▅▆▇█ full ~6mo  /home/you  │ Backend  quota  (nfs)                                      │  
+    Scratch   Yours   ███████░ 9.2T/10T              3.1M/5M   ▁▂▂▃▄▅▅▆▇█ full ~19d  /scratch/… │ Trend    ▁▁▂▂▃▂▃▃▄▄▄▄▅▅▅▆▆▆▇▇▇█  28G to 31.1G over 29d18h  │  
+    Project   Yours   ██░░░░░░ 1.2T/5T               900k/10M  ▁▁▂▃▄▅▅▆▇█            /project/… │          growing about 102M a day; full in about 6 months  │  
+    Home      Shared  █████░░░ 1.3T/2.1T 836G avail            collecting            /home/you  │                                                            │  
+    Scratch   Shared  █████░░░ 273T/440T 167T avail            collecting            /scratch/… │ Backend output                                             │  
+    Project   Shared  █████░░░ 124T/200T 76T avail             collecting            /project/… │ Disk quotas for usr you (demo):                            │  
                                                                                                 │   Filesystem  used   quota  limit   files   quota    limit │  
                                                                                                 │   /home/you  31G  50G  55G  212000  1000000  1200000       │  
                                                                                                 │                                                            │  

@@ -3,6 +3,7 @@ package units
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -20,9 +21,10 @@ const (
 	DurUnknown
 )
 
-// maxDurationSeconds is about 95 years; larger values are unset markers or garbage
-// (Slurm 25.11.2 prints "213503982334-14:25:51" for CPU time it never measured).
-const maxDurationSeconds = 3e9
+// maxDurationSeconds is the largest whole-second time.Duration. Larger values
+// are unset markers or garbage (Slurm 25.11.2 prints "213503982334-14:25:51"
+// for CPU time it never measured) and would overflow.
+const maxDurationSeconds = float64(math.MaxInt64/int64(time.Second)) - 1
 
 // ParseDuration parses Slurm durations (MM:SS, HH:MM:SS, D-HH[:MM[:SS]], optional .mmm, bare minutes).
 // A value beyond maxDurationSeconds is reported as DurUnknown.

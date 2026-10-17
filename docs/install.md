@@ -18,9 +18,13 @@ curl -fsSL https://raw.githubusercontent.com/nbharathik/slurm-dashboard/main/ins
   sh -s -- --version v0.1.0 --dir "$HOME/bin" --completions bash
 ```
 
-`SDASH_INSTALL_DIR` changes the default directory. Mirrors can set
-`SDASH_API_URL` (repository API base) and `SDASH_DOWNLOAD_URL` (release download
-base). Downloads require `curl` or `wget`, `tar`, and `sha256sum` or `shasum`.
+`SDASH_INSTALL_DIR` changes the default directory. The latest version comes from
+the `releases/latest` redirect, which has no API rate limit, with the GitHub API
+as fallback. Mirrors can set `SDASH_API_URL` (repository API base) and
+`SDASH_DOWNLOAD_URL` (release download base), which skip the redirect, or
+`SDASH_WEB_URL` (repository web base) to keep it. If GitHub rate-limits a shared
+login node, pass `--version vX.Y.Z`.
+Downloads require `curl` or `wget`, `tar`, and `sha256sum` or `shasum`.
 SHA-256 is always checked; existing `cosign` or authenticated `gh` adds signature
 or provenance verification. See [security](../SECURITY.md).
 
@@ -31,9 +35,10 @@ following the [Go 1.26 platform requirements](https://go.dev/wiki/MinimumRequire
 Linux releases have no dynamic library dependencies.
 
 Use the site's configured Slurm clients on `PATH`; try `sdash doctor`.
-The parsers are tested with **Slurm 23.11** output. Other versions and site
-customisations can use different formats. Missing optional accounting or priority
-support disables the affected views. macOS also needs configured Slurm clients;
+sdash is tested with **Slurm 21.08, 22.05, 23.11, 24.11, 25.11 and 26.05**
+(see [compatibility](compatibility.md)). Site customisations can still use
+different formats. Missing optional accounting or priority support disables the
+affected views. macOS also needs configured Slurm clients;
 `sdash --demo` works without them.
 
 ## Footprint

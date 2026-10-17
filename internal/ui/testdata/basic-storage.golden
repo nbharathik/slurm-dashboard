@@ -2,12 +2,12 @@
 ──────────────────────────────────────────────────────────━━━━━━━━━━━───────────────────────────────
                                                                                                     
   2 locations · checked 14:01                                                                       
-    LOCATION  SCOPE   SPACE USED          FILES      CHECK / TREND         PATH                     
+    LOCATION  SCOPE   SPACE USED                      FILES      CHECK / TREND         PATH         
   ────────────────────────────────────────────────────────────────────────────────────────────────  
-  ▶ Home      Yours   ███████░ 18G/20G    150k/500k  ▁▁▁▃▄▄▄▆▇█ full ~97d  /home/you                
-    Scratch   Yours   █░░░░░░░ 800G/5T    400k/2M    ▁▂▂▃▄▅▅▆▇█            /scratch/you             
-    Home      Shared  Unavailable  stale             collecting            /home/you                
-    Scratch   Shared  Unavailable  stale             collecting            /scratch/you             
+  ▶ Home      Yours   ███████░ 18G/20G                150k/500k  ▁▁▁▃▄▄▄▆▇█ full ~97d  /home/you    
+    Scratch   Yours   █░░░░░░░ 800G/5T                400k/2M    ▁▂▂▃▄▅▅▆▇█            /scratch/y…  
+    Home      Shared  █████░░░ 620G/1000G 380G avail             collecting            /home/you    
+    Scratch   Shared  █████░░░ 149T/240T 91.2T avail             collecting            /scratch/y…  
                                                                                                     
                                                                                                     
                                                                                                     

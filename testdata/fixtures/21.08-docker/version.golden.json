@@ -1,0 +1,15 @@
+{
+  "items": {
+    "version": "21.08.5",
+    "major": 21,
+    "minor": 8,
+    "patch": 5,
+    "has_me": true,
+    "has_overlap": true,
+    "has_sstat": false,
+    "has_sshare": false,
+    "has_sprio": false,
+    "has_sacct": false
+  },
+  "warnings": null
+}

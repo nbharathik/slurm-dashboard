@@ -116,7 +116,8 @@ valid_tag() {
 # Print the latest tag named by the redirect of $WEB_URL/releases/latest.
 redirect_tag() {
 	if [ "$fetcher" = curl ]; then
-		rt_url=$(curl -fsSL --retry 2 -o /dev/null -w '%{url_effective}' "$WEB_URL/releases/latest") || return 1
+		# Read the Location without following it, so the tag page itself cannot fail the lookup.
+		rt_url=$(curl -sS --retry 2 -o /dev/null -w '%{redirect_url}' "$WEB_URL/releases/latest") || return 1
 	else
 		rt_url=$(wget -S --spider "$WEB_URL/releases/latest" 2>&1 |
 			sed -n 's|^[[:space:]]*[Ll][Oo][Cc][Aa][Tt][Ii][Oo][Nn]:[[:space:]]*\([^[:space:]]*/releases/tag/[^[:space:]]*\).*$|\1|p' |
@@ -130,7 +131,7 @@ redirect_tag() {
 	printf '%s\n' "$rt_tag"
 }
 
-# Print the HTTP status of a GET, or nothing when the host cannot be reached.
+# Print the HTTP status of a GET (000 or nothing when the host cannot be reached).
 http_status() {
 	if [ "$fetcher" = curl ]; then
 		curl -s -o /dev/null -w '%{http_code}' "$1" || true
@@ -265,7 +266,7 @@ case :${PATH:-}: in
 	case ${SHELL:-} in
 	*csh)
 		say "For csh or tcsh, add this line to ~/.cshrc (or ~/.tcshrc):"
-		say "  set path = ($shown \$path)"
+		say "  set path = (\"$shown\" \$path)"
 		;;
 	esac
 	;;

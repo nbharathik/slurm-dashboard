@@ -11,8 +11,7 @@ import (
 	"github.com/nbharathik/slurm-dashboard/internal/state"
 )
 
-// In the hetero demo, "login" allows only the group admins and "mig" lists
-// the user's account.
+// In the hetero demo, "login" denies the user's account and "mig" lists it.
 func TestPartitionsShowAccess(t *testing.T) {
 	out, errOut, code := demoRun(t, "partitions")
 	if code != ExitOK {
@@ -31,7 +30,7 @@ func TestPartitionsShowAccess(t *testing.T) {
 	access := map[string]string{}
 	for _, p := range doc.Partitions {
 		access[p.Name] = p.Access
-		if p.Name == "login" && p.AccessWhy != "AllowGroups" {
+		if p.Name == "login" && p.AccessWhy != "DenyAccounts" {
 			t.Errorf("login access_why = %q", p.AccessWhy)
 		}
 	}
@@ -71,7 +70,7 @@ func TestFreeLeavesOutClosedPartitions(t *testing.T) {
 	if err := json.Unmarshal([]byte(out), &doc); err != nil {
 		t.Fatal(err)
 	}
-	if len(doc.Now) != 0 || !slices.Contains(doc.Reasons, "you may not submit to partition login (AllowGroups)") {
+	if len(doc.Now) != 0 || !slices.Contains(doc.Reasons, "you may not submit to partition login (DenyAccounts)") {
 		t.Fatalf("login asked for: %+v", doc)
 	}
 }

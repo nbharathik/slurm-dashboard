@@ -2,6 +2,13 @@ name: demo
 
 on:
   workflow_dispatch:
+  # Manual runs need the workflow on main; until then a push renders it.
+  push:
+    branches: ["release/**"]
+    paths:
+      - "demo/**"
+      - "internal/demo/**"
+      - ".github/workflows/demo.yml"
 
 permissions:
   contents: read
@@ -24,11 +31,9 @@ jobs:
         env:
           CGO_ENABLED: "0"
         run: make build VERSION=v0.0.0-demo
-      - name: Numbers the LinkedIn captions quote
+      - name: The idle CPU-hours the LinkedIn captions quote
         continue-on-error: true
-        run: |
-          ./sdash --demo usage
-          ./sdash --demo quota
+        run: ./sdash --demo usage
       - name: Install ffmpeg and fonts
         run: |
           sudo apt-get update -qq
@@ -66,7 +71,15 @@ jobs:
             echo "docs/img/social-preview.png is $social bytes, over GitHub's 1 MB limit" >&2
             exit 1
           fi
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+          for f in overview jobs queue nodes usage storage why rerun social-preview; do
+            test -s "docs/img/$f.png" || { echo "docs/img/$f.png is missing" >&2; exit 1; }
+          done
+          duration() { ffprobe -v error -show_entries format=duration -of csv=p=0 "$1"; }
+          for f in demo/out/linkedin.mp4 demo/out/linkedin-square.mp4; do
+            awk -v d="$(duration "$f")" 'BEGIN { exit !(d >= 35 && d <= 40) }' || { echo "$f is not 35 to 40 s long" >&2; exit 1; }
+          done
+          awk -v d="$(duration docs/demo.gif)" 'BEGIN { exit !(d > 0 && d <= 25) }' || { echo "docs/demo.gif is longer than 25 s" >&2; exit 1; }
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ !cancelled() }}
         with:
           name: demo-assets

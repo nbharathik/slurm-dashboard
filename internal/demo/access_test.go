@@ -11,8 +11,8 @@ import (
 	"github.com/nbharathik/slurm-dashboard/internal/state"
 )
 
-// The hetero scenario restricts "login" to the group admins and "mig" to two
-// accounts, one of them the user's.
+// The hetero scenario closes "login" to the user's account and restricts "mig"
+// to two accounts, one of them the user's.
 func TestHeteroHasRestrictedPartitions(t *testing.T) {
 	_, clock, src := setupScenario(t, "hetero")
 	ctx := context.Background()
@@ -22,7 +22,7 @@ func TestHeteroHasRestrictedPartitions(t *testing.T) {
 	for _, p := range parts {
 		by[p.Name] = p
 	}
-	if !slices.Equal(by["login"].AllowGroups, []string{"admins"}) || !slices.Equal(by["mig"].AllowAccounts, []string{"lab-you", "lab-nlp"}) || by["cpu"].Restricted() {
+	if !slices.Equal(by["login"].DenyAccounts, []string{"lab-you"}) || !slices.Equal(by["mig"].AllowAccounts, []string{"lab-you", "lab-nlp"}) || by["cpu"].Restricted() {
 		t.Fatalf("access lists: login %+v, mig %+v, cpu %+v", by["login"], by["mig"], by["cpu"])
 	}
 	groups, err := src.Groups(ctx)

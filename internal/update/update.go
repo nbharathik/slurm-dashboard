@@ -154,10 +154,11 @@ func (u *Updater) latestFromRedirect(ctx context.Context) (string, bool) {
 		return "", false
 	}
 	loc, err := resp.Location()
-	if err != nil {
+	if err != nil || loc.Host != req.URL.Host {
 		return "", false
 	}
-	_, tag, found := strings.Cut(loc.Path, "/releases/tag/")
+	// Only a tag page of the same repository counts.
+	tag, found := strings.CutPrefix(loc.Path, strings.TrimSuffix(req.URL.Path, "latest")+"tag/")
 	tag = strings.TrimSuffix(tag, "/")
 	return tag, found && tagPattern.MatchString(tag)
 }

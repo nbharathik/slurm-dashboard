@@ -263,7 +263,7 @@ func (a *App) statusRight(room int) string {
 	fresh := a.freshness()
 	if b := a.banner(); b != "" {
 		fresh = th.Crit.Render(b)
-	} else if a.st.RateLimited() {
+	} else if a.st.RateLimited(a.now()) {
 		fresh = th.Warn.Render("controller is rate-limiting; slowing down")
 	}
 	sep := th.Faint.Render(" " + th.Sym.Separator + " ")
