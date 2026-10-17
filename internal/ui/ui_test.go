@@ -430,6 +430,15 @@ func TestKeyScripts(t *testing.T) {
 	}
 }
 
+func TestRerunSuggestionFitsNarrowForm(t *testing.T) {
+	f := newFixture(t, 0)
+	a := f.app(t, 100, 30, false)
+	press(a, "5", "j", "n")
+	if got := screen(a); !strings.Contains(got, "suggested 01:00:00") {
+		t.Errorf("the suggestion is cut:\n%s", got)
+	}
+}
+
 // TestResizeNeverPanics renders many sizes, including absurd ones.
 func TestResizeNeverPanics(t *testing.T) {
 	f := newFixture(t, 0)

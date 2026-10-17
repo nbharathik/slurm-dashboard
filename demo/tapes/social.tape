@@ -2,7 +2,7 @@
 Output demo/out/raw/social.mp4
 
 Set Shell "bash"
-Set FontSize 22
+Set FontSize 18
 Set Width 1280
 Set Height 640
 Set Padding 14

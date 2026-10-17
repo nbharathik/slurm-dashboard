@@ -5,7 +5,7 @@ Output demo/out/raw/screens.mp4
 Set Shell "bash"
 Set FontSize 16
 Set Width 1200
-Set Height 680
+Set Height 720
 Set Padding 10
 Set Framerate 10
 Set Theme "Catppuccin Mocha"
