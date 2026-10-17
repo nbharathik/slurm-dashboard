@@ -61,6 +61,7 @@ signs:
 snapshot:
   version_template: "{{ incpatch .Version }}-snapshot.{{ .ShortCommit }}"
 
+# Tagged releases take their notes from CHANGELOG.md (release.yml); this is for snapshots.
 changelog:
   use: git
   sort: asc

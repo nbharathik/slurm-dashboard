@@ -1,0 +1,54 @@
+name: Cluster compatibility report
+description: How sdash works on your cluster, good or bad. Reports from new sites help the most.
+labels: [compatibility]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks! "It works" is useful too: it tells us which versions and setups are covered. Remove names you do not want public.
+  - type: input
+    id: slurm
+    attributes:
+      label: Slurm version
+      description: Output of `sinfo --version`.
+    validations:
+      required: true
+  - type: textarea
+    id: version
+    attributes:
+      label: sdash version
+      description: Output of `sdash version`.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: sdash doctor
+      description: Output of `sdash doctor`.
+      render: text
+    validations:
+      required: true
+  - type: checkboxes
+    id: setup
+    attributes:
+      label: What your cluster has
+      options:
+        - label: GPUs (and which kind, below)
+        - label: MIG, GPU shards or MPS
+        - label: Several clusters or federation (`-M`)
+        - label: Lustre, GPFS or BeeGFS quotas
+        - label: Partitions restricted to accounts, groups or QOS
+  - type: textarea
+    id: works
+    attributes:
+      label: What works and what does not
+      description: Tabs or commands that look wrong, missing or slow, compared with `squeue`, `sinfo`, `sacct` or your quota tool.
+    validations:
+      required: true
+  - type: textarea
+    id: recording
+    attributes:
+      label: Recording (optional)
+      description: |
+        `sdash record --anonymize --out ~/sdash-fixtures` saves what your Slurm prints. Read the files, then attach the version folder as a zip. Never attach `anonymize.mapping.json`.

@@ -45,4 +45,5 @@ with the output of `sdash doctor`, and if you can, a recording:
 sdash record --anonymize --out ~/sdash-fixtures
 ```
 
-Read the files first and never share `anonymize.mapping.json`.
+Read the files first and never share `anonymize.mapping.json`. To check a
+cluster by hand, see the [manual check](manual-check.md).
