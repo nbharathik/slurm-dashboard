@@ -1,0 +1,21 @@
+name: Feature request
+description: Something sdash should show or do.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: What question do you want sdash to answer?
+      description: For example "which of my array tasks failed" or "how much of my project's allocation is left". What do you run today to find out?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How you imagine it
+      description: A tab, a column, a key, a command. Optional.
+  - type: input
+    id: slurm
+    attributes:
+      label: Slurm version
+      description: Output of `sinfo --version`, if the idea depends on your cluster.

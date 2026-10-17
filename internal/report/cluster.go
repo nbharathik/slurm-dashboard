@@ -104,6 +104,8 @@ type Partition struct {
 	GPUTypes    []TypeCount `json:"gpu_types"`
 	Pending     *int        `json:"pending"` // null when unknown
 	DownReasons []string    `json:"down_reasons"`
+	Access      string      `json:"access"`
+	AccessWhy   string      `json:"access_why,omitempty"`
 }
 
 // TypeCount is the GPUs of one type in a partition.
@@ -129,6 +131,7 @@ func Partitions(h Header, sums []state.PartSummary, aliases map[string]string) P
 			Nodes: s.Nodes, Idle: s.Idle, Mixed: s.Mixed, Alloc: s.Alloc, Down: s.Down,
 			CPUTotal: s.CPUTotal, CPUFree: s.CPUFree, GPUTotal: s.GPUTotal, GPUFree: s.GPUFree,
 			MIGTotal: s.MIGTotal, MIGFree: s.MIGFree, GPUTypes: []TypeCount{}, DownReasons: orEmpty(s.DownReasons),
+			Access: s.Access.String(), AccessWhy: s.AccessWhy,
 		}
 		for _, t := range s.GPUTypes {
 			p.GPUTypes = append(p.GPUTypes, TypeCount{Type: t.Type, Display: units.GPUDisplayName(t.Type, aliases), Total: t.Total, Free: t.Free})
@@ -182,11 +185,13 @@ type FreeDoc struct {
 		Nodes     int    `json:"nodes"`
 		Partition string `json:"partition,omitempty"`
 	} `json:"request"`
-	Now      []FitNode `json:"now"`
-	Soonest  *FitNode  `json:"soonest"`
-	Reasons  []string  `json:"reasons"`
-	Note     string    `json:"note"`
-	TestOnly *TestOnly `json:"test_only,omitempty"`
+	Now        []FitNode `json:"now"`
+	Soonest    *FitNode  `json:"soonest"`
+	Reasons    []string  `json:"reasons"`
+	Note       string    `json:"note"`
+	TestOnly   *TestOnly `json:"test_only,omitempty"`
+	Denied     []string  `json:"partitions_denied"`
+	Unverified []string  `json:"partitions_unverified"`
 }
 
 // TestOnly is the scheduler's answer to "sbatch --test-only".
@@ -202,7 +207,10 @@ const FreeNote = "Based on running jobs' time limits; jobs waiting ahead of your
 
 // Free builds the "where can I run?" document.
 func Free(h Header, req state.Request, res state.FitResult) FreeDoc {
-	doc := FreeDoc{Header: h, Now: []FitNode{}, Reasons: orEmpty(res.Reasons), Note: FreeNote}
+	doc := FreeDoc{
+		Header: h, Now: []FitNode{}, Reasons: orEmpty(res.Reasons), Note: FreeNote,
+		Denied: orEmpty(res.Denied), Unverified: orEmpty(res.Unverified),
+	}
 	r := &doc.Request
 	r.GPUs, r.GPUType, r.CPUs, r.MemMB, r.TimeS, r.Nodes, r.Partition = req.GPUs, req.GPUType, req.CPUs, req.MemMB, int64(req.Time.Seconds()), max(req.Nodes, 1), req.Partition
 	conv := func(f state.Fit) FitNode {

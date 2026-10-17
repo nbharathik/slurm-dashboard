@@ -1,0 +1,42 @@
+name: Bug report
+description: sdash shows something wrong, fails or crashes.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Remove user names, project names and paths you do not want public. Report security problems privately (see SECURITY.md).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+      description: Which tab or command, which keys you pressed, what you saw. A screenshot helps.
+    validations:
+      required: true
+  - type: textarea
+    id: version
+    attributes:
+      label: sdash version
+      description: Output of `sdash version`.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: sdash doctor
+      description: Output of `sdash doctor`.
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: terminal
+    attributes:
+      label: Terminal
+      description: For example Windows Terminal over ssh, MobaXterm, PuTTY, iTerm2, inside tmux, its size.
+  - type: textarea
+    id: crash
+    attributes:
+      label: Crash report
+      description: If sdash crashed, it saved a report in `~/.cache/sdash/`. Read it first; it may contain job names and paths.
+      render: text

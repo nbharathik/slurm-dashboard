@@ -46,7 +46,12 @@ const (
 	ErrMissing
 	ErrTimeout
 	ErrRestricted
+	ErrRateLimited // the controller throttles this user's RPCs (SlurmctldParameters=rl_enable)
 )
+
+// rateLimitText is what slurm_strerror prints for SLURMCTLD_COMMUNICATIONS_BACKOFF
+// ("Rate limit exceeded, please retry momentarily") and _HARD_DROP ("... later").
+const rateLimitText = "rate limit exceeded"
 
 // SlurmError is a failed Slurm call with a user-facing summary.
 type SlurmError struct {
@@ -76,6 +81,8 @@ func Classify(err error, stderr []byte) error {
 		kind = ErrMissing
 	case errors.Is(err, execx.ErrTimeout):
 		kind = ErrTimeout
+	case strings.Contains(low, rateLimitText), strings.Contains(strings.ToLower(string(stderr)), rateLimitText):
+		kind = ErrRateLimited
 	case strings.Contains(low, "accounting storage"),
 		strings.Contains(low, "slurmdbd"),
 		strings.Contains(low, "problem talking to the database"):
@@ -276,6 +283,17 @@ func (s *Sources) Partitions(ctx context.Context) ([]model.Partition, error) {
 	parts, warns := parse.Partitions(out)
 	s.noteWarnings("partitions", warns)
 	return parts, nil
+}
+
+// Groups returns the user's group names.
+func (s *Sources) Groups(ctx context.Context) ([]string, error) {
+	out, err := s.run(ctx, "groups", slurm.Groups())
+	if err != nil {
+		return nil, err
+	}
+	groups, warns := parse.Groups(out)
+	s.noteWarnings("groups", warns)
+	return groups, nil
 }
 
 // Reservations returns all reservations.

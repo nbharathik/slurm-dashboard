@@ -14,6 +14,7 @@ import (
 const (
 	Floor           = 5 * time.Second
 	MaxBackoff      = 5 * time.Minute
+	RateLimitWait   = 30 * time.Second // least wait for every source once the controller rate-limits
 	RefreshDebounce = time.Second
 	IdleFactor      = 3
 	staggerMax      = 500 * time.Millisecond
@@ -304,6 +305,13 @@ func (s *Scheduler) run(ctx context.Context, e *entry) {
 	} else {
 		e.backoff = 0
 	}
+	// The limit is per user, so every source shares it: all of them slow down.
+	limited := err != nil && KindOf(err) == ErrRateLimited
+	if limited {
+		for _, o := range s.entries {
+			o.backoff = max(o.backoff, RateLimitWait)
+		}
+	}
 	switch {
 	case took > base/4:
 		e.slow = min(max(e.slow*2, base*2), max(MaxBackoff, base))
@@ -311,6 +319,9 @@ func (s *Scheduler) run(ctx context.Context, e *entry) {
 		e.slow = 0
 	}
 	s.mu.Unlock()
+	if limited {
+		s.nudgeAll()
+	}
 
 	select {
 	case s.out <- Update{Source: e.c.Name(), Data: data, Err: err, At: end, Took: took}:

@@ -147,7 +147,8 @@ func TestFollowedLogShowsNewLines(t *testing.T) {
 	time.Sleep(3 * time.Second)
 	poll()
 	b, _ := os.ReadFile(out)
-	want := fmt.Sprintf("tick %d", strings.Count(string(b), "\n")+1)
+	// Count only the job's own lines: slurmstepd may add warnings to the same file.
+	want := fmt.Sprintf("tick %d ", strings.Count(string(b), "tick ")+1)
 	start := time.Now()
 	for time.Since(start) < 5*time.Second {
 		time.Sleep(logPoll)
@@ -173,7 +174,13 @@ func TestRerunAndNotifyOnRealCluster(t *testing.T) {
 	driveTimeout = 15 * time.Second
 	t.Cleanup(func() { driveTimeout = defaultDriveTimeout })
 	work := t.TempDir()
-	orig := c.Submit("rerunui", "--hold", "-t", "5", "--wrap", "sleep 2")
+	// The options sit in the script so that Slurm before 23.02, which stores no submit line, keeps them.
+	script := work + "/rerun.sh"
+	body := "#!/bin/sh\n#SBATCH --job-name=sdash-test-rerunui\n#SBATCH --time=5\n#SBATCH --output=/dev/null\nsleep 2\n"
+	if err := os.WriteFile(script, []byte(body), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	orig := c.Submit("rerunui", "--hold", "-t", "5", script)
 	a, src := realApp(t, c)
 	hookOut := work + "/hook.env"
 	hr := execx.NewReal(execx.Options{})
@@ -199,7 +206,9 @@ func TestRerunAndNotifyOnRealCluster(t *testing.T) {
 		t.Fatalf("no estimate:\n%s", screen(a))
 	}
 	press(a, "r")
-	if a.confirm == nil || !strings.Contains(screen(a), "sbatch --parsable") || !strings.Contains(screen(a), "--job-name=sdash-test-rerunui") {
+	// Before Slurm 23.02 the submit line is not stored, so the name is not carried over.
+	keepsName := a.st.Caps.AtLeast(23, 2)
+	if a.confirm == nil || !strings.Contains(screen(a), "sbatch --parsable") || (keepsName && !strings.Contains(screen(a), "--job-name=sdash-test-rerunui")) {
 		t.Fatalf("no confirmation:\n%s", screen(a))
 	}
 	press(a, "y")
@@ -210,6 +219,14 @@ func TestRerunAndNotifyOnRealCluster(t *testing.T) {
 	c.Track(id)
 	// The form closed and the app jumps to the new job once it is listed.
 	reload(t, a, src)
+	name := "sdash-test-rerunui"
+	if !keepsName {
+		for _, j := range a.st.MyJobs.Data {
+			if j.ID.Raw == id {
+				name = j.Name
+			}
+		}
+	}
 	a.Update(views.OpenJobMsg{ID: id})
 	if a.rerun != nil || !strings.Contains(screen(a), id) {
 		t.Fatalf("did not jump to %s:\n%s", id, screen(a))
@@ -233,14 +250,14 @@ func TestRerunAndNotifyOnRealCluster(t *testing.T) {
 		_, next := a.Update(cmd())
 		collectRaw(next, &raw)
 	}
-	if !strings.Contains(raw.String(), "\x1b]9;Job completed: "+id+" sdash-test-rerunui: COMPLETED") {
+	if !strings.Contains(raw.String(), "\x1b]9;Job completed: "+id+" "+name+": COMPLETED") {
 		t.Fatalf("OSC 9 bytes = %q (flash %+v)", raw.String(), a.flash)
 	}
 	env, err := os.ReadFile(hookOut)
 	if err != nil {
 		t.Fatalf("hook did not run: %v", err)
 	}
-	for _, want := range []string{"SDASH_JOB_ID=" + id, "SDASH_JOB_NAME=sdash-test-rerunui", "SDASH_JOB_STATE=COMPLETED", "SDASH_EXIT_CODE=0:0"} {
+	for _, want := range []string{"SDASH_JOB_ID=" + id, "SDASH_JOB_NAME=" + name, "SDASH_JOB_STATE=COMPLETED", "SDASH_EXIT_CODE=0:0"} {
 		if !strings.Contains(string(env), want) {
 			t.Errorf("hook env lacks %s:\n%s", want, env)
 		}

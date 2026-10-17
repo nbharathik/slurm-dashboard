@@ -20,6 +20,8 @@ type Request struct {
 	Time      time.Duration // 0 = no limit asked
 	Nodes     int           // how many nodes; 0 or 1 = one
 	Partition string        // "" = any
+	// Who is the user; partitions closed to them are left out. Nil skips the check.
+	Who *Identity
 }
 
 // Fit is a node that could take the request.
@@ -40,16 +42,31 @@ type FitResult struct {
 	// Reasons explains an empty answer: no node has that GPU type, every
 	// partition's time limit is too short, ...
 	Reasons []string
+	// Denied are the partitions left out because the user may not submit to
+	// them; Unverified are partitions in the answer whose access could not
+	// be checked.
+	Denied, Unverified []string
 }
 
 // FitNodes finds the nodes that fit req now, or the soonest one.
 func FitNodes(usage []NodeUsage, parts []model.Partition, req Request, aliases map[string]string) FitResult {
 	var res FitResult
 	eligible := map[string][]string{} // node → partitions it may run in
+	unverified := map[string]bool{}
+	denyWhy := map[string]string{}
 	partsOK := 0
 	for _, p := range parts {
 		if req.Partition != "" && p.Name != req.Partition {
 			continue
+		}
+		if req.Who != nil {
+			access, why := PartitionAccess(p, *req.Who)
+			if access == AccessDenied {
+				res.Denied = append(res.Denied, p.Name)
+				denyWhy[p.Name] = why
+				continue
+			}
+			unverified[p.Name] = access == AccessUnknown
 		}
 		if p.State != "UP" || (req.Time > 0 && p.MaxTime != nil && *p.MaxTime < req.Time) {
 			continue
@@ -62,6 +79,10 @@ func FitNodes(usage []NodeUsage, parts []model.Partition, req Request, aliases m
 	switch {
 	case req.Partition != "" && !slices.ContainsFunc(parts, func(p model.Partition) bool { return p.Name == req.Partition }):
 		res.Reasons = append(res.Reasons, "no partition "+req.Partition)
+	case req.Partition != "" && len(res.Denied) > 0:
+		res.Reasons = append(res.Reasons, "you may not submit to partition "+req.Partition+" ("+denyWhy[req.Partition]+")")
+	case partsOK == 0 && len(res.Denied) > 0:
+		res.Reasons = append(res.Reasons, "no partition you may submit to is up and allows that time limit")
 	case partsOK == 0:
 		res.Reasons = append(res.Reasons, "no partition that is up allows that time limit")
 	}
@@ -129,6 +150,18 @@ func FitNodes(usage []NodeUsage, parts []model.Partition, req Request, aliases m
 	slices.SortFunc(res.Now, func(a, b Fit) int {
 		return cmp.Or(cmp.Compare(b.FreeGPUs, a.FreeGPUs), cmp.Compare(b.FreeCPUs, a.FreeCPUs), strings.Compare(a.Node, b.Node))
 	})
+	fits := res.Now
+	if res.Soonest != nil {
+		fits = append(slices.Clone(fits), *res.Soonest)
+	}
+	for _, f := range fits {
+		for _, p := range f.Partitions {
+			if unverified[p] && !slices.Contains(res.Unverified, p) {
+				res.Unverified = append(res.Unverified, p)
+			}
+		}
+	}
+	slices.Sort(res.Unverified)
 	return res
 }
 

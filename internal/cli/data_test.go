@@ -186,6 +186,9 @@ func TestRecordWithFakes(t *testing.T) {
 	if code := runApp(h, a, "record"); code != ExitUsage {
 		t.Fatalf("missing --out: exit %d", code)
 	}
+	if got := versionDir(22, 5); got != "22.05" {
+		t.Fatalf("versionDir(22, 5) = %q", got)
+	}
 }
 
 func TestRecordPreservesExistingDirectories(t *testing.T) {

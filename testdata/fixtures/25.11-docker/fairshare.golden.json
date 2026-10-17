@@ -1,0 +1,14 @@
+{
+  "items": [
+    {
+      "Account": "ml-lab",
+      "User": "you",
+      "RawShares": 1,
+      "NormShares": 0.25,
+      "RawUsage": 692,
+      "EffectiveUsage": 0,
+      "FairShare": 0
+    }
+  ],
+  "warnings": null
+}

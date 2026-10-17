@@ -36,6 +36,7 @@ func TestCommandsMatchSpec(t *testing.T) {
 		"sacctscript":  c.SacctBatchScript("812"),
 		"final":        c.FinalStates([]string{"1", "2"}),
 		"submitline":   c.SubmitLine("812"),
+		"groups":       Groups(),
 		"version":      Version(),
 		"config":       Config(),
 	}

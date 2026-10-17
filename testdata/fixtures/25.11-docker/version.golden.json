@@ -1,0 +1,15 @@
+{
+  "items": {
+    "version": "25.11.2",
+    "major": 25,
+    "minor": 11,
+    "patch": 2,
+    "has_me": true,
+    "has_overlap": true,
+    "has_sstat": false,
+    "has_sshare": false,
+    "has_sprio": false,
+    "has_sacct": false
+  },
+  "warnings": null
+}

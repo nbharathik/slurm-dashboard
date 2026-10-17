@@ -1,0 +1,505 @@
+{
+  "items": [
+    {
+      "ID": {
+        "raw": "1",
+        "array_job_id": 1,
+        "het_offset": -1
+      },
+      "Name": "wasteful",
+      "Partition": "cpu",
+      "State": "COMPLETED",
+      "CancelledByUID": "",
+      "ExitCode": 0,
+      "Signal": 0,
+      "Submit": "2026-10-17T10:13:10Z",
+      "Start": "2026-10-17T10:13:12Z",
+      "End": "2026-10-17T10:14:12Z",
+      "Elapsed": 60000000000,
+      "TimeLimit": 300000000000,
+      "AllocCPUs": 8,
+      "TotalCPU": 2000000,
+      "AllocMemMB": 4000,
+      "PeakMemMB": 3,
+      "GPUs": 0,
+      "GPUType": "",
+      "Nodes": 1,
+      "NodeList": [
+        "c1"
+      ],
+      "WorkDir": "/home/you",
+      "Eff": {
+        "CPU": 0.000004166666666666667,
+        "Mem": 0.00075,
+        "Time": 0.2,
+        "GPUHours": 0,
+        "GPUUtil": -1
+      }
+    },
+    {
+      "ID": {
+        "raw": "2",
+        "array_job_id": 2,
+        "het_offset": -1
+      },
+      "Name": "efficient",
+      "Partition": "cpu",
+      "State": "COMPLETED",
+      "CancelledByUID": "",
+      "ExitCode": 0,
+      "Signal": 0,
+      "Submit": "2026-10-17T10:13:10Z",
+      "Start": "2026-10-17T10:13:12Z",
+      "End": "2026-10-17T10:13:57Z",
+      "Elapsed": 45000000000,
+      "TimeLimit": 300000000000,
+      "AllocCPUs": 2,
+      "TotalCPU": 89888000000,
+      "AllocMemMB": 1000,
+      "PeakMemMB": 27,
+      "GPUs": 0,
+      "GPUType": "",
+      "Nodes": 1,
+      "NodeList": [
+        "c1"
+      ],
+      "WorkDir": "/home/you",
+      "Eff": {
+        "CPU": 0.9987555555555556,
+        "Mem": 0.027,
+        "Time": 0.15,
+        "GPUHours": 0,
+        "GPUUtil": -1
+      }
+    },
+    {
+      "ID": {
+        "raw": "3",
+        "array_job_id": 3,
+        "het_offset": -1
+      },
+      "Name": "fails",
+      "Partition": "cpu",
+      "State": "FAILED",
+      "CancelledByUID": "",
+      "ExitCode": 3,
+      "Signal": 0,
+      "Submit": "2026-10-17T10:13:10Z",
+      "Start": "2026-10-17T10:13:12Z",
+      "End": "2026-10-17T10:13:12Z",
+      "Elapsed": 0,
+      "TimeLimit": 300000000000,
+      "AllocCPUs": 1,
+      "TotalCPU": 1000000,
+      "AllocMemMB": 500,
+      "PeakMemMB": 0,
+      "GPUs": 0,
+      "GPUType": "",
+      "Nodes": 1,
+      "NodeList": [
+        "c2"
+      ],
+      "WorkDir": "/home/you",
+      "Eff": {
+        "CPU": -1,
+        "Mem": -1,
+        "Time": 0,
+        "GPUHours": 0,
+        "GPUUtil": -1
+      }
+    },
+    {
+      "ID": {
+        "raw": "4",
+        "array_job_id": 4,
+        "het_offset": -1
+      },
+      "Name": "will-fail",
+      "Partition": "cpu",
+      "State": "FAILED",
+      "CancelledByUID": "",
+      "ExitCode": 1,
+      "Signal": 0,
+      "Submit": "2026-10-17T10:13:10Z",
+      "Start": "2026-10-17T10:13:12Z",
+      "End": "2026-10-17T10:13:15Z",
+      "Elapsed": 3000000000,
+      "TimeLimit": 300000000000,
+      "AllocCPUs": 1,
+      "TotalCPU": 2000000,
+      "AllocMemMB": 500,
+      "PeakMemMB": 3,
+      "GPUs": 0,
+      "GPUType": "",
+      "Nodes": 1,
+      "NodeList": [
+        "c2"
+      ],
+      "WorkDir": "/home/you",
+      "Eff": {
+        "CPU": 0.0006666666666666666,
+        "Mem": 0.006,
+        "Time": 0.01,
+        "GPUHours": 0,
+        "GPUUtil": -1
+      }
+    },
+    {
+      "ID": {
+        "raw": "6",
+        "array_job_id": 6,
+        "het_offset": -1
+      },
+      "Name": "times-out",
+      "Partition": "cpu",
+      "State": "TIMEOUT",
+      "CancelledByUID": "",
+      "ExitCode": 0,
+      "Signal": 0,
+      "Submit": "2026-10-17T10:13:10Z",
+      "Start": "2026-10-17T10:13:12Z",
+      "End": "2026-10-17T10:14:27Z",
+      "Elapsed": 75000000000,
+      "TimeLimit": 60000000000,
+      "AllocCPUs": 1,
+      "TotalCPU": 1000000,
+      "AllocMemMB": 500,
+      "PeakMemMB": 3,
+      "GPUs": 0,
+      "GPUType": "",
+      "Nodes": 1,
+      "NodeList": [
+        "c2"
+      ],
+      "WorkDir": "/home/you",
+      "Eff": {
+        "CPU": 0.000013333333333333333,
+        "Mem": 0.006,
+        "Time": 1.25,
+        "GPUHours": 0,
+        "GPUUtil": -1
+      }
+    },
+    {
+      "ID": {
+        "raw": "7",
+        "array_job_id": 7,
+        "het_offset": -1
+      },
+      "Name": "cancel-me",
+      "Partition": "cpu",
+      "State": "CANCELLED",
+      "CancelledByUID": "1000",
+      "ExitCode": 0,
+      "Signal": 0,
+      "Submit": "2026-10-17T10:13:10Z",
+      "Start": "2026-10-17T10:13:12Z",
+      "End": "2026-10-17T10:13:13Z",
+      "Elapsed": 1000000000,
+      "TimeLimit": 300000000000,
+      "AllocCPUs": 1,
+      "TotalCPU": 1000000,
+      "AllocMemMB": 500,
+      "PeakMemMB": 0,
+      "GPUs": 0,
+      "GPUType": "",
+      "Nodes": 1,
+      "NodeList": [
+        "c2"
+      ],
+      "WorkDir": "/home/you",
+      "Eff": {
+        "CPU": 0.001,
+        "Mem": -1,
+        "Time": 0.0033333333333333335,
+        "GPUHours": 0,
+        "GPUUtil": -1
+      }
+    },
+    {
+      "ID": {
+        "raw": "8",
+        "array_job_id": 8,
+        "het_offset": -1
+      },
+      "Name": "oom",
+      "Partition": "cpu",
+      "State": "FAILED",
+      "CancelledByUID": "",
+      "ExitCode": 0,
+      "Signal": 9,
+      "Submit": "2026-10-17T10:13:10Z",
+      "Start": "2026-10-17T10:13:12Z",
+      "End": "2026-10-17T10:13:15Z",
+      "Elapsed": 3000000000,
+      "TimeLimit": 300000000000,
+      "AllocCPUs": 1,
+      "TotalCPU": 2000000,
+      "AllocMemMB": 100,
+      "PeakMemMB": 311,
+      "GPUs": 0,
+      "GPUType": "",
+      "Nodes": 1,
+      "NodeList": [
+        "c2"
+      ],
+      "WorkDir": "/home/you",
+      "Eff": {
+        "CPU": 0.0006666666666666666,
+        "Mem": 3.11,
+        "Time": 0.01,
+        "GPUHours": 0,
+        "GPUUtil": -1
+      }
+    },
+    {
+      "ID": {
+        "raw": "9",
+        "array_job_id": 9,
+        "het_offset": -1
+      },
+      "Name": "my-train",
+      "Partition": "gpu",
+      "State": "RUNNING",
+      "CancelledByUID": "",
+      "ExitCode": 0,
+      "Signal": 0,
+      "Submit": "2026-10-17T10:13:10Z",
+      "Start": "2026-10-17T10:13:12Z",
+      "End": "0001-01-01T00:00:00Z",
+      "Elapsed": 186000000000,
+      "TimeLimit": 14400000000000,
+      "AllocCPUs": 2,
+      "TotalCPU": 0,
+      "AllocMemMB": 1000,
+      "PeakMemMB": 0,
+      "GPUs": 1,
+      "GPUType": "",
+      "Nodes": 1,
+      "NodeList": [
+        "g1"
+      ],
+      "WorkDir": "/home/you",
+      "Eff": {
+        "CPU": 0,
+        "Mem": -1,
+        "Time": 0.012916666666666667,
+        "GPUHours": 0.051666666666666666,
+        "GPUUtil": -1
+      }
+    },
+    {
+      "ID": {
+        "raw": "15",
+        "array_job_id": 15,
+        "het_offset": -1
+      },
+      "Name": "big-gpu",
+      "Partition": "gpu",
+      "State": "PENDING",
+      "CancelledByUID": "",
+      "ExitCode": 0,
+      "Signal": 0,
+      "Submit": "2026-10-17T10:13:10Z",
+      "Start": "0001-01-01T00:00:00Z",
+      "End": "0001-01-01T00:00:00Z",
+      "Elapsed": 0,
+      "TimeLimit": 3600000000000,
+      "AllocCPUs": 1,
+      "TotalCPU": 0,
+      "AllocMemMB": 500,
+      "PeakMemMB": 0,
+      "GPUs": 0,
+      "GPUType": "",
+      "Nodes": 1,
+      "NodeList": null,
+      "WorkDir": "/home/you",
+      "Eff": {
+        "CPU": -1,
+        "Mem": -1,
+        "Time": 0,
+        "GPUHours": 0,
+        "GPUUtil": -1
+      }
+    },
+    {
+      "ID": {
+        "raw": "17",
+        "array_job_id": 17,
+        "het_offset": -1
+      },
+      "Name": "too-long",
+      "Partition": "debug",
+      "State": "PENDING",
+      "CancelledByUID": "",
+      "ExitCode": 0,
+      "Signal": 0,
+      "Submit": "2026-10-17T10:13:10Z",
+      "Start": "0001-01-01T00:00:00Z",
+      "End": "0001-01-01T00:00:00Z",
+      "Elapsed": 0,
+      "TimeLimit": 7200000000000,
+      "AllocCPUs": 1,
+      "TotalCPU": 0,
+      "AllocMemMB": 500,
+      "PeakMemMB": 0,
+      "GPUs": 0,
+      "GPUType": "",
+      "Nodes": 1,
+      "NodeList": null,
+      "WorkDir": "/home/you",
+      "Eff": {
+        "CPU": -1,
+        "Mem": -1,
+        "Time": 0,
+        "GPUHours": 0,
+        "GPUUtil": -1
+      }
+    },
+    {
+      "ID": {
+        "raw": "18",
+        "array_job_id": 18,
+        "het_offset": -1
+      },
+      "Name": "crosses-maint",
+      "Partition": "cpu",
+      "State": "PENDING",
+      "CancelledByUID": "",
+      "ExitCode": 0,
+      "Signal": 0,
+      "Submit": "2026-10-17T10:13:10Z",
+      "Start": "0001-01-01T00:00:00Z",
+      "End": "0001-01-01T00:00:00Z",
+      "Elapsed": 0,
+      "TimeLimit": 259200000000000,
+      "AllocCPUs": 1,
+      "TotalCPU": 0,
+      "AllocMemMB": 500,
+      "PeakMemMB": 0,
+      "GPUs": 0,
+      "GPUType": "",
+      "Nodes": 1,
+      "NodeList": null,
+      "WorkDir": "/home/you",
+      "Eff": {
+        "CPU": -1,
+        "Mem": -1,
+        "Time": 0,
+        "GPUHours": 0,
+        "GPUUtil": -1
+      }
+    },
+    {
+      "ID": {
+        "raw": "14_1",
+        "array_job_id": 14,
+        "task": "1",
+        "het_offset": -1
+      },
+      "Name": "sweep",
+      "Partition": "cpu",
+      "State": "RUNNING",
+      "CancelledByUID": "",
+      "ExitCode": 0,
+      "Signal": 0,
+      "Submit": "2026-10-17T10:13:10Z",
+      "Start": "2026-10-17T10:13:12Z",
+      "End": "0001-01-01T00:00:00Z",
+      "Elapsed": 186000000000,
+      "TimeLimit": 3600000000000,
+      "AllocCPUs": 1,
+      "TotalCPU": 0,
+      "AllocMemMB": 500,
+      "PeakMemMB": 0,
+      "GPUs": 0,
+      "GPUType": "",
+      "Nodes": 1,
+      "NodeList": [
+        "c2"
+      ],
+      "WorkDir": "/home/you",
+      "Eff": {
+        "CPU": 0,
+        "Mem": -1,
+        "Time": 0.051666666666666666,
+        "GPUHours": 0,
+        "GPUUtil": -1
+      }
+    },
+    {
+      "ID": {
+        "raw": "14_2",
+        "array_job_id": 14,
+        "task": "2",
+        "het_offset": -1
+      },
+      "Name": "sweep",
+      "Partition": "cpu",
+      "State": "RUNNING",
+      "CancelledByUID": "",
+      "ExitCode": 0,
+      "Signal": 0,
+      "Submit": "2026-10-17T10:13:10Z",
+      "Start": "2026-10-17T10:13:12Z",
+      "End": "0001-01-01T00:00:00Z",
+      "Elapsed": 186000000000,
+      "TimeLimit": 3600000000000,
+      "AllocCPUs": 1,
+      "TotalCPU": 0,
+      "AllocMemMB": 500,
+      "PeakMemMB": 0,
+      "GPUs": 0,
+      "GPUType": "",
+      "Nodes": 1,
+      "NodeList": [
+        "c2"
+      ],
+      "WorkDir": "/home/you",
+      "Eff": {
+        "CPU": 0,
+        "Mem": -1,
+        "Time": 0.051666666666666666,
+        "GPUHours": 0,
+        "GPUUtil": -1
+      }
+    },
+    {
+      "ID": {
+        "raw": "25",
+        "array_job_id": 25,
+        "het_offset": -1
+      },
+      "Name": "latency",
+      "Partition": "cpu",
+      "State": "CANCELLED",
+      "CancelledByUID": "1000",
+      "ExitCode": 0,
+      "Signal": 0,
+      "Submit": "2026-10-17T10:15:52Z",
+      "Start": "2026-10-17T10:15:53Z",
+      "End": "2026-10-17T10:16:04Z",
+      "Elapsed": 11000000000,
+      "TimeLimit": 120000000000,
+      "AllocCPUs": 1,
+      "TotalCPU": 25000000,
+      "AllocMemMB": 500,
+      "PeakMemMB": 3,
+      "GPUs": 0,
+      "GPUType": "",
+      "Nodes": 1,
+      "NodeList": [
+        "c1"
+      ],
+      "WorkDir": "/",
+      "Eff": {
+        "CPU": 0.002272727272727273,
+        "Mem": 0.006,
+        "Time": 0.09166666666666666,
+        "GPUHours": 0,
+        "GPUUtil": -1
+      }
+    }
+  ],
+  "warnings": null
+}

@@ -58,7 +58,7 @@ func (a *app) record(ctx context.Context, w io.Writer, out string, anonymize boo
 		return err
 	}
 	caps := rt.store.Caps
-	dir := filepath.Join(out, fmt.Sprintf("%d.%d", caps.Major, caps.Minor))
+	dir := filepath.Join(out, versionDir(caps.Major, caps.Minor))
 	if err := os.MkdirAll(out, 0o700); err != nil {
 		return err
 	}
@@ -201,6 +201,9 @@ func (a *app) record(ctx context.Context, w io.Writer, out string, anonymize boo
 	_, err = io.WriteString(w, msg)
 	return err
 }
+
+// versionDir names a recording like Slurm's releases: 22.05, not 22.5.
+func versionDir(major, minor int) string { return fmt.Sprintf("%d.%02d", major, minor) }
 
 // keepLines rewrites a recorded file keeping only lines that start with
 // one of the prefixes (after spaces), so the full site configuration is

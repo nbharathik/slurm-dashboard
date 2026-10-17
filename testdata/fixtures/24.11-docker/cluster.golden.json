@@ -1,0 +1,124 @@
+{
+  "items": [
+    {
+      "ID": {
+        "raw": "13",
+        "array_job_id": 13,
+        "het_offset": -1
+      },
+      "User": "carol",
+      "Partition": "cpu",
+      "NodeList": [
+        "c1"
+      ],
+      "EndTime": "2026-10-17T15:13:03Z",
+      "GPUs": 0,
+      "MIGSlices": 0,
+      "CPUs": 4,
+      "MemMB": 2000
+    },
+    {
+      "ID": {
+        "raw": "12",
+        "array_job_id": 12,
+        "het_offset": -1
+      },
+      "User": "alice",
+      "Partition": "cpu",
+      "NodeList": [
+        "c1"
+      ],
+      "EndTime": "2026-10-17T14:13:04Z",
+      "GPUs": 0,
+      "MIGSlices": 0,
+      "CPUs": 2,
+      "MemMB": 1000
+    },
+    {
+      "ID": {
+        "raw": "21",
+        "array_job_id": 21,
+        "het_offset": -1
+      },
+      "User": "you",
+      "Partition": "cpu",
+      "NodeList": [
+        "c2"
+      ],
+      "EndTime": "2026-10-17T11:13:04Z",
+      "GPUs": 0,
+      "MIGSlices": 0,
+      "CPUs": 1,
+      "MemMB": 500
+    },
+    {
+      "ID": {
+        "raw": "22",
+        "array_job_id": 22,
+        "het_offset": -1
+      },
+      "User": "you",
+      "Partition": "cpu",
+      "NodeList": [
+        "c2"
+      ],
+      "EndTime": "2026-10-17T11:13:04Z",
+      "GPUs": 0,
+      "MIGSlices": 0,
+      "CPUs": 1,
+      "MemMB": 500
+    },
+    {
+      "ID": {
+        "raw": "9",
+        "array_job_id": 9,
+        "het_offset": -1
+      },
+      "User": "you",
+      "Partition": "gpu",
+      "NodeList": [
+        "g1"
+      ],
+      "EndTime": "2026-10-17T14:13:03Z",
+      "GPUs": 1,
+      "MIGSlices": 0,
+      "CPUs": 2,
+      "MemMB": 1000
+    },
+    {
+      "ID": {
+        "raw": "10",
+        "array_job_id": 10,
+        "het_offset": -1
+      },
+      "User": "alice",
+      "Partition": "gpu",
+      "NodeList": [
+        "g1"
+      ],
+      "EndTime": "2026-10-17T14:13:03Z",
+      "GPUs": 1,
+      "MIGSlices": 0,
+      "CPUs": 2,
+      "MemMB": 1000
+    },
+    {
+      "ID": {
+        "raw": "11",
+        "array_job_id": 11,
+        "het_offset": -1
+      },
+      "User": "bob",
+      "Partition": "gpu",
+      "NodeList": [
+        "g1"
+      ],
+      "EndTime": "2026-10-17T14:13:03Z",
+      "GPUs": 1,
+      "MIGSlices": 0,
+      "CPUs": 2,
+      "MemMB": 1000
+    }
+  ],
+  "warnings": null
+}

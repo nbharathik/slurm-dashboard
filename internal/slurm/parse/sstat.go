@@ -1,6 +1,7 @@
 package parse
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -40,8 +41,13 @@ func parseSstatRow(w *warnings, n int, line string) (sstatRow, bool) {
 	}
 	r.aveRSS, err = units.MemMB(f[3], 0)
 	fe.set(err)
-	r.aveCPU, _, err = units.ParseDuration(f[4])
+	var kind units.DurKind
+	r.aveCPU, kind, err = units.ParseDuration(f[4])
 	fe.set(err)
+	if kind == units.DurUnknown && f[4] != "" {
+		// An unmeasured CPU time read as zero would call every running job idle.
+		fe.set(fmt.Errorf("AveCPU %q is not a measured time", f[4]))
+	}
 	if u, ok := tres["gres/gpuutil"]; ok {
 		if v, err := strconv.ParseFloat(u, 64); err == nil && v >= 0 {
 			r.gpuUtil, r.hasUtil = math.Min(v/100, 1), true

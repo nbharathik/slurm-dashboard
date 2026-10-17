@@ -105,6 +105,8 @@ type PartSummary struct {
 	Pending                   int
 	PendingKnown              bool
 	DownReasons               []string // "node: reason", sorted
+	Access                    Access   // whether the user may submit here (see ApplyAccess)
+	AccessWhy                 string   // the Allow or Deny list behind a denied or unknown Access
 }
 
 // TypeCount is a number of GPUs of one type, and how many are free.

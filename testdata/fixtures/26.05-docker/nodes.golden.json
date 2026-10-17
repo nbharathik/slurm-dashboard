@@ -1,0 +1,112 @@
+{
+  "items": [
+    {
+      "Name": "c1",
+      "State": "MIXED",
+      "Flags": null,
+      "Reason": "",
+      "Partitions": [
+        "cpu",
+        "debug"
+      ],
+      "CPUTotal": 16,
+      "CPUAlloc": 6,
+      "CPULoad": 0.42,
+      "MemTotalMB": 8000,
+      "MemAllocMB": 3000,
+      "MemFreeMB": 10160,
+      "GPUTotal": 0,
+      "GPUAlloc": 0,
+      "GPUType": "",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": null,
+      "Features": null,
+      "BootTime": "2026-10-17T10:09:50Z"
+    },
+    {
+      "Name": "c2",
+      "State": "MIXED",
+      "Flags": null,
+      "Reason": "",
+      "Partitions": [
+        "cpu"
+      ],
+      "CPUTotal": 16,
+      "CPUAlloc": 2,
+      "CPULoad": 0.39,
+      "MemTotalMB": 8000,
+      "MemAllocMB": 1000,
+      "MemFreeMB": 10189,
+      "GPUTotal": 0,
+      "GPUAlloc": 0,
+      "GPUType": "",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": null,
+      "Features": null,
+      "BootTime": "2026-10-17T10:09:50Z"
+    },
+    {
+      "Name": "down1",
+      "State": "UNKNOWN",
+      "Flags": [
+        "DRAIN",
+        "NOT_RESPONDING"
+      ],
+      "Reason": "bad DIMM [root@2026-10-17T10:13:04]",
+      "Partitions": [
+        "cpu"
+      ],
+      "CPUTotal": 16,
+      "CPUAlloc": 0,
+      "CPULoad": 0,
+      "MemTotalMB": 8000,
+      "MemAllocMB": 0,
+      "MemFreeMB": -1,
+      "GPUTotal": 0,
+      "GPUAlloc": 0,
+      "GPUType": "",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": null,
+      "Features": null,
+      "BootTime": "0001-01-01T00:00:00Z"
+    },
+    {
+      "Name": "g1",
+      "State": "MIXED",
+      "Flags": [
+        "PLANNED"
+      ],
+      "Reason": "",
+      "Partitions": [
+        "gpu"
+      ],
+      "CPUTotal": 16,
+      "CPUAlloc": 6,
+      "CPULoad": 0.39,
+      "MemTotalMB": 8000,
+      "MemAllocMB": 3000,
+      "MemFreeMB": 10189,
+      "GPUTotal": 4,
+      "GPUAlloc": 3,
+      "GPUType": "h100",
+      "MIGTotal": 0,
+      "MIGAlloc": 0,
+      "GPUs": [
+        {
+          "Type": "h100",
+          "Total": 4,
+          "Alloc": 3,
+          "MIG": false
+        }
+      ],
+      "Features": [
+        "h100"
+      ],
+      "BootTime": "2026-10-17T10:09:50Z"
+    }
+  ],
+  "warnings": null
+}

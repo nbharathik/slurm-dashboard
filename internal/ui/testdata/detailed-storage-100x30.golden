@@ -7,9 +7,9 @@
   ▶ Home      Yours   █████░░░ 31G/50G (hard 55G)   212k/1M   ▁▁▂▃▄▅▅▆▇█ full ~6mo  /home…  nfs     
     Scratch   Yours   ███████░ 9.2T/10T (hard 11T)  3.1M/5M   ▁▂▂▃▄▅▅▆▇█ full ~19d  /scra…  lustre  
     Project   Yours   ██░░░░░░ 1.2T/5T              900k/10M  ▁▁▂▃▄▅▅▆▇█            /proj…  gpfs    
-    Home      Shared  Unavailable                             collecting            /home…  nfs     
-    Scratch   Shared  Unavailable                             collecting            /scra…  lustre  
-    Project   Shared  Unavailable                             collecting            /proj…  gpfs    
+    Home      Shared  █████░░░ 1.3T/2.1T                      collecting            /home…  nfs     
+    Scratch   Shared  █████░░░ 273T/440T                      collecting            /scra…  lustre  
+    Project   Shared  █████░░░ 124T/200T                      collecting            /proj…  gpfs    
                                                                                                     
                                                                                                     
                                                                                                     

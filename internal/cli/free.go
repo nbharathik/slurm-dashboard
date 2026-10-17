@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
 	"strings"
 	"text/tabwriter"
 	"time"
@@ -59,6 +60,8 @@ submits nothing.`,
 				return err
 			}
 			rt.loadCluster(ctx, false)
+			who := rt.accessIdentity(ctx)
+			req.Who = &who
 			res := state.FitNodes(rt.scopedUsage(), rt.scopedPartitions(), req, rt.cfg.GPUNames)
 			doc := report.Free(report.NewHeader(rt.store, a.clock()), req, res)
 			if test {
@@ -168,12 +171,22 @@ func renderFree(w io.Writer, doc report.FreeDoc, req state.Request, now time.Tim
 		what = append(what, fmt.Sprintf("on each of %d nodes", req.Nodes))
 	}
 	fmt.Fprintf(&b, "Looking for: %s\n\n", strings.Join(what, ", "))
+	partitions := func(names []string) string {
+		marked := make([]string, len(names))
+		for i, n := range names {
+			marked[i] = n
+			if slices.Contains(doc.Unverified, n) {
+				marked[i] += "?"
+			}
+		}
+		return strings.Join(marked, ",")
+	}
 	fitLine := func(tw *tabwriter.Writer, f report.FitNode) {
 		mem := "not tracked"
 		if f.FreeMemMB != nil {
 			mem = units.FormatMB(float64(*f.FreeMemMB))
 		}
-		_, _ = fmt.Fprintf(tw, "  %s\t%s\t%d\t%d\t%s\n", f.Node, strings.Join(f.Partitions, ","), f.FreeCPUs, f.FreeGPUs, mem)
+		_, _ = fmt.Fprintf(tw, "  %s\t%s\t%d\t%d\t%s\n", f.Node, partitions(f.Partitions), f.FreeCPUs, f.FreeGPUs, mem)
 	}
 	switch {
 	case len(doc.Now) > 0:
@@ -190,12 +203,18 @@ func renderFree(w io.Writer, doc report.FreeDoc, req state.Request, now time.Tim
 	case doc.Soonest != nil:
 		s := doc.Soonest
 		fmt.Fprintf(&b, "Nothing fits now. Soonest: %s (%s) at %s, in %s, when running jobs there reach their time limits.\n",
-			s.Node, strings.Join(s.Partitions, ","), s.At.Local().Format("Mon 15:04"), units.FormatShort(max(s.At.Sub(now), 0)))
+			s.Node, partitions(s.Partitions), s.At.Local().Format("Mon 15:04"), units.FormatShort(max(s.At.Sub(now), 0)))
 	default:
 		b.WriteString("No node can take this job.\n")
 	}
 	for _, r := range doc.Reasons {
 		fmt.Fprintf(&b, "  %s\n", r)
+	}
+	if len(doc.Denied) > 0 {
+		fmt.Fprintf(&b, "  Left out, you may not submit to: %s\n", strings.Join(doc.Denied, ", "))
+	}
+	if len(doc.Unverified) > 0 {
+		fmt.Fprintf(&b, "  ? Could not check your access to %s; it may be closed to you.\n", strings.Join(doc.Unverified, ", "))
 	}
 	if t := doc.TestOnly; t != nil {
 		b.WriteString("\nThe scheduler (sbatch --test-only): ")

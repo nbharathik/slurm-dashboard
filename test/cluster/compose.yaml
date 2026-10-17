@@ -1,0 +1,77 @@
+x-home: &home
+  type: volume
+  source: home
+  target: /home
+  volume:
+    nocopy: true
+
+x-common: &common
+  image: sdash-cluster:${SLURM:-dev}
+  init: true
+  volumes:
+    - *home
+
+x-node: &node
+  <<: *common
+  privileged: true
+  # Jobs submitted from /src (the integration tests) start in the same directory.
+  volumes:
+    - *home
+    - ${SDASH_ROOT:-../..}:/src:ro
+
+services:
+  db:
+    <<: *common
+    hostname: db
+    command: ["/opt/sdash/entrypoint.sh", "db"]
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 3s
+      retries: 60
+
+  ctld:
+    <<: *common
+    hostname: ctld
+    command: ["/opt/sdash/entrypoint.sh", "ctld"]
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "test", "-f", "/run/sdash-ready"]
+      interval: 3s
+      retries: 100
+
+  c1:
+    <<: *node
+    hostname: c1
+    command: ["/opt/sdash/entrypoint.sh", "node"]
+
+  c2:
+    <<: *node
+    hostname: c2
+    command: ["/opt/sdash/entrypoint.sh", "node"]
+
+  g1:
+    <<: *node
+    hostname: g1
+    command: ["/opt/sdash/entrypoint.sh", "node"]
+
+  login:
+    <<: *common
+    build:
+      context: .
+      args:
+        BASE: ${BASE:-ubuntu:24.04}
+    hostname: login
+    command: ["/opt/sdash/entrypoint.sh", "login"]
+    depends_on:
+      ctld:
+        condition: service_healthy
+    volumes:
+      - *home
+      - ${SDASH_ROOT:-../..}:/src:ro
+      - ${SDASH_ROOT:-../..}/build:/opt/build:ro
+      - ${SDASH_ROOT:-../..}/build/compat:/out
+
+volumes:
+  home:

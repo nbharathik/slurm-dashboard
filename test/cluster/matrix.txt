@@ -1,0 +1,6 @@
+21.08 ubuntu:22.04
+22.05 debian:bookworm
+23.11 ubuntu:24.04
+24.11 debian:trixie
+25.11 ubuntu:26.04
+26.05 debian:sid

@@ -1,0 +1,25 @@
+11wastefulcpuCOMPLETED0:02026-10-17T10:13:082026-10-17T10:13:092026-10-17T10:14:09605800:00.0024000Mbilling=8,cpu=8,mem=4000M,node=11c1/home/you
+1.batch1.batchbatchCOMPLETED0:02026-10-17T10:13:092026-10-17T10:13:092026-10-17T10:14:0960800:00.0023424Kcpu=00:00:00,energy=0,fs/disk=8545,mem=3424K,pages=0,vmem=6120Kcpu=8,mem=4000M,node=11c1
+22efficientcpuCOMPLETED0:02026-10-17T10:13:082026-10-17T10:13:092026-10-17T10:13:54455201:29.8111000Mbilling=2,cpu=2,mem=1000M,node=11c1/home/you
+2.batch2.batchbatchCOMPLETED0:02026-10-17T10:13:092026-10-17T10:13:092026-10-17T10:13:5445201:29.81124156Kcpu=00:01:29,energy=0,fs/disk=22361,mem=24156K,pages=0,vmem=220184Kcpu=2,mem=1000M,node=11c1
+33failscpuFAILED3:02026-10-17T10:13:082026-10-17T10:13:092026-10-17T10:13:0905100:00.001500Mbilling=1,cpu=1,mem=500M,node=11c2/home/you
+3.batch3.batchbatchFAILED3:02026-10-17T10:13:092026-10-17T10:13:092026-10-17T10:13:090100:00.001energy=0cpu=1,mem=500M,node=11c2
+44will-failcpuFAILED1:02026-10-17T10:13:082026-10-17T10:13:092026-10-17T10:13:1235100:00.002500Mbilling=1,cpu=1,mem=500M,node=11c2/home/you
+4.batch4.batchbatchFAILED1:02026-10-17T10:13:092026-10-17T10:13:092026-10-17T10:13:123100:00.0023572Kcpu=00:00:00,energy=0,fs/disk=8559,mem=3572K,pages=0,vmem=6120Kcpu=1,mem=500M,node=11c2
+66times-outcpuTIMEOUT0:02026-10-17T10:13:082026-10-17T10:13:092026-10-17T10:14:30811100:00.001500Mbilling=1,cpu=1,mem=500M,node=11c2/home/you
+6.batch6.batchbatchCANCELLED0:152026-10-17T10:13:092026-10-17T10:13:092026-10-17T10:14:3081100:00.0013568Kcpu=00:00:00,energy=0,fs/disk=8547,mem=3568K,pages=0,vmem=6120Kcpu=1,mem=500M,node=11c2
+77cancel-mecpuCANCELLED by 10000:02026-10-17T10:13:082026-10-17T10:13:092026-10-17T10:13:1125100:00.002500Mbilling=1,cpu=1,mem=500M,node=11c2/home/you
+7.batch7.batchbatchCANCELLED0:152026-10-17T10:13:092026-10-17T10:13:092026-10-17T10:13:112100:00.002energy=0cpu=1,mem=500M,node=11c2
+88oomcpuFAILED0:92026-10-17T10:13:082026-10-17T10:13:092026-10-17T10:13:1235100:00.003100Mbilling=1,cpu=1,mem=100M,node=11c2/home/you
+8.batch8.batchbatchCANCELLED by 00:92026-10-17T10:13:092026-10-17T10:13:092026-10-17T10:13:123100:00.003318824Kcpu=00:00:00,energy=0,fs/disk=178784,mem=318824K,pages=0,vmem=325592Kcpu=1,mem=100M,node=11c2
+99my-traingpuRUNNING0:02026-10-17T10:13:082026-10-17T10:13:09Unknown192240200:00:001000Mbilling=2,cpu=2,gres/gpu=1,mem=1000M,node=11g1/home/you
+9.batch9.batchbatchRUNNING0:02026-10-17T10:13:092026-10-17T10:13:09Unknown192200:00:00cpu=2,gres/gpu=1,mem=1000M,node=11g1
+1515big-gpugpuPENDING0:02026-10-17T10:13:08UnknownUnknown060100:00:00500M1None assigned/home/you
+1717too-longdebugPENDING0:02026-10-17T10:13:08UnknownUnknown0120100:00:00500M1None assigned/home/you
+1818crosses-maintcpuPENDING0:02026-10-17T10:13:08UnknownUnknown04320100:00:00500M1None assigned/home/you
+14_121sweepcpuRUNNING0:02026-10-17T10:13:082026-10-17T10:13:09Unknown19260100:00:00500Mbilling=1,cpu=1,mem=500M,node=11c2/home/you
+14_1.batch21.batchbatchRUNNING0:02026-10-17T10:13:092026-10-17T10:13:09Unknown192100:00:00cpu=1,mem=500M,node=11c2
+14_222sweepcpuRUNNING0:02026-10-17T10:13:082026-10-17T10:13:09Unknown19260100:00:00500Mbilling=1,cpu=1,mem=500M,node=11c2/home/you
+14_2.batch22.batchbatchRUNNING0:02026-10-17T10:13:092026-10-17T10:13:09Unknown192100:00:00cpu=1,mem=500M,node=11c2
+2525latencycpuCANCELLED by 10000:02026-10-17T10:15:552026-10-17T10:15:562026-10-17T10:16:07112100:00.025500Mbilling=1,cpu=1,mem=500M,node=11c1/
+25.batch25.batchbatchCANCELLED0:152026-10-17T10:15:562026-10-17T10:15:562026-10-17T10:16:0711100:00.0253636Kcpu=00:00:00,energy=0,fs/disk=84617,mem=3636K,pages=0,vmem=6120Kcpu=1,mem=500M,node=11c1

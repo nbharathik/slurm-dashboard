@@ -190,6 +190,17 @@ type Partition struct {
 	Nodes     []string
 	TotalCPUs int
 	TotalGPUs int
+	// Access lists; nil means ALL (allow lists) or none (deny lists).
+	AllowGroups   []string `json:",omitempty"`
+	AllowAccounts []string `json:",omitempty"`
+	AllowQOS      []string `json:",omitempty"`
+	DenyAccounts  []string `json:",omitempty"`
+	DenyQOS       []string `json:",omitempty"`
+}
+
+// Restricted reports whether the partition limits who may submit to it.
+func (p Partition) Restricted() bool {
+	return len(p.AllowGroups)+len(p.AllowAccounts)+len(p.AllowQOS)+len(p.DenyAccounts)+len(p.DenyQOS) > 0
 }
 
 // Reservation is one Slurm reservation.

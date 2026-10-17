@@ -1,0 +1,90 @@
+name: demo
+
+on:
+  workflow_dispatch:
+  # Manual runs need the workflow on main; until then a push renders it.
+  push:
+    branches: ["release/**"]
+    paths:
+      - "demo/**"
+      - "internal/demo/**"
+      - ".github/workflows/demo.yml"
+
+permissions:
+  contents: read
+
+env:
+  VHS_IMAGE: ghcr.io/charmbracelet/vhs:v0.12.1@sha256:ea49a6a1c529be83153e88321892b5585964418f0b9055e8c1e0d732194234a3
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Build sdash
+        env:
+          CGO_ENABLED: "0"
+        run: make build VERSION=v0.0.0-demo
+      - name: The idle CPU-hours the LinkedIn captions quote
+        continue-on-error: true
+        run: ./sdash --demo usage
+      - name: Install ffmpeg and fonts
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core
+      - name: Render tapes
+        run: |
+          mkdir -p docs/img demo/out/raw
+          for tape in hero screens social linkedin linkedin-square; do
+            docker run --rm -v "$PWD:/vhs" "$VHS_IMAGE" "demo/tapes/$tape.tape"
+          done
+      - name: Shrink the GIF
+        run: |
+          ffmpeg -v error -y -i docs/demo.gif -vf "fps=5,split[a][b];[a]palettegen=max_colors=64:stats_mode=diff[p];[b][p]paletteuse=dither=none:diff_mode=rectangle" docs/demo.small.gif
+          mv docs/demo.small.gif docs/demo.gif
+      - name: Burn captions into the videos
+        run: |
+          sh demo/tapes/burn-captions.sh demo/out/raw/linkedin.mp4 demo/out/linkedin.mp4 demo/tapes/linkedin-captions.txt
+          sh demo/tapes/burn-captions.sh demo/out/raw/linkedin-square.mp4 demo/out/linkedin-square.mp4 demo/tapes/linkedin-captions.txt
+          rm -r demo/out/raw
+      - name: Print file sizes
+        run: |
+          ls -l docs/demo.gif docs/img demo/out
+          for f in demo/out/*.mp4; do
+            echo "$f: $(ffprobe -v error -show_entries format=duration -of csv=p=0 "$f") s"
+          done
+      - name: Check sizes
+        run: |
+          gif=$(stat -c %s docs/demo.gif)
+          if [ "$gif" -gt 3145728 ]; then
+            echo "docs/demo.gif is $gif bytes, over the 3 MB limit" >&2
+            exit 1
+          fi
+          social=$(stat -c %s docs/img/social-preview.png)
+          if [ "$social" -gt 1048576 ]; then
+            echo "docs/img/social-preview.png is $social bytes, over GitHub's 1 MB limit" >&2
+            exit 1
+          fi
+          for f in overview jobs queue nodes usage storage why rerun social-preview; do
+            test -s "docs/img/$f.png" || { echo "docs/img/$f.png is missing" >&2; exit 1; }
+          done
+          duration() { ffprobe -v error -show_entries format=duration -of csv=p=0 "$1"; }
+          for f in demo/out/linkedin.mp4 demo/out/linkedin-square.mp4; do
+            awk -v d="$(duration "$f")" 'BEGIN { exit !(d >= 35 && d <= 40) }' || { echo "$f is not 35 to 40 s long" >&2; exit 1; }
+          done
+          awk -v d="$(duration docs/demo.gif)" 'BEGIN { exit !(d > 0 && d <= 25) }' || { echo "docs/demo.gif is longer than 25 s" >&2; exit 1; }
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: demo-assets
+          path: |
+            docs/demo.gif
+            docs/img/*
+            demo/out/*
+          if-no-files-found: error

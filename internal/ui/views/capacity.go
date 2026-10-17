@@ -76,8 +76,14 @@ func capacityLines(ctx *Context, parts []state.PartSummary, w int) (string, [][]
 				totalText = strconv.Itoa(p.Partition.TotalGPUs)
 			}
 		}
+		denied := p.Access == state.AccessDenied
+		if denied {
+			freeText, totalText = "-", "-"
+		}
 		gauge := th.Faint.Render(layout.Pad("no data", gaugeW, false, ""))
-		if known && g.total > 0 {
+		if denied {
+			gauge = th.Faint.Render(layout.Pad("no access", gaugeW, false, ""))
+		} else if known && g.total > 0 {
 			usage := float64(used) / float64(g.total)
 			filled := min(int(usage*float64(barW)+0.5), barW)
 			blocked := min(int(float64(unavailable)/float64(g.total)*float64(barW)+0.5), barW-filled)
@@ -96,6 +102,9 @@ func capacityLines(ctx *Context, parts []state.PartSummary, w int) (string, [][]
 		}
 		line += layout.Pad(g.label, 4, false, "") + gauge + "  " + layout.Pad(freeText, freeW, true, "") + " " + layout.Pad(totalText, totalW, true, "")
 		var notes []string
+		if denied {
+			notes = append(notes, "closed to you ("+p.AccessWhy+")")
+		}
 		if ctx.Config.Detailed() && g.label != "CPU" {
 			cpuFree, cpuTotal := strconv.Itoa(p.CPUFree), strconv.Itoa(p.CPUTotal)
 			if !complete {

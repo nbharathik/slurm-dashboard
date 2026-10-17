@@ -200,7 +200,14 @@ func (v *RerunView) Render(ctx *Context, w, h int) string {
 func (v *RerunView) renderForm(ctx *Context, w, h int) string {
 	th := ctx.Theme
 	inner := w - 4
-	labelW, valW := 17, max(min(inner-17-2, 22), 8)
+	noteW := 0
+	for _, f := range v.plan.Fields {
+		if f.Suggest != "" {
+			noteW = max(noteW, layout.Width("suggested "+f.Suggest))
+		}
+	}
+	// Shrink the value column so suggestions fit.
+	labelW, valW := 17, max(min(inner-17-2-noteW, 22), 8)
 	var b []string
 	b = append(b, th.Muted.Render(layout.Truncate("From "+v.Dir, inner, th.Sym.Ellipsis)), "")
 	for i, f := range v.plan.Fields {

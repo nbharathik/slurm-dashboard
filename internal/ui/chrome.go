@@ -255,13 +255,16 @@ func (a *App) footer(w int) string {
 	return layout.Pad(line, w, false, th.Sym.Ellipsis)
 }
 
-// statusRight is the data freshness (plus refresh mode); an outage replaces it.
+// statusRight is the data freshness (plus refresh mode); an outage or the
+// controller's rate limit replaces it.
 // It shrinks to fit room cells, or is left out.
 func (a *App) statusRight(room int) string {
 	th := a.th
 	fresh := a.freshness()
 	if b := a.banner(); b != "" {
 		fresh = th.Crit.Render(b)
+	} else if a.st.RateLimited(a.now()) {
+		fresh = th.Warn.Render("controller is rate-limiting; slowing down")
 	}
 	sep := th.Faint.Render(" " + th.Sym.Separator + " ")
 	full := fresh

@@ -1,0 +1,25 @@
+11wastefulcpuCOMPLETED0:02026-10-17T10:13:142026-10-17T10:13:172026-10-17T10:14:17605800:00.0054000Mbilling=8,cpu=8,mem=4000M,node=11c1/home/you
+1.batch1.batchbatchCOMPLETED0:02026-10-17T10:13:172026-10-17T10:13:172026-10-17T10:14:1760800:00.005energy=0cpu=8,mem=4000M,node=11c1
+22efficientcpuCOMPLETED0:02026-10-17T10:13:142026-10-17T10:13:172026-10-17T10:14:02455201:29.8161000Mbilling=2,cpu=2,mem=1000M,node=11c1/home/you
+2.batch2.batchbatchCOMPLETED0:02026-10-17T10:13:172026-10-17T10:13:172026-10-17T10:14:0245201:29.816energy=0cpu=2,mem=1000M,node=11c1
+33failscpuFAILED3:02026-10-17T10:13:142026-10-17T10:13:172026-10-17T10:13:1705100:00.001500Mbilling=1,cpu=1,mem=500M,node=11c2/home/you
+3.batch3.batchbatchFAILED3:02026-10-17T10:13:172026-10-17T10:13:172026-10-17T10:13:170100:00.001energy=0cpu=1,mem=500M,node=11c2
+44will-failcpuFAILED1:02026-10-17T10:13:142026-10-17T10:13:172026-10-17T10:13:2035100:00.005500Mbilling=1,cpu=1,mem=500M,node=11c2/home/you
+4.batch4.batchbatchFAILED1:02026-10-17T10:13:172026-10-17T10:13:172026-10-17T10:13:203100:00.005energy=0cpu=1,mem=500M,node=11c2
+66times-outcpuTIMEOUT0:02026-10-17T10:13:142026-10-17T10:13:172026-10-17T10:14:35781100:00.001500Mbilling=1,cpu=1,mem=500M,node=11c2/home/you
+6.batch6.batchbatchCANCELLED0:152026-10-17T10:13:172026-10-17T10:13:172026-10-17T10:14:3578100:00.001energy=0cpu=1,mem=500M,node=11c2
+77cancel-mecpuCANCELLED by 10000:02026-10-17T10:13:142026-10-17T10:13:172026-10-17T10:13:1705100:00.001500Mbilling=1,cpu=1,mem=500M,node=11c2/home/you
+7.batch7.batchbatchCANCELLED0:152026-10-17T10:13:172026-10-17T10:13:172026-10-17T10:13:170100:00.001energy=0cpu=1,mem=500M,node=11c2
+88oomcpuCOMPLETED0:02026-10-17T10:13:142026-10-17T10:13:172026-10-17T10:13:47305100:00.048100Mbilling=1,cpu=1,mem=100M,node=11c2/home/you
+8.batch8.batchbatchCOMPLETED0:02026-10-17T10:13:172026-10-17T10:13:172026-10-17T10:13:4730100:00.048energy=0cpu=1,mem=100M,node=11c2
+99my-traingpuRUNNING0:02026-10-17T10:13:142026-10-17T10:13:17Unknown190240200:00:001000Mbilling=2,cpu=2,gres/gpu=1,mem=1000M,node=11g1/home/you
+9.batch9.batchbatchRUNNING0:02026-10-17T10:13:172026-10-17T10:13:17Unknown190200:00:00cpu=2,gres/gpu=1,mem=1000M,node=11g1
+1515big-gpugpuPENDING0:02026-10-17T10:13:14UnknownUnknown060000:00:00500M1None assigned/home/you
+1717too-longdebugPENDING0:02026-10-17T10:13:14UnknownUnknown0120000:00:00500M1None assigned/home/you
+1818crosses-maintcpuPENDING0:02026-10-17T10:13:14UnknownUnknown04320000:00:00500M1None assigned/home/you
+14_121sweepcpuRUNNING0:02026-10-17T10:13:142026-10-17T10:13:17Unknown19060100:00:00500Mbilling=1,cpu=1,mem=500M,node=11c2/home/you
+14_1.batch21.batchbatchRUNNING0:02026-10-17T10:13:172026-10-17T10:13:17Unknown190100:00:00cpu=1,mem=500M,node=11c2
+14_222sweepcpuRUNNING0:02026-10-17T10:13:142026-10-17T10:13:17Unknown19060100:00:00500Mbilling=1,cpu=1,mem=500M,node=11c2/home/you
+14_2.batch22.batchbatchRUNNING0:02026-10-17T10:13:172026-10-17T10:13:17Unknown190100:00:00cpu=1,mem=500M,node=11c2
+2525latencycpuCANCELLED by 10000:02026-10-17T10:16:012026-10-17T10:16:012026-10-17T10:16:13122100:00.077500Mbilling=1,cpu=1,mem=500M,node=11c1/
+25.batch25.batchbatchCANCELLED0:152026-10-17T10:16:012026-10-17T10:16:012026-10-17T10:16:1312100:00.077energy=0cpu=1,mem=500M,node=11c1

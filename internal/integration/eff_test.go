@@ -83,10 +83,14 @@ func TestEfficiencyMatchesSeffFormula(t *testing.T) {
 	}
 	refCPU, refMem := seffReference(t, c, id)
 	t.Logf("sdash: cpu %.3f mem %.3f; seff formula: cpu %.3f mem %.3f", h.Eff.CPU, h.Eff.Mem, refCPU, refMem)
-	if math.Abs(h.Eff.CPU-refCPU) > 0.02 || math.Abs(h.Eff.Mem-refMem) > 0.02 {
+	memKnown := refMem > 0
+	if !memKnown {
+		t.Log("accounting recorded no MaxRSS; sdash reports memory efficiency as unknown")
+	}
+	if math.Abs(h.Eff.CPU-refCPU) > 0.02 || (memKnown && math.Abs(h.Eff.Mem-refMem) > 0.02) {
 		t.Fatalf("efficiency differs from the seff formula by more than 2 points")
 	}
-	if h.Eff.CPU < 0.7 || h.Eff.CPU > 1.05 || h.Eff.Mem < 0.15 || h.Eff.Mem > 0.5 {
+	if h.Eff.CPU < 0.7 || h.Eff.CPU > 1.05 || (memKnown && (h.Eff.Mem < 0.15 || h.Eff.Mem > 0.5)) {
 		t.Fatalf("implausible efficiency for the workload: cpu %.2f mem %.2f", h.Eff.CPU, h.Eff.Mem)
 	}
 }

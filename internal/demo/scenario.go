@@ -28,6 +28,7 @@ type Scenario struct {
 	Priority      string        `json:"priority"`        // "basic": priority/basic, no sshare or sprio
 	NoUsageGather bool          `json:"no_usage_gather"` // JobAcctGatherType=none: sstat has no data
 	NoJobScripts  bool          `json:"no_job_scripts"`  // AccountingStoreFlags lacks job_script
+	Groups        []string      `json:"groups"`
 	Nodes         []Node        `json:"nodes"`
 	Partitions    []Partition   `json:"partitions"`
 	Reservations  []Reservation `json:"reservations"`
@@ -70,12 +71,17 @@ type Gres struct {
 	Count int    `json:"count"`
 }
 
-// Partition is a partition.
+// Partition is a partition. The access lists are empty for ALL.
 type Partition struct {
-	Name    string `json:"name"`
-	Nodes   string `json:"nodes"` // hostlist
-	MaxTime string `json:"max_time"`
-	Default bool   `json:"default"`
+	Name          string   `json:"name"`
+	Nodes         string   `json:"nodes"` // hostlist
+	MaxTime       string   `json:"max_time"`
+	Default       bool     `json:"default"`
+	AllowGroups   []string `json:"allow_groups"`
+	AllowAccounts []string `json:"allow_accounts"`
+	DenyAccounts  []string `json:"deny_accounts"`
+	AllowQOS      []string `json:"allow_qos"`
+	DenyQOS       []string `json:"deny_qos"`
 }
 
 // Reservation starts StartIn after the scenario starts.

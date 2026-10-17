@@ -58,6 +58,11 @@ func TestTestOnlyAndParsable(t *testing.T) {
 		!est.Start.Equal(time.Date(2026, 9, 28, 13, 38, 41, 0, time.UTC)) {
 		t.Fatalf("TestOnly = %+v, %v", est, err)
 	}
+	est, err = TestOnly([]byte("sbatch: Job 23 to start at 2026-10-17T21:24:23 a using 1 processors on nodes c1 in partition cpu\n"))
+	if err != nil || est.JobID != "23" || est.Procs != 1 || est.Nodes != "c1" || est.Partition != "cpu" ||
+		!est.Start.Equal(time.Date(2026, 10, 17, 21, 24, 23, 0, time.UTC)) {
+		t.Fatalf("TestOnly with the Slurm 25.11 wording = %+v, %v", est, err)
+	}
 	if _, err := TestOnly([]byte("sbatch: error: Batch job submission failed: Invalid account\n")); err == nil ||
 		!strings.Contains(err.Error(), "Invalid account") {
 		t.Fatalf("TestOnly error = %v", err)

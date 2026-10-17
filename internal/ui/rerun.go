@@ -90,6 +90,11 @@ func (a *App) openRerun(id string) tea.Cmd {
 			}
 		}
 		if in.Dir == "" {
+			if d, err := src.JobDetail(ctx, id); err == nil && d != nil {
+				in.Dir = d.WorkDir
+			}
+		}
+		if in.Dir == "" {
 			return rerunDataMsg{err: fmt.Errorf("the working directory of %s is unknown", id)}
 		}
 		return rerunDataMsg{in: in}
