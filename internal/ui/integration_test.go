@@ -149,9 +149,12 @@ func TestFollowedLogShowsNewLines(t *testing.T) {
 	b, _ := os.ReadFile(out)
 	want := fmt.Sprintf("tick %d", strings.Count(string(b), "\n")+1)
 	start := time.Now()
-	for time.Since(start) < 5*time.Second {
+	for first := true; time.Since(start) < 5*time.Second; first = false {
 		time.Sleep(logPoll)
 		poll()
+		if first {
+			t.Logf("window %dx%d, screen:\n%s", a.w, a.h, screen(a))
+		}
 		raw, _ := os.ReadFile(out)
 		lines := strings.Split(strings.TrimSpace(string(raw)), "\n")
 		var shown []string
