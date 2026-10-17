@@ -51,6 +51,7 @@ Tested on six Slurm versions, works on more clusters, installs more reliably.
 
 - The demo shows the capacity of shared filesystems on the Storage tab.
 - The rerun form keeps its suggestions whole on narrow terminals.
+- Bubble Tea 2.1.0 and other dependency updates.
 - New README, screenshots, contributing guide, issue templates and a manual
   check list for new clusters.
 
