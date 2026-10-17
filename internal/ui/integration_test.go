@@ -154,7 +154,15 @@ func TestFollowedLogShowsNewLines(t *testing.T) {
 		poll()
 		raw, _ := os.ReadFile(out)
 		lines := strings.Split(strings.TrimSpace(string(raw)), "\n")
-		t.Logf("%v (now %.2f): file ends %q", time.Since(start).Round(10*time.Millisecond), float64(time.Now().UnixNano())/1e9, lines[max(len(lines)-3, 0):])
+		var shown []string
+		for _, l := range strings.Split(screen(a), "\n") {
+			if i := strings.Index(l, "tick "); i >= 0 {
+				if f := strings.Fields(l[i:]); len(f) > 1 {
+					shown = append(shown, f[1])
+				}
+			}
+		}
+		t.Logf("%v: file has %d lines, buffer %d, screen ends %v", time.Since(start).Round(10*time.Millisecond), len(lines), a.logView.Buf.Len(), shown[max(len(shown)-3, 0):])
 		if strings.Contains(screen(a), want) {
 			if d := time.Since(start); d > 2*time.Second+500*time.Millisecond {
 				t.Fatalf("the new line took %v to appear", d)
