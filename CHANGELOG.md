@@ -5,7 +5,7 @@ and the project uses [Semantic Versioning](https://semver.org/). Command-line
 flags, `--json` output (`"schema": 1`) and config keys stay compatible within
 0.x; new JSON fields may be added.
 
-## [0.2.0] - unreleased
+## [0.2.0] - 2026-10-17
 
 Tested on six Slurm versions, works on more clusters, installs more reliably.
 
