@@ -1,0 +1,71 @@
+*******************************************************
+sdiag output at Mon Sep 28 14:00:00 2026 (1790604000)
+Data since      Mon Sep 28 00:00:00 2026 (1790553600)
+*******************************************************
+Server thread count:  3
+RPC queue enabled:    0
+Agent queue size:     0
+Agent count:          0
+Agent thread count:   0
+DBD Agent queue size: 0
+
+Jobs submitted: 1520
+Jobs started:   1400
+Jobs completed: 1350
+Jobs canceled:  40
+Jobs failed:    10
+
+Job states ts:  Mon Sep 28 13:59:51 2026 (1790603991)
+Jobs pending:   812
+Jobs running:   402
+
+Main schedule statistics (microseconds):
+	Last cycle:   8732
+	Max cycle:    1200345
+	Total cycles: 2820
+	Mean cycle:   15890
+	Mean depth cycle:  140
+	Cycles per minute: 3
+	Last queue length: 812
+
+Main scheduler exit:
+	End of job queue:2700
+	Hit default_queue_depth:120
+	Hit sched_max_job_start: 0
+	Blocked on licenses: 0
+	Hit max_rpc_cnt: 0
+	Timeout (max_sched_time): 0
+
+Backfilling stats
+	Total backfilled jobs (since last slurm start): 9921
+	Total backfilled jobs (since last stats cycle start): 312
+	Total backfilled heterogeneous job components: 0
+	Total cycles: 1410
+	Last cycle when: Mon Sep 28 13:59:30 2026 (1790603970)
+	Last cycle: 2348112
+	Max cycle:  25031998
+	Mean cycle: 1890225
+	Last depth cycle: 812
+	Last depth cycle (try sched): 220
+	Depth Mean: 790
+	Depth Mean (try depth): 205
+	Last queue length: 812
+	Queue length mean: 760
+	Last table size: 45
+	Mean table size: 40
+
+Latency for 1000 calls to gettimeofday(): 18 microseconds
+
+Remote Procedure Call statistics by message type
+	REQUEST_PARTITION_INFO                  ( 2009) count:52310  ave_time:212    total_time:11090100
+	REQUEST_JOB_INFO                        ( 2003) count:40120  ave_time:1890   total_time:75826800
+	REQUEST_NODE_INFO                       ( 2007) count:30881  ave_time:640    total_time:19763840
+	REQUEST_SUBMIT_BATCH_JOB                ( 4003) count:1520   ave_time:4100   total_time:6232000
+
+Remote Procedure Call statistics by user
+	root            (       0) count:120000 ave_time:340    total_time:40800000
+	alice           (    1001) count:5210   ave_time:190    total_time:989900
+	you             (    1000) count:812    ave_time:200    total_time:162400
+
+Pending RPC statistics
+	No pending RPCs

@@ -22,6 +22,7 @@ const (
 	finalEvery    = 10 * time.Second
 	finalMinDelay = 3 * time.Second
 	finalAttempts = 3
+	maxEnded      = 500 // ended jobs waiting for a lookup
 )
 
 type (
@@ -47,6 +48,9 @@ func (a *App) onTransitions(ts []state.Transition) tea.Cmd {
 		case state.Started:
 			events = append(events, notify.Event{JobID: t.Job.ID.Raw, Name: t.Job.Name, State: notify.Started})
 		case state.Ended:
+			if len(a.ended) >= maxEnded {
+				a.ended = a.ended[1:] // a lookup is overdue; keep the newest
+			}
 			a.ended = append(a.ended, endedJob{job: t.Job})
 		}
 	}
@@ -183,6 +187,18 @@ func (a *App) deliver(events []notify.Event) tea.Cmd {
 // warnNotices announces each time-limit and idle-job alert once, like a job
 // end but without running notify_command.
 func (a *App) warnNotices() tea.Cmd {
+	// Forget warnings about jobs that left the queue, so the set stays small.
+	if len(a.warned) > 0 {
+		live := make(map[string]bool, len(a.st.MyJobs.Data))
+		for _, j := range a.st.MyJobs.Data {
+			live[j.ID.Raw] = true
+		}
+		for k := range a.warned {
+			if _, id, ok := strings.Cut(k, ":"); ok && !live[id] {
+				delete(a.warned, k)
+			}
+		}
+	}
 	var fresh []model.Alert
 	for _, al := range a.st.Alerts(a.now(), a.state.Dismissed) {
 		if (al.Kind == "timelimit" || al.Kind == "waste") && !a.warned[al.Key] {

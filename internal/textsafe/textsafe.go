@@ -109,10 +109,13 @@ func skipCSI(s string, i int) int {
 }
 
 // skipString skips a control string up to and including its terminator
-// (BEL, ESC \ or U+009C). An unterminated string swallows the rest.
+// (BEL, ESC \ or U+009C). A newline also ends it and is kept, so one
+// unterminated string hides at most the rest of its line (S8).
 func skipString(s string, i int) int {
 	for i < len(s) {
 		switch {
+		case s[i] == '\n':
+			return i
 		case s[i] == 0x07:
 			return i + 1
 		case s[i] == 0x1b && i+1 < len(s) && s[i+1] == '\\':

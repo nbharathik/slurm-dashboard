@@ -154,12 +154,13 @@ func orDash(s string) string {
 }
 
 func newJobsCmd(a *app) *cobra.Command {
-	var asJSON, all bool
+	var asJSON, asCSV, all bool
 	cmd := &cobra.Command{
 		Use:   "jobs",
 		Short: "List your jobs (sdash queue lists everyone's)",
 		Example: `  sdash jobs
-  sdash jobs --json`,
+  sdash jobs --json
+  sdash jobs --csv > jobs.csv`,
 		Args: usageArgs(cobra.NoArgs),
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			ctx := cmd.Context()
@@ -176,9 +177,12 @@ func newJobsCmd(a *app) *cobra.Command {
 			}
 			jobs = state.JoinJobs(jobs, st.Cluster.Data.Jobs, st.QueueRank.Data)
 			doc := report.Jobs(report.NewHeader(st, a.clock()), scope, jobs)
-			if asJSON {
+			switch {
+			case asJSON:
 				err = writeJSON(cmd.OutOrStdout(), doc)
-			} else {
+			case asCSV:
+				err = writeCSV(cmd.OutOrStdout(), doc.Jobs)
+			default:
 				err = renderJobs(cmd.OutOrStdout(), doc, all)
 			}
 			if err != nil {
@@ -191,6 +195,8 @@ func newJobsCmd(a *app) *cobra.Command {
 		},
 	}
 	cmd.Flags().BoolVar(&asJSON, "json", false, "print JSON")
+	cmd.Flags().BoolVar(&asCSV, "csv", false, "print CSV with the JSON field names as columns")
+	cmd.MarkFlagsMutuallyExclusive("json", "csv")
 	cmd.Flags().BoolVar(&all, "all", false, "show every user's jobs (same as sdash queue --group-by none)")
 	return cmd
 }
@@ -214,7 +220,11 @@ func renderJobs(w io.Writer, doc report.JobsDoc, all bool) error {
 		if j.TimeLimitS != nil {
 			t += "/" + units.FormatDuration(time.Duration(*j.TimeLimitS)*time.Second)
 		}
-		row := []string{j.ID, truncate(j.Name, 24), j.State, t, fmt.Sprint(j.GPUs), j.Partition, where}
+		gpus := fmt.Sprint(j.GPUs)
+		if j.Tasks > 1 && j.GPUs > 0 {
+			gpus = fmt.Sprintf("%d (%dx%d)", j.TotalGPUs, j.Tasks, j.GPUs)
+		}
+		row := []string{j.ID, truncate(j.Name, 24), j.State, t, gpus, j.Partition, where}
 		if all {
 			row = append([]string{j.ID, j.User}, row[1:]...)
 		}

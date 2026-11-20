@@ -74,14 +74,20 @@ func newWhyCmd(a *app) *cobra.Command {
 			if asJSON {
 				return writeJSON(cmd.OutOrStdout(), report.Why(report.NewHeader(rt.store, now), j, prio))
 			}
-			return renderWhy(cmd.OutOrStdout(), j, prio, now)
+			var never []string
+			if parts, err := rt.sources.Partitions(ctx); err == nil {
+				if nodes, err := rt.sources.Nodes(ctx); err == nil {
+					never = insights.CannotRunLines(insights.CannotRun(j, parts, nodes))
+				}
+			}
+			return renderWhy(cmd.OutOrStdout(), j, prio, now, never)
 		},
 	}
 	cmd.Flags().BoolVar(&asJSON, "json", false, "print JSON")
 	return cmd
 }
 
-func renderWhy(w io.Writer, j model.Job, prio string, now time.Time) error {
+func renderWhy(w io.Writer, j model.Job, prio string, now time.Time, never []string) error {
 	est := ""
 	if !j.StartTime.IsZero() {
 		est = j.StartTime.Local().Format("Mon Jan 2 15:04")
@@ -92,7 +98,7 @@ func renderWhy(w io.Writer, j model.Job, prio string, now time.Time) error {
 	card := insights.WhyCard(j, est)
 	var b strings.Builder
 	fmt.Fprintf(&b, "%s %s\n%s\n", j.ID.Raw, j.Name, card.Headline)
-	for _, l := range card.Lines {
+	for _, l := range append(never, card.Lines...) {
 		b.WriteString(l + "\n")
 	}
 	if prio != "" {

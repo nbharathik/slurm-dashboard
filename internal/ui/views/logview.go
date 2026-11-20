@@ -58,6 +58,13 @@ func (v *LogView) Following() bool { return v.follow }
 // Capturing reports that the search line is open.
 func (v *LogView) Capturing() bool { return v.search != nil }
 
+// Paste adds pasted text to the search being typed.
+func (v *LogView) Paste(_ *Context, s string) {
+	if v.search != nil {
+		v.search.Insert(s)
+	}
+}
+
 func (v *LogView) maxTop() int { return max(v.Buf.Len()-max(v.height, 1), 0) }
 
 func (v *LogView) scroll(d int) {

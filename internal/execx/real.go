@@ -114,21 +114,22 @@ func (r *RealRunner) Run(ctx context.Context, argv ...string) (Result, error) {
 		return res, err
 	}
 
-	if _, ok := ctx.Deadline(); !ok {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, r.opts.DefaultTimeout)
-		defer cancel()
-	}
-	select {
-	case r.sem <- struct{}{}:
-	case <-ctx.Done():
-		err := fmt.Errorf("%s: waiting for a free slot: %w", filepath.Base(argv[0]), ctx.Err())
+	return r.slotted(ctx, argv, start, r.exec)
+}
+
+// slotted waits for a slot, starts the run timeout once it has one, runs
+// and records: the one path every command takes after its checks.
+func (r *RealRunner) slotted(ctx context.Context, argv []string, start time.Time, run func(context.Context, []string) (Result, error)) (Result, error) {
+	res := Result{Argv: argv, ExitCode: -1}
+	release, err := r.acquire(ctx, filepath.Base(argv[0]))
+	if err != nil {
 		r.record(ctx, res, start, err, false)
 		return res, err
 	}
-	defer func() { <-r.sem }()
-
-	res, err := r.exec(ctx, argv)
+	defer release()
+	ctx, cancel := r.runTimeout(ctx)
+	defer cancel()
+	res, err = run(ctx, argv)
 	res.Argv = argv
 	r.record(ctx, res, start, err, false)
 	return res, err
@@ -153,23 +154,34 @@ func RunUserShell(ctx context.Context, r *RealRunner, script string, extraEnv []
 			return res, err
 		}
 	}
-	if _, ok := ctx.Deadline(); !ok {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, r.opts.DefaultTimeout)
-		defer cancel()
-	}
+	env := append(SanitizeEnv(r.opts.BaseEnv), extraEnv...)
+	return r.slotted(WithLabel(ctx, "user-shell"), argv, start, func(ctx context.Context, argv []string) (Result, error) {
+		return r.executeEnv(ctx, argv, env)
+	})
+}
+
+// acquire waits for a free slot. Without a deadline in ctx the wait has no
+// limit of its own: the run timeout starts once the command has a slot, so
+// time spent queued never shortens a command.
+func (r *RealRunner) acquire(ctx context.Context, name string) (release func(), err error) {
 	select {
 	case r.sem <- struct{}{}:
+		return func() { <-r.sem }, nil
 	case <-ctx.Done():
-		err := fmt.Errorf("sh: waiting for a free slot: %w", ctx.Err())
-		r.record(ctx, res, start, err, false)
-		return res, err
+		return nil, fmt.Errorf("%s: waiting for a free slot: %w", name, ctx.Err())
 	}
-	defer func() { <-r.sem }()
-	res, err := r.executeEnv(WithLabel(ctx, "user-shell"), argv, append(SanitizeEnv(r.opts.BaseEnv), extraEnv...))
-	res.Argv = argv
-	r.record(WithLabel(ctx, "user-shell"), res, start, err, false)
-	return res, err
+}
+
+// runTimeout bounds the run: WithTimeout's duration, else DefaultTimeout
+// when ctx has no deadline.
+func (r *RealRunner) runTimeout(ctx context.Context) (context.Context, context.CancelFunc) {
+	if d, ok := ctx.Value(timeoutKey{}).(time.Duration); ok && d > 0 {
+		return context.WithTimeout(ctx, d)
+	}
+	if _, ok := ctx.Deadline(); !ok {
+		return context.WithTimeout(ctx, r.opts.DefaultTimeout)
+	}
+	return ctx, func() {}
 }
 
 // execute starts the process and maps failures onto the package errors.
@@ -198,7 +210,7 @@ func (r *RealRunner) executeEnv(ctx context.Context, argv, env []string) (Result
 			cmd.Dir = in.Dir
 		}
 	}
-	stdout := &capBuffer{limit: r.opts.MaxStdout, onOverflow: func() { cancel(ErrOutputTooLarge) }}
+	stdout := &capBuffer{limit: r.opts.MaxStdout, onOverflow: func() { cancel(ErrOutputTooLarge) }, squeeze: squeezes(ctx)}
 	stderr := &capBuffer{limit: r.opts.MaxStderr}
 	cmd.Stdout, cmd.Stderr = stdout, stderr
 	cmd.WaitDelay = waitDelay

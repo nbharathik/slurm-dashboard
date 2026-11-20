@@ -26,9 +26,8 @@ func (v *Jobs) Render(ctx *Context, w, h int) string {
 	var body string
 	j, hasJob := v.cursorJob()
 	if v.detail && v.detailID != "" {
-		if dj, ok := v.byID[v.detailID]; ok {
-			j, hasJob = dj, true
-		}
+		// A card whose job left the queue closes; it never shows another job.
+		j, hasJob = v.lookup(v.detailID)
 	}
 	switch {
 	case !v.detail || !hasJob:
@@ -165,13 +164,23 @@ func (v *Jobs) detailPanel(ctx *Context, j model.Job, w, h int) string {
 			est = friendlyTime(ctx.Now, j.StartTime)
 		}
 		card := insights.WhyCard(j, est)
+		never := insights.CannotRunLines(insights.CannotRun(j, ctx.Store.Partitions.Data, ctx.Store.Nodes.Data))
 		style := th.Warn
-		if card.Pending.Never {
+		if card.Pending.Never || len(never) > 0 {
 			style = th.Crit
 		}
 		add(style.Render(th.StateIcon(themeKind(j))+" "+card.Headline), "")
+		if s := v.arrayLine(ctx, j); s != "" {
+			add(layout.Wrap(s, inner)...)
+		}
+		for _, l := range never {
+			add(layout.Wrap(th.Crit.Render(l), inner)...)
+		}
 		for _, l := range card.Lines {
 			add(layout.Wrap(l, inner)...)
+		}
+		if l := insights.TypicalWaitLine(ctx.Store.History.Data.Jobs, j.Partition); l != "" && len(never) == 0 {
+			add(layout.Wrap(th.Muted.Render(l), inner)...)
 		}
 		if pf, ok := insights.PriorityFor(ctx.Store.Priorities.Data, j); ok {
 			add(layout.Wrap(th.Muted.Render("Priority ")+insights.PriorityLine(pf), inner)...)
@@ -190,6 +199,19 @@ func (v *Jobs) detailPanel(ctx *Context, j model.Job, w, h int) string {
 			limit = units.FormatLimit(*j.TimeLimit)
 		}
 		add(th.StateLabel(j.State, j.Reason, false)+where+th.Muted.Render(" "+th.Sym.Separator+" "+"elapsed "+units.FormatShort(j.TimeUsed)+", limit "+limit), "")
+		if s := v.arrayLine(ctx, j); s != "" {
+			add(layout.Wrap(s, inner)...)
+		}
+		if len(j.NodeList) > 1 {
+			var names []string
+			for _, n := range j.NodeList[:min(len(j.NodeList), maxCardNodes)] {
+				names = append(names, ctx.Mark("jobs:node:"+n, th.Key.Render(n)))
+			}
+			if more := len(j.NodeList) - maxCardNodes; more > 0 {
+				names = append(names, th.Muted.Render(fmt.Sprintf("+%d", more)))
+			}
+			row("Nodes", strings.Join(names, " ")+th.Muted.Render("  n opens the first"))
+		}
 		if j.TimeLimit != nil && *j.TimeLimit > 0 {
 			frac := j.TimeUsed.Seconds() / j.TimeLimit.Seconds()
 			left := ""
@@ -213,7 +235,11 @@ func (v *Jobs) detailPanel(ctx *Context, j model.Job, w, h int) string {
 			row("CPU", fmt.Sprintf("%.1f of %d cores avg (%s)", cores, j.CPUs, components.Percent(th, cores/float64(j.CPUs))))
 		}
 		if j.GPUs > 0 {
-			row("GPU", gpuCount(j)+th.Muted.Render("  press g to sample"))
+			each := ""
+			if n := j.ID.Tasks(); n > 1 {
+				each = fmt.Sprintf(" per task, %d tasks", n)
+			}
+			row("GPU", gpuCount(j)+each+th.Muted.Render("  press g to sample"))
 		}
 	}
 
@@ -277,6 +303,24 @@ func themeKind(j model.Job) themeKindT { return themeKindT(kindOf(j)) }
 
 func gaugeWidth(inner int) int { return min(max(inner-20, 6), 30) }
 
+// arrayLine is the whole array in one line, for a task's card.
+func (v *Jobs) arrayLine(ctx *Context, j model.Job) string {
+	if !j.ID.IsArray() {
+		return ""
+	}
+	s := insights.ArraySummary(j.ID.ArrayJobID, v.jobs, ctx.Store.History.Data.Jobs)
+	switch {
+	case s == "":
+		return ""
+	case strings.Contains(s, "failed"):
+		return ctx.Theme.Warn.Render(s)
+	}
+	return ctx.Theme.Muted.Render(s)
+}
+
+// maxCardNodes is how many node names the job card lists.
+const maxCardNodes = 6
+
 // requested summarises a pending job's request: "1× H200, 8 CPUs, 32G, 04:00:00".
 func requested(j model.Job) string {
 	var parts []string
@@ -292,6 +336,9 @@ func requested(j model.Job) string {
 	}
 	if j.Nodes > 1 {
 		parts = append(parts, fmt.Sprintf("%d nodes", j.Nodes))
+	}
+	if n := j.ID.Tasks(); n > 1 {
+		return strings.Join(parts, ", ") + fmt.Sprintf(" per task, %d tasks", n)
 	}
 	return strings.Join(parts, ", ")
 }

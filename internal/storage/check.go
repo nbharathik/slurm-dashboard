@@ -83,6 +83,11 @@ func (c *Checker) Check(ctx context.Context, locs []Location) []model.Quota {
 		}
 		task := c.flights[key]
 		c.mu.Unlock()
+		if task != nil && c.now().Sub(task.started) > Timeout {
+			// Still stuck from an earlier check: say so at once.
+			out[i] = c.unavailable(l, errNotResponding)
+			continue
+		}
 		if task == nil {
 			select {
 			case c.slots <- struct{}{}:
@@ -95,15 +100,30 @@ func (c *Checker) Check(ctx context.Context, locs []Location) []model.Quota {
 			if task != nil {
 				<-c.slots
 			} else {
-				task = &checkTask{done: make(chan struct{})}
+				task = &checkTask{done: make(chan struct{}), started: c.now()}
 				c.flights[key] = task
 				go func(t *checkTask, loc Location, k string) {
+					// A hung mount can block statfs for good. The slot is
+					// freed when the deadline passes, so other locations
+					// are still read; the stuck read stays in flights and
+					// later checks report only this location.
+					var once sync.Once
+					release := func() { once.Do(func() { <-c.slots }) }
+					finished := make(chan struct{})
+					go func() {
+						select {
+						case <-ctx.Done():
+							release()
+						case <-finished:
+						}
+					}()
 					t.result = c.one(ctx, loc)
+					close(finished)
 					c.mu.Lock()
 					delete(c.flights, k)
 					close(t.done)
 					c.mu.Unlock()
-					<-c.slots
+					release()
 				}(task, l, key)
 			}
 			c.mu.Unlock()
@@ -117,17 +137,25 @@ func (c *Checker) Check(ctx context.Context, locs []Location) []model.Quota {
 		}
 		select {
 		case <-task.done:
-			out[i] = task.result
 		case <-ctx.Done():
-			out[i] = c.unavailable(l, ctx.Err())
+		}
+		// A finished read wins over a deadline that passed meanwhile.
+		select {
+		case <-task.done:
+			out[i] = task.result
+		default:
+			out[i] = c.unavailable(l, errNotResponding)
 		}
 	}
 	return out
 }
 
+var errNotResponding = errors.New("not responding: the filesystem or quota tool did not answer in time")
+
 type checkTask struct {
-	done   chan struct{}
-	result model.Quota
+	done    chan struct{}
+	started time.Time
+	result  model.Quota
 }
 
 func (c *Checker) unavailable(l Location, err error) model.Quota {

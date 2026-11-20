@@ -18,10 +18,12 @@ import (
 
 // Render implements View: Alerts (if any), Cluster, Your jobs and Storage in one column.
 func (v *Overview) Render(ctx *Context, w, h int) string {
-	alertsB := block{min: min(len(v.alerts), 2) + 2, want: min(len(v.alerts), 4) + 2, render: v.alertsPanel(ctx)}
 	clusterB := block{min: 4, want: capacityHeight(ctx, v.parts, w-2) + 3, render: v.clusterPanel(ctx)}
 	jobsB := block{min: 4, want: min(len(v.jobs.Rows), 10) + 3, render: v.jobsPanel(ctx)}
 	storageB := block{min: 3, want: max(v.count(panelStorage), 1) + 2, render: v.storagePanel(ctx)}
+	// Alerts show four, and more only in room the other sections do not want.
+	spare := h - (clusterB.want + jobsB.want + storageB.want + 3) - (4 + 2)
+	alertsB := block{min: min(len(v.alerts), 2) + 2, want: min(len(v.alerts), 4+max(spare, 0), maxAlertRows) + 2, render: v.alertsPanel(ctx)}
 
 	var blocks []block
 	if len(v.alerts) > 0 {
@@ -33,6 +35,9 @@ func (v *Overview) Render(ctx *Context, w, h int) string {
 	}
 	return stack(blocks, w, h, -1) // sections keep their size; spare room stays empty below
 }
+
+// maxAlertRows is how many alerts Needs attention shows when there is room.
+const maxAlertRows = 8
 
 // spaced puts a blank line above a section when there is room for one.
 func spaced(b block) block {
@@ -114,8 +119,8 @@ func (v *Overview) alertsPanel(ctx *Context) func(w, h int) string {
 			lines = append(lines, ctx.Mark(fmt.Sprintf("ov:alerts:%d", i), prefix+text)+" "+openBtn)
 		}
 		extra := ""
-		if len(v.alerts) > rows {
-			extra = th.Faint.Render(fmt.Sprintf("%d in all", len(v.alerts)))
+		if hidden := len(v.alerts) - len(lines); hidden > 0 {
+			extra = th.Faint.Render(fmt.Sprintf("%d more", hidden))
 		}
 		return v.section(ctx, panelAlerts, "Needs attention", extra, strings.Join(lines, "\n"), w, h)
 	}
@@ -160,7 +165,7 @@ func (v *Overview) clusterPanel(ctx *Context) func(w, h int) string {
 func (v *Overview) jobsPanel(ctx *Context) func(w, h int) string {
 	return func(w, h int) string {
 		th := ctx.Theme
-		c := state.CountJobs(ctx.Store.MyJobs.Data)
+		c := state.CountTasks(ctx.Store.MyJobs.Data)
 		var parts []string
 		if c.Running > 0 {
 			parts = append(parts, th.OK.Render(fmt.Sprintf("%s %d running", th.StateIcon(theme.KindRunning), c.Running)))
@@ -210,7 +215,7 @@ func (v *Overview) jobsSummary(ctx *Context) string {
 			if waiting[j.Reason] == 0 {
 				order = append(order, j.Reason)
 			}
-			waiting[j.Reason]++
+			waiting[j.Reason] += j.ID.Tasks()
 		}
 	}
 	if next != nil {

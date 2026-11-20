@@ -47,7 +47,7 @@ type ClusterInfo struct {
 }
 
 // siteSettings are the config lines that say what the cluster can do.
-var siteSettings = []string{"AccountingStorageType", "AccountingStoreFlags", "PriorityType", "JobAcctGatherType"}
+var siteSettings = []string{"AccountingStorageType", "AccountingStoreFlags", "PriorityType", "PriorityFlags", "JobAcctGatherType"}
 
 // HidesJobs reports whether other users' jobs are hidden.
 func (c ClusterInfo) HidesJobs() bool { return slices.Contains(c.PrivateData, "jobs") }
@@ -70,6 +70,14 @@ func (c ClusterInfo) NoJobScripts() bool {
 func (c ClusterInfo) BasicPriority() bool {
 	v, ok := c.Settings["PriorityType"]
 	return ok && strings.HasSuffix(v, "/basic")
+}
+
+// FairTree reports the Fair Tree fairshare algorithm, the default of
+// priority/multifactor unless PriorityFlags holds NO_FAIR_TREE. Without a
+// PriorityFlags line it is unknown and reports false.
+func (c ClusterInfo) FairTree() bool {
+	v, ok := c.Settings["PriorityFlags"]
+	return ok && !c.BasicPriority() && !strings.Contains(strings.ToUpper(v), "NO_FAIR_TREE")
 }
 
 // NoUsageGather reports JobAcctGatherType=jobacct_gather/none.

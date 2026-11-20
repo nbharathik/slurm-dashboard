@@ -1,26 +1,28 @@
   sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage                               tundra · you · demo  
 ─────────━━━━━━━━━━━━━━─────────────────────────────────────────────────────────────────────────────────────────────────
                                                                                                                         
-  Needs attention                                                                                             6 in all  
+  Needs attention                                                                                                       
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
     ✗ 809 preproc: OUT_OF_MEMORY (peak 31.8G of 32G)                                                          [open]    
     ✗ 799 train-lora: TIMEOUT                                                                                 [open]    
     ! Scratch is at 91% of its space quota                                                                    [open]    
     ! 813 eval-bench has 8m left: checkpoint or save now                                                      [open]    
+    i Maintenance starts in 2d03h; jobs longer than 51h will wait                                             [open]    
+    i Your last 5 jobs used a median 22% of the memory they requested; see Usage for --mem suggestions        [open]    
                                                                                                                         
   Cluster                                                                                                       0s ago  
-  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
-    Partition      Used        Free Total                                                                               
-    gpu        GPU [████╭──────────────────────────────────────────────────────────────────────╮                        
-    cpu*       CPU [████│  Cancel 1 job?                                                       │                        
+  ──────────────────────╭──────────────────────────────────────────────────────────────────────╮──────────────────────  
+    Partition      Used │  Cancel 1 job?                                                       │                        
+    gpu        GPU [████│                                                                      │                        
+    cpu*       CPU [████│  815_[3-9] sweep          ◌ PD 00:00                                 │                        
                         │                                                                      │                        
-  Your jobs             │  815_[3-9] sweep          ◌ PD 00:00                                 │ding  ✗ 2 failed today  
-    ID         NAME     │                                                                      │                        
-  ──────────────────────│  Will run:                                                           │──────────────────────  
-  ▶ 812        train-lor│    scancel 815_[3-9]                                                 │                        
-    813        eval-benc│                                                                      │                        
-    816        preproc  │                                      [ Cancel (y) ]  [ Keep (esc) ]  │                        
-    815_[3-9]  sweep    ╰──────────────────────────────────────────────────────────────────────╯                        
+  Your jobs             │  Will run:                                                           │ding  ✗ 2 failed today  
+    ID         NAME     │    scancel 815_[3-9]                                                 │                        
+  ──────────────────────│                                                                      │──────────────────────  
+  ▶ 812        train-lor│                                      [ Cancel (y) ]  [ Keep (esc) ]  │                        
+    813        eval-benc╰──────────────────────────────────────────────────────────────────────╯                        
+    816        preproc     ● RUN   30s/1h         16 CPU        cpu01                                                   
+    815_[3-9]  sweep       ◌ PD    -/4h           7 GPU 56 CPU  #2/5 Resources                                          
     818        big-sweep   ‖ HELD  -/12h          4 GPU 32 CPU  JobHeldUser                                             
                                                                                                                         
   Storage                                                                                                       0s ago  
@@ -29,8 +31,6 @@
     Scratch    ██████████████████░░  9.2T used / 10T quota                                                              
     Project    █████░░░░░░░░░░░░░░░  1.2T used / 5T quota                                                               
     Fairshare  ████████████░░░░░░░░  0.62                                                                               
-                                                                                                                        
-                                                                                                                        
                                                                                                                         
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   esc back                                                                                                              

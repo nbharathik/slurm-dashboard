@@ -25,6 +25,8 @@ type FakeResponse struct {
 type FakeRunner struct {
 	// Handler answers argv without a canned response; nil means ErrNoFixture.
 	Handler func(ctx context.Context, argv []string) (Result, error)
+	// NoLog stops recording calls, for long runs such as the demo.
+	NoLog bool
 
 	policy    Policy
 	mu        sync.Mutex
@@ -70,9 +72,11 @@ func (f *FakeRunner) Calls() [][]string {
 func (f *FakeRunner) Run(ctx context.Context, argv ...string) (Result, error) {
 	argv = slices.Clone(argv)
 	f.mu.Lock()
-	f.calls = append(f.calls, argv)
-	in, _ := InputFrom(ctx)
-	f.inputs = append(f.inputs, in)
+	if !f.NoLog {
+		f.calls = append(f.calls, argv)
+		in, _ := InputFrom(ctx)
+		f.inputs = append(f.inputs, in)
+	}
 	resp, ok := f.responses[Key(argv)]
 	f.mu.Unlock()
 

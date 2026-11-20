@@ -5,6 +5,7 @@ import (
 
 	"github.com/nbharathik/slurm-dashboard/internal/model"
 	"github.com/nbharathik/slurm-dashboard/internal/slurm/parse"
+	"github.com/nbharathik/slurm-dashboard/internal/slurm/units"
 )
 
 func names(list []NodeUsage) []string {
@@ -96,6 +97,40 @@ func TestPartitionSummaries(t *testing.T) {
 	}
 	if c := s[1]; c.Down != 1 || c.CPUFree != 0 || c.CPUUnavailable != 64 || len(c.DownReasons) != 1 || c.PendingKnown {
 		t.Errorf("cpu = %+v", c)
+	}
+}
+
+// A node the backfill scheduler planned for a waiting job is healthy:
+// not free, but never "down".
+func TestPlannedNodesAreNotDown(t *testing.T) {
+	node := func(name, raw string) model.Node {
+		base, flags := units.ParseNodeState(raw)
+		return model.Node{Name: name, State: base, Flags: flags, CPUTotal: 64, CPUAlloc: 32, GPUTotal: 4, GPUAlloc: 2}
+	}
+	nodes := []model.Node{
+		node("g1", "MIXED+PLANNED"), node("g2", "mixed-"), node("g3", "IDLE+RESERVED"),
+		node("g4", "MIXED+DRAIN"), node("g5", "IDLE*"), node("g6", "MIXED+COMPLETING"),
+	}
+	for _, n := range nodes[:3] {
+		if Down(n) || !Reserved(n) || Available(n) {
+			t.Errorf("%s %v: down %v reserved %v available %v", n.Name, n.Flags, Down(n), Reserved(n), Available(n))
+		}
+	}
+	for _, n := range nodes[3:5] {
+		if !Down(n) || Reserved(n) {
+			t.Errorf("%s must be down", n.Name)
+		}
+	}
+	if Down(nodes[5]) || !Available(nodes[5]) {
+		t.Error("a completing node is healthy")
+	}
+	ids := make([]string, len(nodes))
+	for i, n := range nodes {
+		ids[i] = n.Name
+	}
+	s := PartitionSummaries([]model.Partition{{Name: "gpu", State: "UP", Nodes: ids}}, NodeGPUUsage(nodes, nil, "you"), nil, nil)[0]
+	if s.Down != 2 || s.Reserved != 3 || s.Mixed != 3 || s.Idle != 1 || s.CPUFree != 32 || s.GPUFree != 2 {
+		t.Errorf("summary = %+v", s)
 	}
 }
 

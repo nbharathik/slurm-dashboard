@@ -55,6 +55,9 @@ var parsers = map[string]func([]byte) (any, []model.ParseWarning){
 		return errOr(c, err)
 	},
 	"start": wrap(StartEstimates),
+	"sdiag": func(b []byte) (any, []model.ParseWarning) {
+		return Sdiag(b)
+	},
 	"assocmgr": func(b []byte) (any, []model.ParseWarning) {
 		return AssocMgr(b, "root")
 	},

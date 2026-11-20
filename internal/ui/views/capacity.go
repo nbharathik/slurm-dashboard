@@ -130,6 +130,9 @@ func capacityLines(ctx *Context, parts []state.PartSummary, w int) (string, [][]
 		if p.Down > 0 {
 			notes = append(notes, fmt.Sprintf("%d down", p.Down))
 		}
+		if p.Reserved > 0 {
+			notes = append(notes, fmt.Sprintf("%d reserved", p.Reserved))
+		}
 		if p.Partition.State != "UP" {
 			notes = append(notes, strings.ToLower(p.Partition.State))
 		}

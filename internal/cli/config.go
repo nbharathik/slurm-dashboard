@@ -242,13 +242,7 @@ is validated.`,
 					return err
 				}
 			}
-			editor := strings.Fields(a.env.Getenv("VISUAL"))
-			if len(editor) == 0 {
-				editor = strings.Fields(a.env.Getenv("EDITOR"))
-			}
-			if len(editor) == 0 {
-				editor = []string{"vi"}
-			}
+			editor := execx.EditorArgv(a.env.Getenv)
 			c, err := execx.NewInteractive("", append(editor, path)...)
 			if err != nil {
 				return fmt.Errorf("editor %q: %w", strings.Join(editor, " "), err)

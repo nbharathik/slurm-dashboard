@@ -116,7 +116,7 @@ nvidia_h200_nvl = "H200"
 	want := Config{
 		Refresh: "manual", StartTab: "queue", Theme: "light", ASCII: true, Mouse: false, Notify: false,
 		NotifyCommand: "notify-send done", Shell: "ssh", HidePartitions: []string{"login", "debug"},
-		ClusterName: "birch", StorageWarn: 80, StorageCrit: 95, WarnTimeLeft: "30m", WarnWaste: false, Layout: "detailed",
+		ClusterName: "birch", StorageWarn: 80, StorageCrit: 95, WarnTimeLeft: "30m", WarnWaste: false, Layout: "detailed", Confirm: ConfirmDestructive,
 		GPUNames: map[string]string{"nvidia_h200_nvl": "H200"}, Storage: []StorageEntry{},
 	}
 	if !reflect.DeepEqual(cfg, want) {

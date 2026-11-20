@@ -27,6 +27,8 @@ type Config struct {
 	StorageCrit    int                `toml:"storage_crit"`   // percent that is critical
 	WarnTimeLeft   string             `toml:"warn_time_left"` // off | 5m | 10m | 30m | 1h
 	WarnWaste      bool               `toml:"warn_waste"`     // tell me about running jobs that sit idle
+	Confirm        string             `toml:"confirm"`        // destructive | all
+	SchedulerTab   bool               `toml:"scheduler_tab"`  // the optional Scheduler tab (sdiag)
 	GPUNames       map[string]string  `toml:"gpu_names"`
 	Storage        []StorageEntry     `toml:"storage"`
 	Profiles       map[string]Profile `toml:"profiles"`
@@ -84,6 +86,15 @@ var (
 	Layouts  = []string{"clean", "detailed"}
 	// TimeLeftChoices are the warning distances before a time limit.
 	TimeLeftChoices = []string{"off", "5m", "10m", "30m", "1h"}
+	// ConfirmChoices: ask before cancel, requeue and any action on several
+	// jobs, or before every job action.
+	ConfirmChoices = []string{ConfirmDestructive, ConfirmAll}
+)
+
+// Values of the confirm setting.
+const (
+	ConfirmDestructive = "destructive"
+	ConfirmAll         = "all"
 )
 
 // Intervals are how often each data source refreshes. With Manual, each
@@ -144,6 +155,7 @@ func Default() Config {
 		StorageCrit:    97,
 		WarnTimeLeft:   "10m",
 		WarnWaste:      true,
+		Confirm:        ConfirmDestructive,
 		GPUNames:       map[string]string{},
 		Storage:        []StorageEntry{},
 	}

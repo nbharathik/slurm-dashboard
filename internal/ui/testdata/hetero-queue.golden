@@ -17,10 +17,10 @@
       4071        dave   infer        ● RUNNING  1h05m/6h       mig   1 GPU 4 CPU     mig01                                                 
       4105_1      you    sweep        ● RUNNING  1m/4h          gpu   1 GPU 8 CPU     h200-01                                               
                                                                                                                                             
-    ▾ pending            5 jobs                                       10 GPU 128 CPU                                                        
+    ▾ pending            11 jobs                                      16 GPU 176 CPU                                                        
       4081        bob    diffusion    ◌ PENDING  -/12h          gpu   4 GPU 32 CPU    Priority                                              
       4106        you    finetune-4x  ◌ PENDING  -/1d           gpu   4 GPU 32 CPU    Resources                                             
-      4105_[2-8]  you    sweep        ◌ PENDING  -/4h           gpu   1 GPU 8 CPU     Resources                                             
+      4105_[2-8]  you    sweep        ◌ PENDING  -/4h           gpu   7 GPU 56 CPU    Resources                                             
       4082        alice  eval         ◌ PENDING  -/2h           ws    1 GPU 8 CPU     Resources                                             
       4080        erin   stats        ◌ PENDING  -/6h           cpu   48 CPU          Priority                                              
                                                                                                                                             

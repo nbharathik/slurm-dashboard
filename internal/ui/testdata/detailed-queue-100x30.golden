@@ -17,10 +17,10 @@
       813        you    eval-bench    ● RUN   1h52m/2h       gpu   1 GPU 4 CPU    gpu01     12:08   
       816        you    preproc       ● RUN   30s/1h         cpu   16 CPU         cpu01     13:59   
                                                                                                     
-    ▾ pending           4 jobs                                     6 GPU 28 CPU                     
+    ▾ pending           10 jobs                                    12 GPU 76 CPU                    
       810        dave   rl-agent      ◌ PD    -/8h           gpu   2 GPU 8 CPU    Resourc…  in 30m  
       805        dave   rl-agent      ◌ PD    -/8h           gpu   2 GPU 8 CPU    Priority  ·       
-      815_[3-9]  you    sweep         ◌ PD    -/4h           gpu   1 GPU 8 CPU    Resourc…  in 4m   
+      815_[3-9]  you    sweep         ◌ PD    -/4h           gpu   7 GPU 56 CPU   Resourc…  in 4m   
       807        erin   embed         ◌ PD    -/2h           gpu   1 GPU 4 CPU    Priority  ·       
                                                                                                     
     ▾ held              1 job                                      4 GPU 32 CPU                     

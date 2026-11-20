@@ -3,6 +3,8 @@ package model
 
 import (
 	"math"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -35,7 +37,8 @@ const (
 func (s JobState) IsActive() bool {
 	switch s {
 	case StatePending, StateRunning, StateSuspended, StateCompleting, StateConfiguring,
-		StateStopped, StateSignaling, StateResizing, StateRequeued:
+		StateStopped, StateSignaling, StateResizing, StateRequeued,
+		"REQUEUE_HOLD", "REQUEUE_FED", "RESV_DEL_HOLD", "SPECIAL_EXIT", "STAGE_OUT":
 		return true
 	}
 	return false
@@ -64,6 +67,72 @@ func (id JobID) String() string { return id.Raw }
 
 // IsArray reports whether the ID belongs to an array job.
 func (id JobID) IsArray() bool { return id.TaskSpec != "" }
+
+// IsPlain reports a bare job number: not an array task, het component or
+// step ("8_3", "8+1" and "8.batch" are not), which sstat can be asked about.
+func (id JobID) IsPlain() bool { return IsPlainJobID(id.Raw) }
+
+// IsPlainJobID is IsPlain for a raw ID.
+func IsPlainJobID(raw string) bool { return raw != "" && strings.Trim(raw, "0123456789") == "" }
+
+// Tasks counts the array tasks a queue record stands for: "4" is one,
+// "[3-9%2]" is seven, "[0-8:2]" is five, a plain job is one.
+func (id JobID) Tasks() int {
+	if !strings.HasPrefix(id.TaskSpec, "[") {
+		return 1
+	}
+	n := 0
+	for _, r := range taskRanges(id.TaskSpec) {
+		n += (r.hi-r.lo)/r.step + 1
+	}
+	return max(n, 1)
+}
+
+// HasTask reports whether task is one of the tasks the record stands for.
+func (id JobID) HasTask(task int) bool {
+	if !strings.HasPrefix(id.TaskSpec, "[") {
+		t, err := strconv.Atoi(id.TaskSpec)
+		return err == nil && t == task
+	}
+	for _, r := range taskRanges(id.TaskSpec) {
+		if task >= r.lo && task <= r.hi && (task-r.lo)%r.step == 0 {
+			return true
+		}
+	}
+	return false
+}
+
+type taskRange struct{ lo, hi, step int }
+
+// taskRanges parses "[1,3-9:2%4]"; a part it cannot read counts as one task.
+func taskRanges(spec string) []taskRange {
+	spec = strings.Trim(spec, "[]")
+	if i := strings.IndexByte(spec, '%'); i >= 0 {
+		spec = spec[:i]
+	}
+	var out []taskRange
+	for part := range strings.SplitSeq(spec, ",") {
+		step := 1
+		if p, s, ok := strings.Cut(part, ":"); ok {
+			if v, err := strconv.Atoi(s); err == nil && v > 0 {
+				step = v
+			}
+			part = p
+		}
+		lo, hi, ok := strings.Cut(part, "-")
+		a, err1 := strconv.Atoi(lo)
+		b, err2 := strconv.Atoi(hi)
+		switch {
+		case !ok && err1 == nil:
+			out = append(out, taskRange{a, a, 1})
+		case !ok || err1 != nil || err2 != nil || b < a:
+			out = append(out, taskRange{-1, -1, 1})
+		default:
+			out = append(out, taskRange{a, b, step})
+		}
+	}
+	return out
+}
 
 // Job is one of the user's jobs from squeue.
 type Job struct {
@@ -249,6 +318,7 @@ type HistoryJob struct {
 	NodeList       []string
 	WorkDir        string
 	Eff            Efficiency
+	Steps          []JobStep `json:",omitempty"` // batch, 0, 1, ... (not extern), at most MaxSteps
 }
 
 // Efficiency describes how well a finished job used what it asked for.
@@ -443,3 +513,21 @@ func (h *HistoryJob) ComputeEfficiency(gpuUtil float64) {
 
 // OwnedBy fails closed when either identity is unknown.
 func (j Job) OwnedBy(user string) bool { return user != "" && j.User != "" && j.User == user }
+
+// MaxSteps bounds HistoryJob.Steps.
+const MaxSteps = 16
+
+// JobStep is one step of a finished job.
+type JobStep struct {
+	Name      string // "batch", "0", ...
+	State     JobState
+	ExitCode  int
+	Elapsed   time.Duration
+	PeakMemMB int64
+}
+
+// TotalCPUs is what all tasks of the record hold or ask for.
+func (j Job) TotalCPUs() int { return j.CPUs * j.ID.Tasks() }
+
+// TotalGPUs is what all tasks of the record hold or ask for.
+func (j Job) TotalGPUs() int { return j.GPUs * j.ID.Tasks() }

@@ -1,12 +1,14 @@
  sdash | < 1/6 Overview ! >        demo 
 -----------==============---------------
                                         
- Needs attention               6 in all 
+ Needs attention                        
  -------------------------------------- 
    x 809 preproc: OUT_OF_MEMO~ [open]   
    x 799 train-lora: TIMEOUT   [open]   
    ! Scratch is at 91% of its~ [open]   
    ! 813 eval-bench has 8m le~ [open]   
+   i Maintenance starts in 2d~ [open]   
+   i Your last 5 jobs used a ~ [open]   
                                         
  Cluster                   stale 1h ago 
  -------------------------------------- 
@@ -20,7 +22,7 @@
      GPU [#---    ]     6    12         
      MIG 10/14 free, 1 down, H100, H200 
                                         
- Your jobs  0s ago  R 3 running  P 2 p~ 
+ Your jobs  0s ago  R 3 running  P 8 p~ 
    ID         NAME        STATE         
  -------------------------------------- 
  > 812        train-lora  R RUN         
@@ -35,8 +37,6 @@
    Scratch    ##### 9.2T/10T quota      
    Project    #.... 1.2T/5T quota       
    Fairshare  ###..  0.62               
-                                        
-                                        
                                         
                                         
                                         

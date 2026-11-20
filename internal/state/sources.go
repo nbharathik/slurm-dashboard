@@ -130,6 +130,8 @@ type Sources struct {
 	Runner execx.Runner
 	Cmd    slurm.Commands
 	Log    *slog.Logger
+	// ScriptDir keeps copies of fetched batch scripts ("" for none).
+	ScriptDir string
 
 	mu       sync.Mutex
 	warnLog  map[string][]time.Time
@@ -225,7 +227,8 @@ func (s *Sources) AllJobs(ctx context.Context) ([]model.Job, error) {
 
 // Cluster returns all running jobs, optionally in some partitions.
 func (s *Sources) Cluster(ctx context.Context, partitions []string) (ClusterData, error) {
-	out, err := s.run(ctx, "cluster", s.Cmd.Cluster(partitions))
+	// Padded to fixed widths: squeezed, a large cluster stays under the cap (D12).
+	out, err := s.run(execx.WithSqueezedSpaces(ctx), "cluster", s.Cmd.Cluster(partitions))
 	if err != nil {
 		return ClusterData{}, err
 	}
@@ -234,12 +237,23 @@ func (s *Sources) Cluster(ctx context.Context, partitions []string) (ClusterData
 	return ClusterData{Jobs: jobs}, nil
 }
 
+// Sdiag returns the scheduler statistics.
+func (s *Sources) Sdiag(ctx context.Context) (model.SchedStats, error) {
+	out, err := s.run(ctx, "sdiag", s.Cmd.Sdiag())
+	if err != nil {
+		return model.SchedStats{}, err
+	}
+	st, warns := parse.Sdiag(out)
+	s.noteWarnings("sdiag", warns)
+	return st, nil
+}
+
 // QueueRank returns pending jobs in the partitions.
 func (s *Sources) QueueRank(ctx context.Context, partitions []string) ([]parse.PendingJob, error) {
 	if len(partitions) == 0 {
 		return nil, nil
 	}
-	out, err := s.run(ctx, "queuerank", s.Cmd.QueueRank(partitions))
+	out, err := s.run(execx.WithSqueezedSpaces(ctx), "queuerank", s.Cmd.QueueRank(partitions))
 	if err != nil {
 		return nil, err
 	}
@@ -481,6 +495,7 @@ func (s *Sources) BatchScript(ctx context.Context, id string) (string, error) {
 	}
 	out, err := s.run(ctx, "script", s.Cmd.BatchScript(id))
 	if err == nil && len(out) > 0 {
+		s.keepScript(id, string(out))
 		return string(out), nil
 	}
 	if KindOf(err) == ErrRestricted {
@@ -490,8 +505,12 @@ func (s *Sources) BatchScript(ctx context.Context, id string) (string, error) {
 	if err2 == nil {
 		script := stripSacctScriptHeader(string(out2))
 		if strings.TrimSpace(script) != "" && !strings.Contains(script, "NONE") {
+			s.keepScript(id, script)
 			return script, nil
 		}
+	}
+	if kept, ok := s.keptScript(id); ok {
+		return kept, nil // the copy sdash kept when it last fetched it
 	}
 	if err == nil {
 		err = err2

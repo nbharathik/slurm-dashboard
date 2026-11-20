@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"time"
 
 	"github.com/nbharathik/slurm-dashboard/internal/privatefile"
@@ -32,5 +33,23 @@ func WriteCrash(cacheDir string, recovered any, stack []byte) (string, error) {
 		_ = f.Close()
 		return "", err
 	}
-	return path, f.Close()
+	if err := f.Close(); err != nil {
+		return "", err
+	}
+	pruneCrashes(cacheDir, keepCrashes)
+	return path, nil
+}
+
+// keepCrashes is how many crash reports are kept; older ones are removed.
+const keepCrashes = 10
+
+func pruneCrashes(dir string, keep int) {
+	old, err := filepath.Glob(filepath.Join(dir, "crash-*.log"))
+	if err != nil || len(old) <= keep {
+		return
+	}
+	sort.Strings(old) // the timestamp in the name sorts oldest first
+	for _, p := range old[:len(old)-keep] {
+		_ = os.Remove(p)
+	}
 }

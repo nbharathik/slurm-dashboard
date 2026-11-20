@@ -92,6 +92,53 @@ func TestRightSize(t *testing.T) {
 	}
 }
 
+// --mem and --cpus-per-task are per node and per task, so a job on several
+// nodes gets the reason but no value computed from its totals.
+func TestRightSizeMultiNode(t *testing.T) {
+	h := model.HistoryJob{
+		State: model.StateCompleted, Nodes: 4, AllocMemMB: 4 * 65536, PeakMemMB: 80 * 1024,
+		Elapsed: 3 * time.Hour, TimeLimit: d(4 * time.Hour), AllocCPUs: 256, TotalCPU: 3 * time.Hour * 77,
+	}
+	h.ComputeEfficiency(-1)
+	got := map[string]Suggestion{}
+	for _, s := range RightSize(h) {
+		got[s.What] = s
+	}
+	for _, what := range []string{"Memory", "CPUs"} {
+		s, ok := got[what]
+		if !ok {
+			t.Fatalf("no %s note: %+v", what, got)
+		}
+		if s.Line != "" || s.Option != "" || !strings.Contains(s.Reason, "over 4 nodes") {
+			t.Errorf("%s = %+v, want a reason without a value", what, s)
+		}
+	}
+	if sug := Suggested(RightSize(h)); len(sug) != 0 {
+		t.Errorf("multi-node suggestions reach the rerun form: %v", sug)
+	}
+}
+
+// A job that ran out of memory or time is offered half as much again on
+// rerun; a completed job keeps its right-size suggestions.
+func TestRerunSuggestionsForFailedJobs(t *testing.T) {
+	oom := model.HistoryJob{State: model.StateOOM, Nodes: 1, AllocMemMB: 32768, PeakMemMB: 32600}
+	if got := Suggested(RerunSuggestions(oom)); got["mem"] != "48G" {
+		t.Errorf("OOM rerun = %v, want mem 48G", got)
+	}
+	timeout := model.HistoryJob{State: model.StateTimeout, Nodes: 1, TimeLimit: d(12 * time.Hour), Elapsed: 12 * time.Hour}
+	if got := Suggested(RerunSuggestions(timeout)); got["time"] != "18:00:00" {
+		t.Errorf("TIMEOUT rerun = %v, want time 18:00:00", got)
+	}
+	multi := oom
+	multi.Nodes = 2
+	if got := RerunSuggestions(multi); len(got) != 0 {
+		t.Errorf("multi-node OOM got a value: %+v", got)
+	}
+	if got := RerunSuggestions(model.HistoryJob{State: model.StateFailed, ExitCode: 1}); len(got) != 0 {
+		t.Errorf("a plain failure has no fix to offer: %+v", got)
+	}
+}
+
 func TestEffCard(t *testing.T) {
 	h := model.HistoryJob{
 		State: model.StateFailed, ExitCode: 1, NodeList: []string{"n1"}, Nodes: 1, AllocCPUs: 4, Elapsed: time.Hour,

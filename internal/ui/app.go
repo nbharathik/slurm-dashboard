@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"log/slog"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
@@ -32,8 +33,12 @@ type viewsContext = views.Context
 // testViewHook lets tests replace views after construction.
 var testViewHook func(a *App)
 
-// IdleAfter is how long without input before idle mode (intervals ×3).
-const IdleAfter = 30 * time.Minute
+// IdleAfter is how long without input before idle mode (intervals ×3), and
+// DeepIdleAfter before deep idle (×10; caches are released).
+const (
+	IdleAfter     = 30 * time.Minute
+	DeepIdleAfter = 2 * time.Hour
+)
 
 // FlashFor is how long a flash message stays.
 const FlashFor = 4 * time.Second
@@ -43,9 +48,9 @@ type Options struct {
 	Context   context.Context
 	Config    config.Config
 	Store     *state.Store
-	Scheduler *state.Scheduler // nil in tests that feed updates directly
-	Runner    execx.Runner     // for actions
-	Sources   *state.Sources
+	Scheduler *state.Scheduler          // nil in tests that feed updates directly
+	Runner    execx.Runner              // for actions
+	Sources   state.Backend             // on-demand Slurm lookups (nil in some tests)
 	History   func() []execx.CallRecord // runner call history for the debug overlay
 	Warnings  func() map[string]int     // parse warnings for the debug overlay
 
@@ -135,6 +140,9 @@ type App struct {
 	overlayScroll int
 	lastInput     time.Time
 	idle          bool
+	deepIdle      bool
+	alertsAt      time.Time // last Overview alert computation
+	leftQueue     time.Time // when the Queue tab was last closed
 	palette       *Palette
 	confirm       *Confirm
 	state         *uiState
@@ -145,6 +153,9 @@ type App struct {
 	logReader *logs.Reader
 	logPaths  [2]string // stdout, stderr
 	logGen    int       // stops the polls of a closed viewer
+	// lookupGen drops a log or script lookup that a newer request or a tab
+	// change has replaced, so a late answer never takes over the screen.
+	lookupGen int
 
 	// duCancel stops a running disk-usage analysis.
 	duCancel context.CancelFunc
@@ -206,7 +217,7 @@ func New(opt Options) *App {
 	for _, v := range a.views {
 		a.dirty[v.Name()] = true
 	}
-	if u, ok := a.viewByName(model.TabUsage).(interface{ Days() int }); ok && opt.OnViewState != nil {
+	if u, ok := a.viewByName(model.TabUsage).(views.Ranger); ok && opt.OnViewState != nil {
 		opt.OnViewState(views.HistoryRangeMsg{Days: u.Days()}) // the range chosen last time
 	}
 	if testViewHook != nil {
@@ -228,6 +239,7 @@ func New(opt Options) *App {
 // mouse and the refresh speed.
 func (a *App) applyConfig(cfg config.Config) {
 	a.opt.Config, a.ctx.Config = cfg, cfg
+	a.syncOptionalTabs()
 	a.themeName = themeFor(a.opt.Theme, cfg.Theme)
 	a.zm.SetEnabled(!a.opt.NoMouse && cfg.Mouse)
 	a.rebuildTheme()
@@ -238,6 +250,32 @@ func (a *App) applyConfig(cfg config.Config) {
 	if a.opt.OnConfig != nil {
 		a.opt.OnConfig(cfg)
 	}
+}
+
+// syncOptionalTabs adds or removes the optional tabs after a settings change.
+func (a *App) syncOptionalTabs() {
+	want := views.All(a.ctx)
+	if len(want) == len(a.views) {
+		return
+	}
+	cur := a.views[a.tab].Name()
+	kept := make([]views.View, 0, len(want))
+	for _, w := range want {
+		if old := a.viewByName(w.Name()); old != nil {
+			w = old // keep each tab's state
+		} else {
+			a.dirty[w.Name()] = true
+		}
+		kept = append(kept, w)
+	}
+	a.views = kept
+	a.tab = 0
+	for i, v := range a.views {
+		if v.Name() == cur {
+			a.tab = i
+		}
+	}
+	a.syncVisible()
 }
 
 // themeFor picks the theme: the configured one, unless it is auto and the
@@ -324,8 +362,31 @@ func (a *App) waitUpdate() tea.Cmd {
 // schedule is replaced by tests that advance time explicitly.
 var schedule = tea.Tick
 
-func tick() tea.Cmd {
-	return schedule(time.Second, func(t time.Time) tea.Msg { return tickMsg(t) })
+func tick() tea.Cmd { return tickEvery(time.Second) }
+
+func tickEvery(d time.Duration) tea.Cmd {
+	return schedule(d, func(t time.Time) tea.Msg { return tickMsg(t) })
+}
+
+// nextTick is the clock that ages "updated 3s ago": every second while
+// someone is looking, every 5 s when the terminal is unfocused or idle, and
+// every 30 s in deep idle, so a forgotten sdash barely wakes up.
+func (a *App) nextTick() tea.Cmd {
+	switch {
+	case a.deepIdle:
+		return tickEvery(30 * time.Second)
+	case a.idle:
+		return tickEvery(5 * time.Second)
+	}
+	return tick()
+}
+
+// refreshAlerts recomputes the Overview alerts.
+func (a *App) refreshAlerts() {
+	a.alertsAt = a.now()
+	if ov, ok := a.viewByName("overview").(interface{ RefreshAlerts(*views.Context) }); ok {
+		ov.RefreshAlerts(a.ctx)
+	}
 }
 
 // Init starts the update loop, the clock and background colour detection.
@@ -353,11 +414,15 @@ func (a *App) Update(msg tea.Msg) (m tea.Model, cmd tea.Cmd) {
 	case updateMsg:
 		return a, tea.Batch(a.applyUpdate(state.Update(msg)), a.waitUpdate())
 	case tickMsg:
-		if ov, ok := a.viewByName("overview").(interface{ RefreshAlerts(*views.Context) }); ok {
-			ov.RefreshAlerts(a.ctx)
+		// Alerts change with new data (handled in applyUpdate) and with the
+		// clock only by the minute ("8m left"), so the tick recomputes them
+		// once a minute, not every second.
+		if a.now().Sub(a.alertsAt) >= time.Minute {
+			a.refreshAlerts()
 		}
 		a.checkIdle()
-		return a, tick()
+		a.releaseQueue()
+		return a, a.nextTick()
 	case tea.FocusMsg:
 		a.setIdle(false)
 		return a, nil
@@ -372,8 +437,32 @@ func (a *App) Update(msg tea.Msg) (m tea.Model, cmd tea.Cmd) {
 		return a, a.handleMouse(msg.(tea.MouseMsg))
 	case tea.MouseMsg:
 		return a, nil
+	case tea.PasteMsg:
+		a.touch()
+		a.paste(msg.Content)
+		return a, nil
 	}
 	return a, a.handleRequest(msg)
+}
+
+// paste puts pasted text into the input that has the keys, if any; it is
+// never read as key presses, so pasted text cannot run a command.
+func (a *App) paste(s string) {
+	switch a.top() {
+	case layerConfirm, layerSettings, layerInfo, layerHelp, layerDebug:
+	case layerPalette:
+		a.palette.insert(views.PasteText(s))
+		a.palette.histPos, a.palette.err = -1, ""
+		a.palette.refresh(a)
+	case layerRerun:
+		a.rerun.Paste(a.ctx, s)
+	case layerLog:
+		a.logView.Paste(a.ctx, s)
+	default:
+		if p, ok := a.views[a.tab].(views.Paster); ok && a.views[a.tab].Capturing() {
+			p.Paste(a.ctx, s)
+		}
+	}
 }
 
 func (a *App) resize(w, h int) {
@@ -386,9 +475,7 @@ func (a *App) resize(w, h int) {
 func (a *App) applyUpdate(u state.Update) tea.Cmd {
 	transitions := a.st.Apply(u)
 	if viewDepends("overview", u.Source) {
-		if ov, ok := a.viewByName("overview").(interface{ RefreshAlerts(*views.Context) }); ok {
-			ov.RefreshAlerts(a.ctx)
-		}
+		a.refreshAlerts()
 	}
 	if u.Err != nil {
 		a.opt.Log.Debug("source failed", "source", u.Source, "err", u.Err)
@@ -402,7 +489,7 @@ func (a *App) applyUpdate(u state.Update) tea.Cmd {
 			delete(a.dirty, v.Name())
 		} else {
 			a.dirty[v.Name()] = true
-			if hidden, ok := v.(interface{ Invalidate() }); ok {
+			if hidden, ok := v.(views.Invalidator); ok {
 				hidden.Invalidate()
 			}
 		}
@@ -417,22 +504,68 @@ func (a *App) applyUpdate(u state.Update) tea.Cmd {
 
 func (a *App) touch() {
 	a.lastInput = a.now()
-	if a.idle {
+	if a.idle || a.deepIdle {
 		a.setIdle(false)
 	}
 }
 
 func (a *App) checkIdle() {
-	if !a.idle && a.now().Sub(a.lastInput) >= IdleAfter {
+	since := a.now().Sub(a.lastInput)
+	switch {
+	case !a.deepIdle && since >= DeepIdleAfter:
+		a.idle, a.deepIdle = true, true
+		if a.sched != nil {
+			a.sched.SetIdleLevel(2)
+		}
+		a.releaseHidden()
+	case !a.idle && since >= IdleAfter:
 		a.setIdle(true)
 	}
 }
 
 func (a *App) setIdle(idle bool) {
 	a.idle = idle
+	if !idle {
+		a.deepIdle = false
+	}
 	if a.sched != nil {
 		a.sched.SetIdle(idle)
 	}
+}
+
+// queueKeep is how long everyone's jobs stay in memory after leaving Queue.
+const queueKeep = 2 * time.Minute
+
+// releaseQueue drops everyone's jobs, by far the largest data on a big
+// cluster, once Queue has been closed for queueKeep. Opening Queue loads
+// them again.
+func (a *App) releaseQueue() {
+	if a.leftQueue.IsZero() || a.views[a.tab].Name() == model.TabQueue || a.now().Sub(a.leftQueue) < queueKeep {
+		return
+	}
+	a.leftQueue = time.Time{}
+	if a.st.AllJobs.Has {
+		a.st.DropAllJobs()
+		if v, ok := a.viewByName(model.TabQueue).(views.Invalidator); ok {
+			v.Invalidate()
+			a.dirty[model.TabQueue] = true
+		}
+	}
+}
+
+// releaseHidden drops what hidden tabs hold and can rebuild, so sdash left
+// alone on a login node keeps little memory.
+func (a *App) releaseHidden() {
+	for i, v := range a.views {
+		if i == a.tab {
+			continue
+		}
+		if hidden, ok := v.(views.Invalidator); ok {
+			hidden.Invalidate()
+			a.dirty[v.Name()] = true
+		}
+	}
+	debug.FreeOSMemory()
 }
 
 func (a *App) activeDetailID() string {
@@ -466,7 +599,11 @@ func (a *App) switchTab(i int) {
 	if i < 0 || i >= len(a.views) || i == a.tab {
 		return
 	}
+	if a.views[a.tab].Name() == model.TabQueue {
+		a.leftQueue = a.now()
+	}
 	a.tab = i
+	a.lookupGen++ // a log or script asked for on the old tab no longer opens
 	a.state.LastTab = a.views[i].Name()
 	if a.dirty[a.views[i].Name()] {
 		a.views[i].Refresh(a.ctx)
@@ -486,22 +623,28 @@ func (a *App) handleKey(msg tea.KeyPressMsg) tea.Cmd {
 	if msg.String() == "ctrl+c" {
 		return a.quit()
 	}
-	if a.confirm != nil {
+	switch a.top() {
+	case layerConfirm:
 		return a.updateConfirm(msg)
-	}
-	if a.palette != nil {
+	case layerPalette:
 		return a.updatePalette(msg)
-	}
-	if a.settings != nil {
+	case layerSettings:
 		return a.updateSettings(msg)
-	}
-	if a.info != nil {
-		if a.info.anyKey || key.Matches(msg, a.keys.Back, a.keys.Open, a.keys.Quit) {
+	case layerInfo:
+		switch {
+		case a.info.anyKey || key.Matches(msg, a.keys.Back, a.keys.Open, a.keys.Quit):
 			a.info = nil
+		case key.Matches(msg, a.keys.Up):
+			a.info.scroll--
+		case key.Matches(msg, a.keys.Down):
+			a.info.scroll++
+		case key.Matches(msg, a.keys.PageUp):
+			a.info.scroll -= 10
+		case key.Matches(msg, a.keys.PageDown):
+			a.info.scroll += 10
 		}
 		return nil
-	}
-	if a.overlay != overlayNone {
+	case layerHelp, layerDebug:
 		switch {
 		case key.Matches(msg, a.keys.Back, a.keys.Help, a.keys.Debug, a.keys.Quit):
 			a.overlay, a.overlayScroll = overlayNone, 0
@@ -515,16 +658,14 @@ func (a *App) handleKey(msg tea.KeyPressMsg) tea.Cmd {
 			a.overlayScroll += 10
 		}
 		return nil
-	}
-	if rv := a.rerun; rv != nil {
-		return rv.Update(a.ctx, msg)
-	}
-	if lv := a.logView; lv != nil {
-		if !lv.Capturing() && key.Matches(msg, a.keys.Help) {
+	case layerRerun:
+		return a.rerun.Update(a.ctx, msg)
+	case layerLog:
+		if !a.logView.Capturing() && key.Matches(msg, a.keys.Help) {
 			a.overlay = overlayHelp
 			return nil
 		}
-		return lv.Update(a.ctx, msg)
+		return a.logView.Update(a.ctx, msg)
 	}
 	v := a.views[a.tab]
 	if v.Capturing() {
@@ -536,7 +677,7 @@ func (a *App) handleKey(msg tea.KeyPressMsg) tea.Cmd {
 			return nil
 		}
 	}
-	_, search := v.(interface{ HasSearch() })
+	_, search := v.(views.Searcher)
 	switch {
 	case key.Matches(msg, a.keys.Quit):
 		return a.quit()
@@ -572,7 +713,7 @@ func (a *App) quit() tea.Cmd {
 
 // visibleSources are the sources the visible tab shows.
 func (a *App) visibleSources() []string {
-	if s, ok := a.views[a.tab].(interface{ Sources() []string }); ok {
+	if s, ok := a.views[a.tab].(views.SourceLister); ok {
 		return s.Sources()
 	}
 	return []string{a.views[a.tab].Source()}
@@ -587,22 +728,27 @@ func (a *App) refresh(sources ...string) {
 // handleMouse resolves clicks on the chrome, then passes the event to the
 // view.
 func (a *App) handleMouse(msg tea.MouseMsg) tea.Cmd {
-	if a.confirm != nil {
+	switch a.top() {
+	case layerConfirm:
 		return a.mouseConfirm(msg)
-	}
-	if a.palette != nil {
+	case layerPalette:
 		return a.mousePalette(msg)
-	}
-	if a.settings != nil {
+	case layerSettings:
 		return a.mouseSettings(msg)
-	}
-	if a.info != nil {
-		if _, ok := msg.(tea.MouseClickMsg); ok {
+	case layerInfo:
+		switch m := msg.(type) {
+		case tea.MouseClickMsg:
 			a.info = nil
+		case tea.MouseWheelMsg:
+			switch m.Button {
+			case tea.MouseWheelUp:
+				a.info.scroll -= 3
+			case tea.MouseWheelDown:
+				a.info.scroll += 3
+			}
 		}
 		return nil
-	}
-	if a.overlay != overlayNone {
+	case layerHelp, layerDebug:
 		switch m := msg.(type) {
 		case tea.MouseClickMsg:
 			a.overlay, a.overlayScroll = overlayNone, 0
@@ -621,15 +767,16 @@ func (a *App) handleMouse(msg tea.MouseMsg) tea.Cmd {
 		case a.ctx.InZone(zoneRefresh, msg):
 			a.refresh(a.visibleSources()...)
 			return nil
-		case a.ctx.InZone(zoneTabPrev, msg):
+		case a.rerun == nil && a.logView == nil && a.ctx.InZone(zoneTabPrev, msg):
 			a.switchTab((a.tab + len(a.views) - 1) % len(a.views))
 			return nil
-		case a.ctx.InZone(zoneTabNext, msg):
+		case a.rerun == nil && a.logView == nil && a.ctx.InZone(zoneTabNext, msg):
 			a.switchTab((a.tab + 1) % len(a.views))
 			return nil
 		}
+		// Like the number keys, tab clicks do nothing under the rerun form or a log.
 		for i, v := range a.views {
-			if a.ctx.InZone(zoneTab(v.Name()), msg) {
+			if a.rerun == nil && a.logView == nil && a.ctx.InZone(zoneTab(v.Name()), msg) {
 				a.switchTab(i)
 				return nil
 			}
@@ -661,7 +808,8 @@ func (a *App) handleMouse(msg tea.MouseMsg) tea.Cmd {
 // the command line and help. Clicks resolve against the same list.
 func (a *App) footerBindings() []key.Binding {
 	hints := a.views[a.tab].Hints(a.ctx)
-	return append(hints[:min(len(hints), 3):min(len(hints), 3)], a.keys.Settings, a.keys.Help)
+	n := min(len(hints), 3) // five in all with settings and help
+	return append(hints[:n:n], a.keys.Settings, a.keys.Help)
 }
 
 // keyPress builds the key message a clickable hint stands for.
@@ -736,32 +884,34 @@ func (a *App) render() string {
 	m := layout.Margin(w)
 	inner := w - 2*m
 	var body string
-	if a.rerun != nil {
+	switch a.screen() {
+	case layerRerun:
 		body = a.rerun.Render(a.ctx, inner, bodyH)
-	} else if a.logView != nil {
+	case layerLog:
 		body = a.logView.Render(a.ctx, inner, bodyH)
-	} else {
+	default:
 		body = a.views[a.tab].Render(a.ctx, inner, bodyH)
 	}
 	body = layout.FitLines(layout.Indent(layout.FitLines(body, inner, bodyH), m), w, bodyH)
-	switch {
-	case a.confirm != nil:
+	switch a.top() {
+	case layerConfirm:
 		body = layout.Overlay(body, a.confirm.Render(a.th, a.ctx, w), w, bodyH)
-	case a.palette != nil:
+	case layerPalette:
 		body = a.palette.Overlay(a.th, a.ctx, body, w, bodyH)
-	case a.settings != nil:
+	case layerSettings:
 		body = layout.Overlay(body, a.settingsBox(w, bodyH), w, bodyH)
-	case a.overlay == overlayHelp:
-		body = layout.Overlay(body, a.helpBox(w, bodyH), w, bodyH)
-	case a.overlay == overlayDebug:
-		body = layout.Overlay(body, a.debugBox(w, bodyH), w, bodyH)
-	case a.info != nil:
-		text := a.info.body
+	case layerInfo:
+		// Drawn above help and debug, since it also gets the keys first.
+		text := a.scrollLines(a.info.body, bodyH-6, &a.info.scroll)
 		if !a.info.anyKey {
 			text += "\n\n" + a.th.Muted.Render("esc closes")
 		}
 		box := components.Modal(a.th, a.info.title, text, nil, min(w-2, 90))
 		body = layout.Overlay(body, box, w, bodyH)
+	case layerHelp:
+		body = layout.Overlay(body, a.helpBox(w, bodyH), w, bodyH)
+	case layerDebug:
+		body = layout.Overlay(body, a.debugBox(w, bodyH), w, bodyH)
 	}
 	bar, rule := a.topBar(w)
 	lines := []string{bar, rule}
@@ -788,26 +938,8 @@ func centred(s string, w, h int) string {
 
 // sourceState returns what the header needs about a source.
 func (a *App) sourceState(src string) (interval time.Duration, at time.Time, has bool, tried time.Time, err error) {
-	interval = a.opt.Interval(src)
-	s := a.st
-	get := func(e error, t time.Time, h bool, tr time.Time) {
-		err, at, has, tried = e, t, h, tr
-	}
-	switch src {
-	case "myjobs":
-		get(s.MyJobs.Err, s.MyJobs.At, s.MyJobs.Has, s.MyJobs.Tried)
-	case "alljobs":
-		get(s.AllJobs.Err, s.AllJobs.At, s.AllJobs.Has, s.AllJobs.Tried)
-	case "nodes":
-		get(s.Nodes.Err, s.Nodes.At, s.Nodes.Has, s.Nodes.Tried)
-	case "cluster":
-		get(s.Cluster.Err, s.Cluster.At, s.Cluster.Has, s.Cluster.Tried)
-	case "history":
-		get(s.History.Err, s.History.At, s.History.Has, s.History.Tried)
-	case "storage":
-		get(s.Storage.Err, s.Storage.At, s.Storage.Has, s.Storage.Tried)
-	}
-	return interval, at, has, tried, err
+	st := a.st.Status(src)
+	return a.opt.Interval(src), st.At, st.Has, st.Tried, st.Err
 }
 
 func (a *App) freshnessOf(src string, interval time.Duration) state.Freshness {

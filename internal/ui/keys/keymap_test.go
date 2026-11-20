@@ -12,13 +12,13 @@ func TestNoConflictsPerContext(t *testing.T) {
 	m := Default()
 	global := append(m.Tabs, m.NextFocus, m.PrevFocus, m.Palette, m.Refresh, m.RefreshAll, m.Pause, m.Settings, m.Help, m.Back, m.Quit, m.Debug)
 	table := []key.Binding{m.Up, m.Down, m.PageUp, m.PageDown, m.Home, m.End, m.Open, m.Select, m.SelectAll, m.Sort, m.SortReverse, m.Filter, m.Menu, m.Copy, m.Expand, m.Collapse, m.DetailUp, m.DetailDown}
-	jobs := []key.Binding{m.Scope, m.Cancel, m.Hold, m.Release, m.Requeue, m.Stdout, m.Stderr, m.Pager, m.Shell, m.GPU, m.Why, m.Script}
+	jobs := []key.Binding{m.Scope, m.Cancel, m.Hold, m.Release, m.Requeue, m.Stdout, m.Stderr, m.Pager, m.Shell, m.GPU, m.Why, m.Script, m.Node}
 	if c := conflicts(append(append(slices.Clone(global), table...), jobs...)...); len(c) > 0 {
 		t.Fatalf("jobs context conflicts: %v", c)
 	}
 	// On Queue the start estimate (e) and the scope (v) shadow the log and
 	// script keys of Jobs, which do not apply to other people's jobs.
-	queue := append(slices.Clone(table), m.Estimate, m.ScopeCycle, m.Group, m.Cancel, m.Hold, m.Release, m.Requeue, m.Why)
+	queue := append(slices.Clone(table), m.Estimate, m.ScopeCycle, m.Group, m.Cancel, m.Hold, m.Release, m.Requeue, m.Why, m.Node)
 	if c := conflicts(append(slices.Clone(global), queue...)...); len(c) > 0 {
 		t.Fatalf("queue context conflicts: %v", c)
 	}

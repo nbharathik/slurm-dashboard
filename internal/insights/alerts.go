@@ -196,13 +196,18 @@ func pending(in Input) []model.Alert {
 		if j.State != model.StatePending {
 			continue
 		}
-		p := Explain(j.Reason)
-		if !p.Never {
+		why := ""
+		if p := Explain(j.Reason); p.Never {
+			why = p.Code
+		} else if r := CannotRun(j, in.Partitions, in.Nodes); len(r) > 0 {
+			why = r[0]
+		}
+		if why == "" {
 			continue
 		}
 		out = append(out, model.Alert{
 			Level: model.Crit, Kind: "unsatisfiable", Key: "unsatisfiable:" + j.ID.Raw,
-			Message: fmt.Sprintf("%s %s can never start: %s", j.ID.Raw, j.Name, p.Code), JobID: j.ID.Raw, Tab: model.TabJobs,
+			Message: fmt.Sprintf("%s %s can never start: %s", j.ID.Raw, j.Name, why), JobID: j.ID.Raw, Tab: model.TabJobs,
 		})
 	}
 	return out
@@ -239,7 +244,7 @@ func idleJobs(in Input) []model.Alert {
 	var out []model.Alert
 	for _, j := range in.MyJobs {
 		st, ok := in.Stats[j.ID.Raw]
-		if !ok || j.State != model.StateRunning || j.TimeUsed < IdleAfter || !plainJob(j.ID.Raw) {
+		if !ok || j.State != model.StateRunning || j.TimeUsed < IdleAfter || !j.ID.IsPlain() {
 			continue
 		}
 		u := LiveEfficiency(j, st)
@@ -266,11 +271,6 @@ func idleJobs(in Input) []model.Alert {
 }
 
 func alertPercent(f float64) int { return int(f*100 + 0.5) }
-
-// plainJob reports whether id is a bare job number (sstat cannot tell "8_3" or "8+1" apart).
-func plainJob(id string) bool {
-	return id != "" && strings.Trim(id, "0123456789") == ""
-}
 
 func nodes(in Input) []model.Alert {
 	byName := make(map[string]model.Node, len(in.Nodes))

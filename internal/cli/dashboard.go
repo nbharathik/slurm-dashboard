@@ -39,6 +39,13 @@ type viewState struct {
 	// warn_waste setting.
 	running   []string
 	warnWaste bool
+	// notify (a notice or hook on job end) and hasJobs keep the user's jobs
+	// query lightly idle, so notices stay timely when sdash is left alone.
+	notify, hasJobs bool
+	// The job card's live usage is sampled less often than the card itself.
+	statID string
+	statAt time.Time
+	stat   *model.JobStat
 	// fromAll holds the pending jobs of the last everyone's-jobs query,
 	// so queue ranks need no query of their own while it is fresh.
 	fromAll   []parse.PendingJob
@@ -56,7 +63,7 @@ func (v *viewState) get() viewState {
 	defer v.mu.Unlock()
 	return viewState{
 		detailID: v.detailID, detailVerify: v.detailVerify, historyDays: v.historyDays, pendingParts: slices.Clone(v.pendingParts), fromAll: v.fromAll, fromAllAt: v.fromAllAt,
-		running: slices.Clone(v.running), warnWaste: v.warnWaste,
+		running: slices.Clone(v.running), warnWaste: v.warnWaste, notify: v.notify, hasJobs: v.hasJobs,
 	}
 }
 
@@ -67,6 +74,7 @@ func (v *viewState) onViewState(msg tea.Msg) {
 		v.set(func(v *viewState) {
 			if v.detailID != m.ID {
 				v.detailVerify = m.ID != ""
+				v.statID, v.stat = "", nil // a newly opened card samples at once
 			}
 			v.detailID = m.ID
 		})
@@ -96,20 +104,50 @@ func (v *viewState) collectDetail(ctx context.Context, src *state.Sources, usage
 	}
 	d.Job = job
 	if job != nil && job.State == model.StateRunning && usage {
-		// Usage is best effort: a job without steps has none yet.
-		d.Stat, _ = src.JobStat(snapshot, id)
+		// Usage is best effort (a job without steps has none yet), and is
+		// sampled at most every statEvery for the open card.
+		v.mu.Lock()
+		cached, fresh := v.stat, v.statID == id && time.Since(v.statAt) < statEvery
+		v.mu.Unlock()
+		if fresh {
+			d.Stat = cached
+		} else {
+			d.Stat, _ = src.JobStat(snapshot, id)
+			v.set(func(v *viewState) { v.statID, v.statAt, v.stat = id, time.Now(), d.Stat })
+		}
 	}
 	return d, nil
 }
+
+// detailEvery is how often an open job card refreshes, and statEvery how
+// often its live usage is sampled; both also refresh on open and on r.
+const (
+	detailEvery = 30 * time.Second
+	statEvery   = time.Minute
+)
 
 // intervalMap names each source's interval for a refresh speed.
 func intervalMap(iv config.Intervals) map[string]time.Duration {
 	return map[string]time.Duration{
 		"myjobs": iv.MyJobs, "alljobs": iv.AllJobs, "cluster": iv.Cluster, "queuerank": iv.QueueRank,
 		"nodes": iv.Nodes, "partitions": iv.Partitions, "reservations": iv.Resv,
-		"jobdetail": 10 * time.Second, "history": iv.History, "fairshare": iv.Fairshare, "sprio": iv.Fairshare,
+		"jobdetail": max(detailEvery, iv.MyJobs), "history": iv.History, "fairshare": iv.Fairshare, "sprio": iv.Fairshare,
 		"storage": iv.Storage, "limits": 10 * time.Minute, "mystats": iv.Stats, "groups": time.Hour,
+		"sdiag": 2 * time.Minute,
 	}
+}
+
+// overviewCallsPerMinute estimates the Slurm calls a minute with the
+// Overview open and pending jobs queued; TestDoctorEstimate keeps it near
+// the simulated hour.
+func overviewCallsPerMinute(iv config.Intervals) float64 {
+	if iv.Manual {
+		return 0
+	}
+	per := func(d time.Duration) float64 { return time.Minute.Seconds() / max(d, state.Floor).Seconds() }
+	return per(iv.MyJobs) + per(iv.Cluster) + per(iv.Nodes) + per(iv.QueueRank) +
+		per(iv.Partitions) + per(iv.Resv) + per(iv.Fairshare) +
+		per(max(iv.History, 30*time.Minute)) + per(max(iv.Fairshare, 10*time.Minute))
 }
 
 // addCollectors registers data sources and their refresh intervals.
@@ -122,14 +160,17 @@ func addCollectors(s *state.Scheduler, src *state.Sources, site parse.ClusterInf
 	}
 	caps := src.Cmd.Caps
 
-	add("myjobs", state.Options{Timeout: state.TimeoutMyJobs}, func(ctx context.Context) (any, error) {
+	add("myjobs", state.Options{
+		Timeout:   state.TimeoutMyJobs,
+		LightIdle: func() bool { st := vs.get(); return st.notify && st.hasJobs },
+	}, func(ctx context.Context) (any, error) {
 		jobs, err := src.MyJobs(ctx)
 		if err == nil {
 			parts := state.PartitionsOfPending(jobs)
 			prev := vs.get().pendingParts
 			running := runningToSample(jobs)
 			vs.set(func(v *viewState) {
-				v.pendingParts, v.running = parts, running
+				v.pendingParts, v.running, v.hasJobs = parts, running, len(jobs) > 0
 				if v.detailID != "" {
 					found := false
 					for _, j := range jobs {
@@ -187,20 +228,32 @@ func addCollectors(s *state.Scheduler, src *state.Sources, site parse.ClusterInf
 		large = len(d.Jobs) > state.LargeCluster
 		mu.Unlock()
 		return d, err
-	}}, state.Options{Timeout: state.TimeoutCluster, Tabs: []string{model.TabOverview, model.TabNodes}, HiddenMin: time.Minute})
-	add("queuerank", state.Options{Timeout: state.TimeoutQueueRank, Active: func() bool { return len(vs.get().pendingParts) > 0 }},
+	}}, state.Options{Timeout: state.TimeoutCluster, Tabs: []string{model.TabOverview, model.TabNodes}, HiddenMin: 2 * time.Minute})
+	// Ranks show on Overview and Jobs; elsewhere they refresh every 5 minutes.
+	add("queuerank", state.Options{
+		Timeout: state.TimeoutQueueRank, Tabs: []string{model.TabOverview, model.TabJobs}, HiddenMin: 5 * time.Minute,
+		Active: func() bool { return len(vs.get().pendingParts) > 0 },
+	},
 		func(ctx context.Context) (any, error) {
 			st := vs.get()
 			if time.Since(st.fromAllAt) < time.Minute {
 				// Everyone's jobs are fresh: rank from them, no query.
 				return state.PendingIn(st.fromAll, st.pendingParts), nil
 			}
+			vs.set(func(v *viewState) { v.fromAll = nil }) // stale: let it go
 			return src.QueueRank(ctx, st.pendingParts)
 		})
-	add("nodes", state.Options{Timeout: state.TimeoutNodes}, func(ctx context.Context) (any, error) { return src.Nodes(ctx) })
+	// Nodes show on Overview and Nodes; elsewhere they only feed the
+	// node-down alert, which can wait two minutes.
+	add("nodes", state.Options{
+		Timeout: state.TimeoutNodes, Tabs: []string{model.TabOverview, model.TabNodes}, HiddenMin: 2 * time.Minute,
+	}, func(ctx context.Context) (any, error) { return src.Nodes(ctx) })
 	add("partitions", state.Options{Timeout: state.TimeoutPartitions}, func(ctx context.Context) (any, error) { return src.Partitions(ctx) })
 	add("reservations", state.Options{Timeout: state.TimeoutPartitions}, func(ctx context.Context) (any, error) { return src.Reservations(ctx) })
 	add("groups", state.Options{Timeout: state.TimeoutPartitions, Once: true}, func(ctx context.Context) (any, error) { return src.Groups(ctx) })
+	// Scheduler health: only while its optional tab is on screen.
+	add("sdiag", state.Options{Timeout: state.TimeoutPartitions, Tabs: []string{model.TabScheduler}, OnlyVisible: true},
+		func(ctx context.Context) (any, error) { return src.Sdiag(ctx) })
 	add("jobdetail", state.Options{Timeout: state.TimeoutDetail, Tabs: []string{model.TabJobs, model.TabQueue}, OnlyVisible: true, Active: func() bool { return vs.get().detailID != "" }},
 		func(ctx context.Context) (any, error) {
 			return vs.collectDetail(ctx, src, caps.HasSstat && !site.NoUsageGather())
@@ -284,7 +337,7 @@ func (a *app) runDashboard(ctx context.Context) error {
 		return q, nil
 	}
 
-	vs := &viewState{historyDays: 7, warnWaste: cfg.WarnWaste}
+	vs := &viewState{historyDays: 7, warnWaste: cfg.WarnWaste, notify: cfg.Notify || cfg.NotifyCommand != ""}
 	sched := state.NewScheduler(clock, uint64(time.Now().UnixNano()))
 	live := state.NewIntervals(intervalMap(cfg.Intervals()))
 	sched.SetManual(cfg.Intervals().Manual)
@@ -304,7 +357,7 @@ func (a *app) runDashboard(ctx context.Context) error {
 		StateDir: a.stateDir(isDemo), CacheDir: a.paths.CacheDir, Log: a.log, Now: time.Now,
 		Interval: live.Get, OnViewState: vs.onViewState, Getenv: a.env.Getenv, LogFS: a.logFS(),
 		OnConfig: func(c config.Config) {
-			vs.set(func(v *viewState) { v.warnWaste = c.WarnWaste })
+			vs.set(func(v *viewState) { v.warnWaste, v.notify = c.WarnWaste, c.Notify || c.NotifyCommand != "" })
 			sched.Nudge()
 		},
 		ApplyRefresh: func(iv config.Intervals) {
@@ -384,7 +437,7 @@ const maxSampled = 3 * state.StatBatch
 func runningToSample(jobs []model.Job) []string {
 	var old []model.Job
 	for _, j := range jobs {
-		if j.State == model.StateRunning && j.TimeUsed >= statAge && j.ID.Raw != "" && strings.Trim(j.ID.Raw, "0123456789") == "" {
+		if j.State == model.StateRunning && j.TimeUsed >= statAge && j.ID.IsPlain() {
 			old = append(old, j)
 		}
 	}

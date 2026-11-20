@@ -84,4 +84,11 @@ func TestPriorityLine(t *testing.T) {
 	if got := PriorityLine(model.PriorityFactors{Priority: 7}); got != "7" {
 		t.Fatal(got)
 	}
+	// The line always adds up, even with factors sprio's short form omits.
+	if got := PriorityLine(model.PriorityFactors{Priority: 1500, Age: 200, FairShare: 1000}); got != "1500 = fairshare 1000 + age 200 + other 300" {
+		t.Fatal(got)
+	}
+	if got := PriorityLine(model.PriorityFactors{Priority: 900, FairShare: 1000}); got != "900 = fairshare 1000 - other 100" {
+		t.Fatal(got)
+	}
 }

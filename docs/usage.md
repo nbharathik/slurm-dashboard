@@ -43,6 +43,12 @@ indented under it; `enter` or `→` `←` fold it.
 | `4` | Nodes | Every node by partition: free CPUs, memory and GPUs (MIG too), who runs there |
 | `5` | Usage | What your jobs used and wasted, your limits and fairshare, then your finished jobs (`:tab history` still works) |
 | `6` | Storage | Your usage and shared filesystem capacity; `a` analyses your directory |
+| `7` | Scheduler | Optional (`scheduler_tab` in Settings): scheduler cycle times, backfill and controller load from `sdiag` |
+
+A pending job whose request can never fit its partition (time limit, node
+count, or more per node than the largest node has) is flagged in `why`, in
+`sdash why` and under Needs attention. When your history has at least three
+started jobs in the partition, `why` also says how long they usually waited.
 
 On Overview, each partition has one bar: GPU for GPU partitions, MIG for
 slice-only partitions, otherwise CPU. Green means allocated, blank means free,
@@ -60,7 +66,7 @@ Job time columns show elapsed time and the limit; end times are estimates.
 | Key | Does |
 | --- | --- |
 | `,` | Settings: refresh speed, theme, hidden partitions, ... (saved for you) |
-| `:` | Command line (`:cancel 812`, `:filter state:PD`, `:help`) |
+| `:` | Command line (`:cancel 812`, `:filter state:PD`, `:node`, `:export csv`, `:help`) |
 | `/` | Filter the table (Jobs, Queue, Nodes, Usage); the command line elsewhere |
 | `r` / `R` | Refresh this tab / everything |
 | `p` | Pause refreshing (`r` still works) |
@@ -100,17 +106,24 @@ fresh verification that the job belongs to your operating-system user.
 | `t` | Shell inside the running job |
 | `g` | Sample its GPU use once |
 | `v` | Batch script |
+| `n` (Jobs, Queue) | Open the node the job runs on |
 | `m` | Menu of every action |
 | `n` (Usage) | Run a finished job again, with changes and right-size suggestions |
 
-sdash only acts on your own jobs, and only after showing the command it
-will run.
+sdash only acts on your own jobs. Cancel and requeue always show the
+command first; hold and release do too when several jobs are selected
+(`confirm = "all"` asks every time).
+
+`:node` opens the node the open job runs on (or `:node NAME`), and
+`:export csv` or `:export json` saves the table as shown, filter and sort
+included, to a new file in the current directory (or `:export csv FILE`).
 
 ### Running a job again
 
 `n` on a job in Usage (or `:rerun <job>`) opens a form with the job's
 partition, CPUs, memory, time and GPUs, the right-size suggestions next to
-them (`a` uses them all) and a preview of the stored batch script. `s` asks
+them (`a` uses them all; a job that ran out of memory or time is offered
+half as much again) and a preview of the stored batch script. `s` asks
 `sbatch --test-only` when it would start, `e` edits a private copy of the
 script, and `r` shows the exact `sbatch --parsable ...` command before
 anything runs.
@@ -183,6 +196,8 @@ type.
 ## On the command line
 
 Every data command prints a table and takes `--json` (`"schema": 1`).
+`sdash jobs`, `queue` and `history` also take `--csv`, with the JSON field
+names as columns; a cell that starts like a formula gets a leading `'`.
 
 | Command | Does |
 | --- | --- |
@@ -193,10 +208,11 @@ Every data command prints a table and takes `--json` (`"schema": 1`).
 | `sdash usage [--days 30]` | What your jobs used and wasted, limits and fairshare |
 | `sdash history [JOBID] [--days 30]` | Finished jobs with efficiency, or one job's card |
 | `sdash why ID` | Why a job is pending |
+| `sdash wait ID...` | Wait until jobs end and print how; exits 0 only if all completed (`--hook` runs `notify_command`) |
 | `sdash logs ID [-f] [--err]` | Print or follow a job's log |
 | `sdash quota` | Storage usage and quotas |
 | `sdash config` | Your settings and where each comes from (`sdash config edit`) |
-| `sdash doctor` | Check Slurm, accounting, PATH, terminal, config, and what this cluster offers |
+| `sdash doctor [--report]` | Check Slurm, accounting, PATH, terminal, config, and what this cluster offers; `--report` prints an anonymised block for an issue |
 | `sdash update [--check]` | Update (SHA-256; optional signature/provenance check) |
 
 `--profile NAME` runs against another cluster from the same login node.

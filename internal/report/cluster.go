@@ -95,6 +95,7 @@ type Partition struct {
 	Mixed       int         `json:"nodes_mixed"`
 	Alloc       int         `json:"nodes_allocated"`
 	Down        int         `json:"nodes_down"`
+	Reserved    int         `json:"nodes_reserved"`
 	CPUTotal    int         `json:"cpu_total"`
 	CPUFree     int         `json:"cpu_free"`
 	GPUTotal    int         `json:"gpu_total"`
@@ -128,7 +129,7 @@ func Partitions(h Header, sums []state.PartSummary, aliases map[string]string) P
 	for _, s := range sums {
 		p := Partition{
 			Name: s.Partition.Name, State: s.Partition.State, Default: s.Partition.Default, MaxTimeS: secs(s.Partition.MaxTime),
-			Nodes: s.Nodes, Idle: s.Idle, Mixed: s.Mixed, Alloc: s.Alloc, Down: s.Down,
+			Nodes: s.Nodes, Idle: s.Idle, Mixed: s.Mixed, Alloc: s.Alloc, Down: s.Down, Reserved: s.Reserved,
 			CPUTotal: s.CPUTotal, CPUFree: s.CPUFree, GPUTotal: s.GPUTotal, GPUFree: s.GPUFree,
 			MIGTotal: s.MIGTotal, MIGFree: s.MIGFree, GPUTypes: []TypeCount{}, DownReasons: orEmpty(s.DownReasons),
 			Access: s.Access.String(), AccessWhy: s.AccessWhy,

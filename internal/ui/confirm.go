@@ -68,7 +68,9 @@ func (c *Confirm) Render(th theme.Theme, ctx *views.Context, w int) string {
 		if where != "" {
 			where = " on " + where
 		}
-		line := fmt.Sprintf("%-8s %-14s %s %s%s", j.ID.Raw, layout.Truncate(j.Name, 14, th.Sym.Ellipsis),
+		// Pad by cells, not runes, so wide (CJK) names keep the columns.
+		name := layout.Pad(layout.Truncate(j.Name, 14, th.Sym.Ellipsis), 14, false, "")
+		line := fmt.Sprintf("%-8s %s %s %s%s", j.ID.Raw, name,
 			th.StateLabel(j.State, j.Reason, true), units.FormatDuration(j.TimeUsed), where)
 		b.WriteString(layout.Truncate(line, width-6, th.Sym.Ellipsis) + "\n")
 	}

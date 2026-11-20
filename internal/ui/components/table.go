@@ -48,6 +48,25 @@ type Table struct {
 	itemPrefix []int
 }
 
+// Export returns the table as plain text: the column titles and every data
+// row (group headings and gaps left out), whatever is scrolled into view.
+func (t *Table) Export() (header []string, rows [][]string) {
+	for _, c := range t.Cols {
+		header = append(header, strings.TrimSpace(ansi.Strip(c.Title)))
+	}
+	for _, r := range t.Rows {
+		if r.Gap || r.Heading {
+			continue
+		}
+		row := make([]string, len(t.Cols))
+		for i, c := range t.Cols {
+			row[i] = strings.TrimSpace(ansi.Strip(r.Cells[c.ID]))
+		}
+		rows = append(rows, row)
+	}
+	return header, rows
+}
+
 // SetRows replaces the rows, keeping the cursor on the same row ID; when
 // that row is gone the cursor stays at the nearest position.
 func (t *Table) SetRows(rows []Row) {

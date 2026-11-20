@@ -61,8 +61,9 @@ type Jobs struct {
 	sortDesc    bool
 	expanded    map[uint64]bool
 	jobs        []model.Job
-	byID        map[string]model.Job
-	members     map[string][]model.Job // group row → member jobs
+	byID        map[string]int              // row of each job in jobs; see lookup
+	alloc       map[string]model.RunningJob // queue: what running jobs were allocated
+	members     map[string][]model.Job      // group row → member jobs
 	detail      bool
 	pane        detailPane
 	detailID    string
@@ -96,11 +97,7 @@ func (v *Jobs) ActiveDetailID(ctx *Context) string {
 	if !v.detail {
 		return ""
 	}
-	j, ok := v.byID[v.detailID]
-	if !ok {
-		j, ok = v.cursorJob()
-	}
-	if ok && j.OwnedBy(ctx.Store.User) {
+	if j, ok := v.lookup(v.detailID); ok && j.OwnedBy(ctx.Store.User) {
 		return j.ID.Raw
 	}
 	return ""
@@ -170,6 +167,11 @@ func (v *Jobs) SortBy(col string, desc bool) error {
 // Open shows a job's detail (from the Overview or /why).
 func (v *Jobs) Open(ctx *Context, id string) {
 	v.Refresh(ctx)
+	// Unfold a collapsed array so the cursor, and so every action, is on the task itself.
+	if j, ok := v.lookup(id); ok && j.ID.IsArray() && !v.table.SetCursorID(id) {
+		v.expanded[j.ID.ArrayJobID] = true
+		v.Refresh(ctx)
+	}
 	if !v.table.SetCursorID(id) {
 		for rowID, members := range v.members {
 			for _, m := range members {
@@ -188,11 +190,33 @@ func (v *Jobs) SelectedJobs() []model.Job {
 	for _, id := range v.table.SelectedIDs() {
 		if m, ok := v.members[id]; ok {
 			out = append(out, m...)
-		} else if j, ok := v.byID[id]; ok {
+		} else if j, ok := v.lookup(id); ok {
 			out = append(out, j)
 		}
 	}
 	return out
+}
+
+// ExportTable returns the table as shown, filter and sort included.
+func (v *Jobs) ExportTable() ([]string, [][]string) { return v.table.Export() }
+
+// CurrentJob is the job whose card is open, else the one under the cursor.
+func (v *Jobs) CurrentJob() (model.Job, bool) {
+	if v.detail {
+		if j, ok := v.lookup(v.detailID); ok {
+			return j, true
+		}
+	}
+	return v.cursorJob()
+}
+
+// lookup returns a job by raw ID.
+func (v *Jobs) lookup(id string) (model.Job, bool) {
+	i, ok := v.byID[id]
+	if !ok || i < 0 || i >= len(v.jobs) {
+		return model.Job{}, false
+	}
+	return v.jobs[i], true
 }
 
 // cursorJob is the job under the cursor (the first member of a group).
@@ -201,8 +225,7 @@ func (v *Jobs) cursorJob() (model.Job, bool) {
 	if m, ok := v.members[id]; ok && len(m) > 0 {
 		return m[0], true
 	}
-	j, ok := v.byID[id]
-	return j, ok
+	return v.lookup(id)
 }
 
 // CopyText returns text for /copy.
@@ -229,14 +252,44 @@ func (v *Jobs) CopyText(ctx *Context, what string) (string, error) {
 func (v *Jobs) Refresh(ctx *Context) {
 	st := ctx.Store
 	if v.queue {
-		v.jobs = state.JoinJobs(st.AllJobs.Data, nil, nil)
+		// Read-only: everyone's jobs are not copied (the largest data on a
+		// big cluster); nothing here changes them.
+		v.jobs = st.AllJobs.Data
+		v.alloc = nil
+		if st.Cluster.Has {
+			v.alloc = make(map[string]model.RunningJob, len(st.Cluster.Data.Jobs))
+			for _, r := range st.Cluster.Data.Jobs {
+				v.alloc[r.ID.Raw] = r
+			}
+		}
 	} else {
 		v.jobs = state.JoinJobs(st.MyJobs.Data, st.Cluster.Data.Jobs, st.QueueRank.Data)
 	}
-	v.summary = summariseQueue(v.jobs)
-	v.byID = make(map[string]model.Job, len(v.jobs))
-	for _, j := range v.jobs {
-		v.byID[j.ID.Raw] = j
+	v.summary = summariseQueue(v.jobs, v.held)
+	v.byID = make(map[string]int, len(v.jobs))
+	var arrays map[uint64]bool
+	if len(v.expanded) > maxExpanded && len(v.jobs) > 0 {
+		arrays = map[uint64]bool{}
+	}
+	for i, j := range v.jobs {
+		v.byID[j.ID.Raw] = i
+		if arrays != nil && j.ID.IsArray() {
+			arrays[j.ID.ArrayJobID] = true
+		}
+	}
+	for arr := range v.expanded {
+		if arrays != nil && !arrays[arr] {
+			delete(v.expanded, arr) // the array left the queue
+		}
+	}
+	if v.detail && v.detailID != "" && len(v.jobs) > 0 {
+		if _, ok := v.byID[v.detailID]; !ok {
+			if id, ok := v.rangeNow(v.detailID); ok {
+				v.detailID = id // a task started, so the pending range was renamed
+			} else {
+				v.closeDetail()
+			}
+		}
 	}
 	v.table.Cols = v.columns(ctx.Config.Detailed())
 	v.table.SortCol, v.table.SortDesc = v.sortCol, v.sortDesc
@@ -256,7 +309,7 @@ func (v *Jobs) Invalidate() {
 		v.savedCursor = strings.Clone(id)
 	}
 	v.table.ReleaseRows()
-	v.jobs, v.byID, v.members = nil, nil, nil
+	v.jobs, v.byID, v.members, v.alloc = nil, nil, nil, nil
 	v.summary = queueSummary{}
 }
 
@@ -286,10 +339,13 @@ func (v *Jobs) columns(detailed bool) []layout.Column {
 
 // rows filters, groups and sorts the jobs.
 func (v *Jobs) rows(ctx *Context) []components.Row {
-	var jobs []model.Job
-	for _, j := range v.jobs {
-		if v.filter.Match(j) {
-			jobs = append(jobs, j)
+	jobs := v.jobs // sorted copies it; filtering copies only what matches
+	if !v.filter.Empty() {
+		jobs = nil
+		for _, j := range v.jobs {
+			if v.filter.Match(v.held(j)) { // gpu: and mem: match what is shown
+				jobs = append(jobs, j)
+			}
 		}
 	}
 	jobs = v.sorted(jobs)
@@ -361,17 +417,17 @@ func (v *Jobs) sorted(jobs []model.Job) []model.Job {
 		case "time":
 			return "", j.TimeUsed.Seconds()
 		case "gpus":
-			return "", float64(j.GPUs)
+			return "", float64(v.held(j).TotalGPUs())
 		case "res":
-			return "", float64(j.GPUs)*1e6 + float64(j.CPUs)
+			return "", float64(v.held(j).TotalGPUs())*1e6 + float64(j.TotalCPUs())
 		case "reason":
 			return j.Reason + strings.Join(j.NodeList, ","), 0
 		case "partition":
 			return j.Partition, 0
 		case "cpus":
-			return "", float64(j.CPUs)
+			return "", float64(j.TotalCPUs())
 		case "mem":
-			return "", float64(j.MemPerNodeMB)
+			return "", float64(v.memOf(j))
 		case "start":
 			return "", float64(j.StartTime.Unix())
 		case "account":
@@ -401,18 +457,19 @@ func (v *Jobs) sorted(jobs []model.Job) []model.Job {
 func (v *Jobs) jobRow(ctx *Context, j model.Job) components.Row {
 	th := ctx.Theme
 	short := ctx.Mode <= layout.Normal
+	gpus := v.held(j).TotalGPUs()
 	cells := map[string]string{
 		"id":        j.ID.Raw,
 		"user":      v.userLabel(ctx, j.User),
 		"name":      j.Name,
 		"state":     th.StateLabel(j.State, j.Reason, short),
 		"time":      timeCell(th, j),
-		"res":       resCell(j),
-		"gpus":      countCell(th, j.GPUs),
+		"res":       resText(j.TotalCPUs(), gpus),
+		"gpus":      countCell(th, gpus),
 		"reason":    whereCell(th, j),
 		"partition": j.Partition,
-		"cpus":      strconv.Itoa(j.CPUs),
-		"mem":       memCell(th, j.MemPerNodeMB),
+		"cpus":      strconv.Itoa(j.TotalCPUs()),
+		"mem":       memCell(th, v.memOf(j)),
 		"start":     startCell(th, ctx.Now, j),
 		"account":   j.Account,
 		"qos":       j.QOS,
@@ -431,11 +488,12 @@ func (v *Jobs) userLabel(ctx *Context, u string) string {
 func (v *Jobs) groupRow(ctx *Context, gid string, arr uint64, members []model.Job) components.Row {
 	th := ctx.Theme
 	counts := map[theme.StateKind]int{}
-	gpus := 0
+	gpus, cpus := 0, 0
 	for _, m := range members {
 		// Count tasks, not queue records: "815_[4-9]" is six pending tasks.
-		counts[theme.KindOf(m.State, m.Reason)] += taskCount(m.ID.TaskSpec)
-		gpus += m.GPUs
+		counts[theme.KindOf(m.State, m.Reason)] += m.ID.Tasks()
+		gpus += v.held(m).TotalGPUs()
+		cpus += m.TotalCPUs()
 	}
 	var parts []string
 	for _, k := range []theme.StateKind{theme.KindRunning, theme.KindPending, theme.KindHeld, theme.KindCompleting, theme.KindFailed, theme.KindCancelled, theme.KindCompleted, theme.KindNeutral} {
@@ -449,7 +507,7 @@ func (v *Jobs) groupRow(ctx *Context, gid string, arr uint64, members []model.Jo
 	}
 	tasks := 0
 	for _, m := range members {
-		tasks += taskCount(m.ID.TaskSpec)
+		tasks += m.ID.Tasks()
 	}
 	return components.Row{ID: gid, Cells: map[string]string{
 		"id":        marker + " " + strconv.FormatUint(arr, 10),
@@ -457,39 +515,44 @@ func (v *Jobs) groupRow(ctx *Context, gid string, arr uint64, members []model.Jo
 		"name":      members[0].Name,
 		"state":     strings.Join(parts, " "),
 		"time":      th.Muted.Render(fmt.Sprintf("%d tasks", tasks)),
-		"res":       resCell(members[0]),
+		"res":       resText(cpus, gpus),
 		"gpus":      countCell(th, gpus),
+		"cpus":      strconv.Itoa(cpus),
 		"reason":    whereCell(th, members[len(members)-1]),
 		"partition": members[0].Partition, "account": members[0].Account, "qos": members[0].QOS,
 		"submit": shortTime(ctx.Now, members[0].SubmitTime),
 	}}
 }
 
-// taskCount estimates the tasks in "4", "[3-9%2]", "[1,3,5-7]".
-func taskCount(spec string) int {
-	spec = strings.Trim(spec, "[]")
-	if i := strings.IndexByte(spec, '%'); i >= 0 {
-		spec = spec[:i]
+// MapSizes counts the entries of maps kept between refreshes (soak test).
+func (v *Jobs) MapSizes() int { return len(v.expanded) + len(v.folded) }
+
+// maxExpanded is how many unfolded arrays are kept before gone ones are dropped.
+const maxExpanded = 32
+
+// held is j with its allocation when it runs and the cluster query has it.
+func (v *Jobs) held(j model.Job) model.Job {
+	if r, ok := v.alloc[j.ID.Raw]; ok && j.State == model.StateRunning {
+		return state.Allocated(j, r)
 	}
-	if spec == "" {
-		return 1
+	return j
+}
+
+func (v *Jobs) memOf(j model.Job) int64 { return v.held(j).MemPerNodeMB }
+
+// rangeNow is the pending range of old's array that is still listed, when
+// old was a pending range ("815_[3-9]" becomes "815_[4-9]").
+func (v *Jobs) rangeNow(old string) (string, bool) {
+	arr, spec, ok := strings.Cut(old, "_")
+	if !ok || !strings.HasPrefix(spec, "[") {
+		return "", false
 	}
-	n := 0
-	for _, part := range strings.Split(spec, ",") {
-		lo, hi, ok := strings.Cut(part, "-")
-		if !ok {
-			n++
-			continue
+	for _, j := range v.jobs {
+		if strconv.FormatUint(j.ID.ArrayJobID, 10) == arr && strings.HasPrefix(j.ID.TaskSpec, "[") {
+			return j.ID.Raw, true
 		}
-		a, err1 := strconv.Atoi(lo)
-		b, err2 := strconv.Atoi(hi)
-		if err1 != nil || err2 != nil || b < a {
-			n++
-			continue
-		}
-		n += b - a + 1
 	}
-	return n
+	return "", false
 }
 
 func timeCell(th theme.Theme, j model.Job) string {
@@ -503,11 +566,11 @@ func timeCell(th theme.Theme, j model.Job) string {
 	return used + th.Faint.Render("/"+units.FormatLimit(*j.TimeLimit))
 }
 
-// resCell is what a job holds: "4 GPU 32 CPU", or "16 CPU" without GPUs.
-func resCell(j model.Job) string {
-	s := strconv.Itoa(j.CPUs) + " CPU"
-	if j.GPUs > 0 {
-		s = strconv.Itoa(j.GPUs) + " GPU " + s
+// resText is what a row holds: "4 GPU 32 CPU", or "16 CPU" without GPUs.
+func resText(cpus, gpus int) string {
+	s := strconv.Itoa(cpus) + " CPU"
+	if gpus > 0 {
+		s = strconv.Itoa(gpus) + " GPU " + s
 	}
 	return s
 }

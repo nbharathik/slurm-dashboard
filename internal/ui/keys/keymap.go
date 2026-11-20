@@ -25,11 +25,12 @@ type Map struct {
 	Sort, SortReverse, Filter, Menu, Copy key.Binding
 	Expand, Collapse, Group               key.Binding
 	DetailUp, DetailDown                  key.Binding
+	Decrease, Increase                    key.Binding // a setting's value
 
 	// Jobs
 	Scope, Cancel, Hold, Release, Requeue key.Binding
 	Stdout, Stderr, Pager, Shell, GPU     key.Binding
-	Why, Script                           key.Binding
+	Why, Script, Node                     key.Binding
 
 	// Overview
 	Dismiss key.Binding
@@ -72,13 +73,14 @@ func Default() *Map {
 		SelectAll: b("ctrl+a", "select all", "ctrl+a"), Sort: b("s", "sort", "s"), SortReverse: b("S", "reverse sort", "S"),
 		Filter: b("/", "filter", "/", "f"), Menu: b("m", "actions", "m"), Copy: b("y", "copy id", "y"),
 		Expand: b("→", "expand", "right"), Collapse: b("←", "collapse", "left"), Group: b("g", "group", "g"),
-		DetailUp: b("alt+↑", "scroll details up", "alt+up"), DetailDown: b("alt+↓", "scroll details down", "alt+down"),
+		DetailUp: b("alt+↑", "scroll card up", "alt+up"), DetailDown: b("alt+↓", "scroll card down", "alt+down"),
+		Decrease: b("←/h", "previous value", "left", "h"), Increase: b("→/l", "next value", "right", "l"),
 
 		Scope: b("a", "everyone's jobs", "a"), Cancel: b("c", "cancel", "c"), Hold: b("h", "hold", "h"),
 		Release: b("u", "release", "u"), Requeue: b("Q", "requeue", "Q"), Stdout: b("l", "logs", "l"),
 		Stderr: b("e", "stderr", "e"), Pager: b("o", "pager", "o"), Shell: b("t", "shell", "t"),
 		GPU: b("g", "gpu use", "g"), Why: b("w", "why", "w"),
-		Script: b("v", "script", "v"),
+		Script: b("v", "script", "v"), Node: b("n", "open its node", "n"),
 
 		Dismiss:  b("x", "dismiss", "x"),
 		GPUOnly:  b("G", "all/gpu/cpu", "G"),
@@ -102,10 +104,11 @@ func shown(keys, desc string) key.Binding {
 	return key.NewBinding(key.WithKeys(keys), key.WithHelp(keys, desc))
 }
 
-// tabBindings binds 1..6 to the tabs.
+// tabBindings binds 1..6 to the tabs, then 7 on to the optional tabs.
 func tabBindings() []key.Binding {
-	out := make([]key.Binding, len(model.Tabs))
-	for i, t := range model.Tabs {
+	all := append(model.Tabs[:len(model.Tabs):len(model.Tabs)], model.OptionalTabs...)
+	out := make([]key.Binding, len(all))
+	for i, t := range all {
 		n := strconv.Itoa(i + 1)
 		out[i] = b(n, strings.ToLower(t.Title), n)
 	}
@@ -124,7 +127,7 @@ func (m *Map) Groups() []Group {
 		{"Global", []key.Binding{shown("1-6", "go to a tab"), m.NextFocus, m.Palette, m.Refresh, m.RefreshAll, m.Pause, m.Settings, m.Help, m.Back, m.Quit, m.Debug}},
 		{"Tables", []key.Binding{m.Up, m.Down, shown("pgup pgdn", "page"), shown("home end", "top / bottom"), m.Open, m.Select, m.SelectAll, shown("s S", "sort / reverse"), m.Filter, m.Menu, m.Copy, shown("← →", "fold / unfold")}},
 		{"Details", []key.Binding{m.DetailUp, m.DetailDown, m.Back}},
-		{"Jobs", []key.Binding{m.Scope, m.Cancel, m.Hold, m.Release, m.Requeue, m.Stdout, m.Stderr, m.Pager, m.Shell, m.GPU, m.Why, m.Script}},
+		{"Jobs", []key.Binding{m.Scope, m.Cancel, m.Hold, m.Release, m.Requeue, m.Stdout, m.Stderr, m.Pager, m.Shell, m.GPU, m.Why, m.Script, m.Node}},
 		{"Queue", []key.Binding{m.Estimate, m.ScopeCycle, m.Group, m.Open}},
 		{"Overview", []key.Binding{m.Open, m.Dismiss}},
 		{"Nodes", []key.Binding{m.GPUOnly, m.Group, m.Open}},

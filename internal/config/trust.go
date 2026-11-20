@@ -15,7 +15,7 @@ var getuid = os.Getuid
 // LoadLayers then drops its commands, since editors could run programs as this user.
 func TrustIssues(path string) []Issue {
 	issue := func(why string) []Issue {
-		return []Issue{{File: path, Level: Error, Msg: why + "; its storage commands and notify_command are ignored (check ownership and write permissions on the file and its parent directories)"}}
+		return []Issue{{File: path, Level: Error, Msg: why + "; its storage commands, notify_command and profiles are ignored (check ownership and write permissions on the file and its parent directories)"}}
 	}
 	fi, err := os.Stat(path)
 	if err != nil {
@@ -76,9 +76,11 @@ func untrusted(file, dir fs.FileInfo, uid int) string {
 	return ""
 }
 
-// dropCommands removes what runs programs from one decoded layer.
+// dropCommands removes what runs programs, or points Slurm at another
+// slurm.conf, from one decoded layer.
 func dropCommands(m map[string]any) {
 	delete(m, "notify_command")
+	delete(m, "profiles")
 	entries, ok := m["storage"].([]any)
 	if !ok {
 		return

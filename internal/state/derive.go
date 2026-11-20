@@ -15,19 +15,21 @@ func sortTransitions(ts []Transition) {
 	slices.SortFunc(ts, func(a, b Transition) int { return cmp.Compare(a.Job.ID.Raw, b.Job.ID.Raw) })
 }
 
-// JoinJobs adds allocated GPU counts to running jobs and queue ranks to pending ones.
+// JoinJobs adds what running jobs were allocated (GPUs, and memory, which
+// squeue's %m shows per CPU for --mem-per-cpu jobs) and queue ranks to
+// pending ones.
 func JoinJobs(jobs []model.Job, running []model.RunningJob, pending []parse.PendingJob) []model.Job {
 	out := slices.Clone(jobs)
-	alloc := make(map[string]int, len(running))
+	alloc := make(map[string]model.RunningJob, len(running))
 	for _, r := range running {
-		alloc[r.ID.Raw] = r.GPUs
+		alloc[r.ID.Raw] = r
 	}
 	ranks := QueueRanks(pending)
 	for i := range out {
 		j := &out[i]
 		if j.State == model.StateRunning {
-			if g, ok := alloc[j.ID.Raw]; ok {
-				j.GPUs = g
+			if r, ok := alloc[j.ID.Raw]; ok {
+				*j = Allocated(*j, r)
 			}
 		}
 		if j.State == model.StatePending {
@@ -47,12 +49,30 @@ func JoinJobs(jobs []model.Job, running []model.RunningJob, pending []parse.Pend
 // Rank is a pending job's position in its partition.
 type Rank struct{ Rank, Total int }
 
+// Allocated is running job j with what it holds: its GPUs (which count
+// --gpus requests) and memory per node.
+func Allocated(j model.Job, r model.RunningJob) model.Job {
+	j.GPUs = r.GPUs
+	if r.MemMB > 0 {
+		j.MemPerNodeMB = r.MemMB / int64(max(j.Nodes, len(r.NodeList), 1))
+	}
+	return j
+}
+
 // QueueRanks ranks pending jobs within each partition by priority
-// (descending), breaking ties by job ID.
+// (descending), breaking ties by job ID. A job submitted to several
+// partitions is ranked in each and keeps its best place.
 func QueueRanks(pending []parse.PendingJob) map[string]Rank {
 	byPart := map[string][]parse.PendingJob{}
 	for _, p := range pending {
-		byPart[p.Partition] = append(byPart[p.Partition], p)
+		for _, part := range strings.Split(p.Partition, ",") {
+			if part == "" {
+				continue
+			}
+			q := p
+			q.Partition = part
+			byPart[part] = append(byPart[part], q)
+		}
 	}
 	out := make(map[string]Rank, len(pending))
 	for _, list := range byPart {
@@ -63,7 +83,10 @@ func QueueRanks(pending []parse.PendingJob) map[string]Rank {
 			return compareIDs(a.ID, b.ID)
 		})
 		for i, p := range list {
-			out[p.ID] = Rank{Rank: i + 1, Total: len(list)}
+			r := Rank{Rank: i + 1, Total: len(list)}
+			if old, ok := out[p.ID]; !ok || r.Rank < old.Rank || (r.Rank == old.Rank && r.Total < old.Total) {
+				out[p.ID] = r
+			}
 		}
 	}
 	return out
@@ -180,17 +203,47 @@ func NodeGPUUsage(nodes []model.Node, running []model.RunningJob, me string) []N
 	return out
 }
 
-// unavailable reports nodes that cannot take new jobs.
+// unavailable reports nodes that cannot take new jobs now: down, drained,
+// reserved, planned for a waiting job, rebooting or changing power state.
 func unavailable(n model.Node) bool {
 	switch n.State {
-	case "DOWN", "DRAIN", "DRAINED", "DRAINING", "FAIL", "FAILING", "FUTURE", "UNKNOWN", "POWERED_DOWN", "MAINT":
+	case "DOWN", "DRAIN", "DRAINED", "DRAINING", "FAIL", "FAILING", "FUTURE", "UNKNOWN", "POWERED_DOWN", "MAINT", "RESERVED", "PLANNED":
 		return true
 	}
-	return n.HasFlag("DRAIN") || n.HasFlag("NOT_RESPONDING") || n.HasFlag("MAINTENANCE") || n.HasFlag("POWERED_DOWN") || n.HasFlag("FAIL")
+	for _, f := range []string{"DRAIN", "NOT_RESPONDING", "MAINTENANCE", "POWERED_DOWN", "FAIL", "RESERVED", "PLANNED", "POWERING_DOWN", "POWERING_UP", "POWER_DOWN", "REBOOT_REQUESTED", "REBOOT_ISSUED"} {
+		if n.HasFlag(f) {
+			return true
+		}
+	}
+	return false
 }
 
 // Available reports whether a node can accept jobs.
 func Available(n model.Node) bool { return !unavailable(n) }
+
+// Down reports a node that is broken or taken out of service: down,
+// drained or draining, failing or not responding. A node that is only
+// planned, reserved, rebooting or powered down is not down.
+func Down(n model.Node) bool {
+	switch n.State {
+	case "DOWN", "DRAIN", "DRAINED", "DRAINING", "FAIL", "FAILING":
+		return true
+	}
+	return n.HasFlag("DRAIN") || n.HasFlag("FAIL") || n.HasFlag("NOT_RESPONDING")
+}
+
+// Reserved reports a healthy node held for a waiting job, a reservation
+// or maintenance.
+func Reserved(n model.Node) bool {
+	if Down(n) {
+		return false
+	}
+	switch n.State {
+	case "PLANNED", "RESERVED", "MAINT":
+		return true
+	}
+	return n.HasFlag("PLANNED") || n.HasFlag("RESERVED") || n.HasFlag("MAINTENANCE")
+}
 
 // GPUNodes returns only nodes with GPUs or MIG slices.
 func GPUNodes(usage []NodeUsage) []NodeUsage {
@@ -258,16 +311,23 @@ type Counts struct {
 }
 
 // CountJobs counts jobs by state.
-func CountJobs(jobs []model.Job) Counts {
+func CountJobs(jobs []model.Job) Counts { return count(jobs, func(model.Job) int { return 1 }) }
+
+// CountTasks is CountJobs with a pending range counted as its tasks.
+func CountTasks(jobs []model.Job) Counts {
+	return count(jobs, func(j model.Job) int { return j.ID.Tasks() })
+}
+
+func count(jobs []model.Job, n func(model.Job) int) Counts {
 	var c Counts
 	for _, j := range jobs {
 		switch j.State {
 		case model.StateRunning, model.StateCompleting, model.StateConfiguring:
-			c.Running++
+			c.Running += n(j)
 		case model.StatePending:
-			c.Pending++
+			c.Pending += n(j)
 		default:
-			c.Other++
+			c.Other += n(j)
 		}
 	}
 	return c
@@ -285,14 +345,14 @@ func PendingJobs(jobs []model.Job) []parse.PendingJob {
 	return out
 }
 
-// PendingIn keeps the pending jobs in any of partitions.
+// PendingIn keeps the pending jobs in any of partitions, once per matching
+// partition, as the queue-rank query lists them.
 func PendingIn(jobs []parse.PendingJob, partitions []string) []parse.PendingJob {
 	var out []parse.PendingJob
 	for _, j := range jobs {
 		for _, p := range strings.Split(j.Partition, ",") {
 			if slices.Contains(partitions, p) {
 				out = append(out, parse.PendingJob{ID: j.ID, Partition: p, Priority: j.Priority})
-				break
 			}
 		}
 	}

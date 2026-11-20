@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"text/tabwriter"
@@ -42,7 +43,7 @@ type doctorDoc struct {
 }
 
 func newDoctorCmd(a *app) *cobra.Command {
-	var asJSON bool
+	var asJSON, asReport bool
 	cmd := &cobra.Command{
 		Use:   "doctor",
 		Short: "Check the environment: Slurm commands, controller, accounting, terminal and config",
@@ -51,11 +52,16 @@ hint for each problem: ✓ fine, ! works with limits, ✗ broken. Only read-only
 commands run. Exit status is 1 when a check fails and 3 when the Slurm
 commands are missing.`,
 		Example: `  sdash doctor
-  sdash doctor --json`,
+  sdash doctor --json
+  sdash doctor --report   # anonymised, to paste into an issue`,
 		Args: usageArgs(cobra.NoArgs),
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			checks, slurmMissing := a.doctor(cmd.Context())
-			if asJSON {
+			if asReport {
+				if err := renderReport(cmd.OutOrStdout(), checks, a.doctorPrivate()); err != nil {
+					return err
+				}
+			} else if asJSON {
 				if err := writeJSON(cmd.OutOrStdout(), doctorDoc{Schema: 1, Checks: checks}); err != nil {
 					return err
 				}
@@ -72,7 +78,50 @@ commands are missing.`,
 		},
 	}
 	cmd.Flags().BoolVar(&asJSON, "json", false, "print JSON")
+	cmd.Flags().BoolVar(&asReport, "report", false, "print one anonymised block to paste into an issue")
+	cmd.MarkFlagsMutuallyExclusive("json", "report")
 	return cmd
+}
+
+// doctorPrivate is what --report replaces: the user, the home directory
+// and the cluster names (Slurm's and the configured one).
+func (a *app) doctorPrivate() map[string]string {
+	out := map[string]string{}
+	add := func(v, as string) {
+		if v != "" && v != "/" {
+			out[v] = as
+		}
+	}
+	add(a.env.Getenv("HOME"), "~")
+	add(a.env.Getenv("USER"), "USER")
+	add(a.doctorCluster, "CLUSTER")
+	add(a.loadConfig().ClusterName, "CLUSTER")
+	return out
+}
+
+// renderReport prints the checks as one Markdown block with private names
+// replaced, longest first so a home path goes before the user in it.
+func renderReport(w io.Writer, checks []check, private map[string]string) error {
+	keys := make([]string, 0, len(private))
+	for k := range private {
+		keys = append(keys, k)
+	}
+	slices.SortFunc(keys, func(a, b string) int { return len(b) - len(a) })
+	hide := func(s string) string {
+		for _, k := range keys {
+			s = replaceWord(s, k, private[k])
+		}
+		return s
+	}
+	var b strings.Builder
+	fmt.Fprintf(&b, "```\nsdash %s (%s) %s/%s\n", meta.Version, meta.Build, runtime.GOOS, runtime.GOARCH)
+	mark := map[string]string{checkOK: "ok  ", checkWarn: "warn", checkFail: "FAIL", checkInfo: "info"}
+	for _, c := range checks {
+		fmt.Fprintf(&b, "%s %-16s %s\n", mark[c.Status], c.Name, hide(c.Detail))
+	}
+	b.WriteString("```\n")
+	_, err := io.WriteString(w, b.String())
+	return err
 }
 
 func hasFailure(checks []check) bool {
@@ -162,6 +211,7 @@ func (a *app) doctor(ctx context.Context) (checks []check, slurmMissing bool) {
 		override = p.ClusterName
 	}
 	info, err := slurm.ClusterInfo(ctx, r, "", a.clock())
+	a.doctorCluster = info.Name
 	add(clusterCheck(info.Name, err, override))
 	if caps.Major > 0 { // the version was read
 		for _, f := range slurm.Features(caps, info) {
@@ -318,6 +368,11 @@ func (a *app) doctorLocal(add func(name, status, detail, hint string)) {
 	default:
 		add("config", checkOK, path, "")
 	}
+	load := fmt.Sprintf("refresh %s: about %.0f Slurm calls a minute with the Overview open", cfg.Refresh, overviewCallsPerMinute(cfg.Intervals()))
+	if cfg.Intervals().Manual {
+		load = "refresh manual: Slurm is asked only when you press r"
+	}
+	add("load", checkInfo, load, "ctrl+d in the dashboard shows the live number and memory in use.")
 	mouse := "on"
 	if !cfg.Mouse {
 		mouse = "off"

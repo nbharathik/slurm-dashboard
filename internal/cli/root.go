@@ -58,6 +58,8 @@ type app struct {
 	// demoName is the --demo scenario; sim runs it (setup starts it).
 	demoName string
 	sim      *demo.Sim
+	// doctorCluster is Slurm's cluster name as doctor read it (--report hides it).
+	doctorCluster string
 	// now returns the current time; tests fix it.
 	now func() time.Time
 	// updater, when set (tests), replaces the GitHub release updater.
@@ -172,7 +174,7 @@ gently, and by default shows the exact command before any destructive action.`,
 
 	root.AddCommand(newVersionCmd(), newConfigCmd(a), newStatusCmd(a), newJobsCmd(a), newQueueCmd(a), newNodesCmd(a),
 		newPartitionsCmd(a), newGPUsCmd(a), newFreeCmd(a), newHistoryCmd(a), newDoctorCmd(a), newRecordCmd(a), newQuotaCmd(a),
-		newWhyCmd(a), newEffCmd(a), newLogsCmd(a), newUpdateCmd(a), newUsageCmd(a))
+		newWhyCmd(a), newEffCmd(a), newLogsCmd(a), newUpdateCmd(a), newUsageCmd(a), newWaitCmd(a))
 	return root
 }
 
@@ -205,7 +207,9 @@ func (a *app) startDemo() error {
 		return usageError{err}
 	}
 	a.sim = demo.New(sc, state.RealClock{})
-	a.runner = execx.WithHistory(a.sim.Runner(), execx.DefaultHistorySize, a.log)
+	r := a.sim.Runner()
+	r.NoLog = true // the demo may run for days; History keeps the recent calls
+	a.runner = execx.WithHistory(r, execx.DefaultHistorySize, a.log)
 	env := a.env.Getenv
 	a.env.Getenv = func(k string) string {
 		if k == "USER" {

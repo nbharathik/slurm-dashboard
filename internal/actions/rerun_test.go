@@ -140,10 +140,12 @@ func TestPlanRerun(t *testing.T) {
 		t.Errorf("plan without a line = %+v", p)
 	}
 	// A multi-task job gets no per-task CPU suggestion.
-	dirs = parse.ScriptDirectives("#!/bin/sh\n#SBATCH -n 4\n")
-	for _, f := range PlanRerun(nil, dirs, map[string]string{"cpus-per-task": "2"}).Fields {
-		if f.Name == "cpus-per-task" && f.Suggest != "" {
-			t.Errorf("cpus suggestion kept for 4 tasks: %+v", f)
+	for _, script := range []string{"#SBATCH -n 4\n", "#SBATCH --ntasks-per-node=8\n", "#SBATCH -N 2\n"} {
+		dirs = parse.ScriptDirectives("#!/bin/sh\n" + script)
+		for _, f := range PlanRerun(nil, dirs, map[string]string{"cpus-per-task": "2"}).Fields {
+			if f.Name == "cpus-per-task" && f.Suggest != "" {
+				t.Errorf("cpus suggestion kept for %q: %+v", script, f)
+			}
 		}
 	}
 }

@@ -150,8 +150,7 @@ func cmdConfig(a *App, _ []string) (tea.Cmd, error) {
 	if a.opt.Demo {
 		return nil, errors.New("/config is not available in demo mode")
 	}
-	editor := strings.Fields(firstNonEmpty(a.opt.Getenv("VISUAL"), a.opt.Getenv("EDITOR"), "vi"))
-	cmd, err := execx.NewInteractive("", append(editor, path)...)
+	cmd, err := execx.NewInteractive("", append(execx.EditorArgv(a.opt.Getenv), path)...)
 	if err != nil {
 		return nil, err
 	}

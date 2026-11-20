@@ -32,6 +32,7 @@ const (
 type (
 	// logTargetMsg carries the resolved log paths of a job.
 	logTargetMsg struct {
+		gen      int
 		job      model.Job
 		stderr   bool
 		pager    bool
@@ -45,6 +46,7 @@ type (
 	}
 	logTickMsg struct{ gen int }
 	scriptMsg  struct {
+		gen  int
 		job  model.Job
 		text string
 		err  error
@@ -65,6 +67,7 @@ type (
 type infoBox struct {
 	title, body string
 	anyKey      bool // any key closes it (the welcome card)
+	scroll      int  // first body line shown
 }
 
 // openLogs resolves a job's log paths, then opens the viewer (or $PAGER).
@@ -79,11 +82,13 @@ func (a *App) openLogs(j model.Job, stderr, pager bool) tea.Cmd {
 		return nil
 	}
 	a.setFlash("Finding the log files of "+j.ID.Raw+a.th.Sym.Ellipsis, false)
+	a.lookupGen++
+	gen := a.lookupGen
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(a.runCtx, lookupTimeout)
 		defer cancel()
 		d, err := src.JobDetail(ctx, j.ID.Raw)
-		m := logTargetMsg{job: j, stderr: stderr, pager: pager, fail: err}
+		m := logTargetMsg{gen: gen, job: j, stderr: stderr, pager: pager, fail: err}
 		if d != nil {
 			m.out, m.err = views.LogPath(d, false), views.LogPath(d, true)
 		}
@@ -107,8 +112,12 @@ func (a *App) guessLogPath(j model.Job) (string, bool) {
 }
 
 func (a *App) showLog(m logTargetMsg) tea.Cmd {
-	if !m.job.OwnedBy(a.st.User) || m.fail != nil {
+	if !m.job.OwnedBy(a.st.User) {
 		a.setFlash("Private log unavailable: ownership or visibility check failed", true)
+		return nil
+	}
+	if m.fail != nil {
+		a.setFlash("Could not look up the log of "+m.job.ID.Raw+": "+layout.FirstLine(m.fail.Error()), true)
 		return nil
 	}
 	if m.out == "" && m.fail == nil {
@@ -166,6 +175,9 @@ func (a *App) handleLogMsg(msg tea.Msg) tea.Cmd {
 	case verifiedShellMsg:
 		return a.execShell(m.job, m.node, m.ownID)
 	case logTargetMsg:
+		if m.gen != a.lookupGen {
+			return nil
+		}
 		return a.showLog(m)
 	case logChunkMsg:
 		if m.gen != a.logGen || a.logView == nil {
@@ -209,6 +221,9 @@ func (a *App) handleLogMsg(msg tea.Msg) tea.Cmd {
 		}
 		return nil
 	case scriptMsg:
+		if m.gen != a.lookupGen {
+			return nil
+		}
 		if m.err != nil {
 			a.setFlash("batch script of "+m.job.ID.Raw+": "+layout.FirstLine(m.err.Error()), true)
 			return nil
@@ -258,10 +273,7 @@ func (a *App) execPager(path string) tea.Cmd {
 		a.setFlash("the pager is not available in demo mode: the logs are simulated", true)
 		return nil
 	}
-	pager := strings.Fields(a.opt.Getenv("PAGER"))
-	if len(pager) == 0 {
-		pager = []string{"less"}
-	}
+	pager := execx.PagerArgv(a.opt.Getenv)
 	argv := pager
 	if filepath.Base(pager[0]) == "less" {
 		argv = append(argv, "+F")
@@ -287,11 +299,13 @@ func (a *App) loadScript(j model.Job) tea.Cmd {
 		return nil
 	}
 	a.setFlash("Loading the batch script of "+j.ID.Raw+a.th.Sym.Ellipsis, false)
+	a.lookupGen++
+	gen := a.lookupGen
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(a.runCtx, lookupTimeout)
 		defer cancel()
 		text, err := src.BatchScript(ctx, j.ID.Raw)
-		return scriptMsg{job: j, text: text, err: err}
+		return scriptMsg{gen: gen, job: j, text: text, err: err}
 	}
 }
 

@@ -35,6 +35,7 @@ func TestSanitizeEnv(t *testing.T) {
 		"SPRIO_FORMAT=x",
 		"SSHARE_FORMAT=x",
 		"SLURM_TIME_FORMAT=relative",
+		"SLURM_CLUSTERS=other",
 		"SLURM_CONF=/etc/slurm/slurm.conf",
 		"LC_ALL=de_DE.UTF-8",
 		"LANG=de_DE.UTF-8",

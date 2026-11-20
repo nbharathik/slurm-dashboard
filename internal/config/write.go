@@ -12,6 +12,8 @@ import (
 	"strings"
 
 	"github.com/pelletier/go-toml/v2"
+
+	"github.com/nbharathik/slurm-dashboard/internal/atomicfile"
 )
 
 //go:embed default.toml
@@ -31,50 +33,37 @@ func WriteDefault(path string, force bool) (backup string, err error) {
 	} else if !errors.Is(err, fs.ErrNotExist) {
 		return "", err
 	}
+	if st, err := os.Lstat(path); err == nil && st.Mode()&os.ModeSymlink != 0 {
+		if target, err := filepath.EvalSymlinks(path); err == nil {
+			path = target // keep a symlinked dotfile a symlink, as Save does
+			backup = path + ".bak"
+		}
+	}
 
 	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return "", err
 	}
-	if err := writeAtomic(dir, path, defaultFile); err != nil {
+	if err := writeAtomic(path, defaultFile); err != nil {
 		return "", err
 	}
 	return backup, nil
 }
 
-// writeAtomic writes data to a temporary file in dir and renames it over
-// path, keeping any existing file as path+".bak".
-func writeAtomic(dir, path string, data []byte) (err error) {
-	tmp, err := os.CreateTemp(dir, ".config-*.toml")
-	if err != nil {
-		return err
-	}
-	defer func() {
+// writeAtomic replaces path with data (0600), keeping any existing file as
+// path+".bak". The copy comes first, so the config is never missing: one
+// rename puts the new file in place.
+func writeAtomic(path string, data []byte) error {
+	if _, err := os.Lstat(path); err == nil {
+		old, err := os.ReadFile(path) //nolint:gosec // the user's own config file
 		if err != nil {
-			_ = os.Remove(tmp.Name())
+			return err
 		}
-	}()
-	if err := tmp.Chmod(0o600); err != nil {
-		_ = tmp.Close()
-		return err
-	}
-	if _, err := tmp.Write(data); err != nil {
-		_ = tmp.Close()
-		return err
-	}
-	if err := tmp.Sync(); err != nil {
-		_ = tmp.Close()
-		return err
-	}
-	if err := tmp.Close(); err != nil {
-		return err
-	}
-	if _, statErr := os.Lstat(path); statErr == nil {
-		if err := os.Rename(path, path+".bak"); err != nil {
+		if err := atomicfile.Write(path+".bak", old, 0o600, true); err != nil {
 			return err
 		}
 	}
-	return os.Rename(tmp.Name(), path)
+	return atomicfile.Write(path, data, 0o600, true)
 }
 
 // ErrNotSettable means a key is not one sdash writes itself.
@@ -121,7 +110,7 @@ func Save(path string, c Config, key string) error {
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return err
 	}
-	return writeAtomic(dir, path, []byte(out))
+	return writeAtomic(path, []byte(out))
 }
 
 var headerLine = regexp.MustCompile(`^\s*\[`)

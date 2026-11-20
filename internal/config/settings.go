@@ -77,6 +77,11 @@ var Settings = []Setting{
 		Str: func(c *Config) *string { return &c.StartTab },
 	},
 	{
+		Key: "scheduler_tab", Label: "Scheduler tab", Screen: true, Group: "Look",
+		Help: "an extra tab (key 7) with the scheduler's health from sdiag; one sdiag call every 2 minutes while it is open",
+		Bool: func(c *Config) *bool { return &c.SchedulerTab },
+	},
+	{
 		Key: "notify", Label: "Job-end notices", Screen: true, Group: "Alerts",
 		Help: "a message, the bell and a desktop notice when one of your jobs ends",
 		Bool: func(c *Config) *bool { return &c.Notify },
@@ -112,6 +117,11 @@ var Settings = []Setting{
 		Key: "shell", Label: "Shell in a job via", Choices: Shells, Screen: true, Group: "Other",
 		Help: "how t opens a shell inside a running job: srun, or ssh where pam_slurm_adopt allows it",
 		Str:  func(c *Config) *string { return &c.Shell },
+	},
+	{
+		Key: "confirm", Choices: ConfirmChoices,
+		Help: "destructive asks before cancel, requeue and any action on several jobs; all also asks before holding or releasing one job",
+		Str:  func(c *Config) *string { return &c.Confirm },
 	},
 	{
 		Key:  "cluster_name",

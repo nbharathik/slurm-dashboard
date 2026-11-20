@@ -127,11 +127,13 @@ func (v *Jobs) queueGroupRow(ctx *Context, id, label string, jobs []model.Job, f
 	if folded {
 		marker = th.Sym.Collapsed
 	}
-	cpus, gpus := 0, 0
+	cpus, gpus, tasks := 0, 0, 0
 	for _, j := range jobs {
-		cpus += j.CPUs
-		gpus += j.GPUs
+		cpus += j.TotalCPUs()
+		gpus += v.held(j).TotalGPUs()
+		tasks += j.ID.Tasks()
 	}
+	count := plural(tasks, "job") // an array task is a job, as in the summary
 	head := th.Bold.Render(marker + " " + label)
 	if label == ctx.Store.User {
 		head = th.Accent.Render(marker + " " + label)
@@ -140,8 +142,8 @@ func (v *Jobs) queueGroupRow(ctx *Context, id, label string, jobs []model.Job, f
 		head = th.Bold.Render(marker + " (none)")
 	}
 	return components.Row{ID: id, Heading: true, Cells: map[string]string{
-		"id": head, "name": th.Muted.Render(plural(len(jobs), "job")),
-		"res": th.Bold.Render(resCell(model.Job{CPUs: cpus, GPUs: gpus})),
+		"id": head, "name": th.Muted.Render(count),
+		"res": th.Bold.Render(resText(cpus, gpus)),
 	}}
 }
 
@@ -180,13 +182,13 @@ type reasonCount struct {
 	n      int
 }
 
-func summariseQueue(jobs []model.Job) queueSummary {
+func summariseQueue(jobs []model.Job, held func(model.Job) model.Job) queueSummary {
 	var s queueSummary
 	parts := map[string]*partCount{}
 	users := map[string]*userUse{}
 	reasons := map[string]int{}
 	for _, j := range jobs {
-		n := taskCount(j.ID.TaskSpec)
+		n := j.ID.Tasks()
 		s.total += n
 		p := parts[j.Partition]
 		if p == nil {
@@ -203,8 +205,8 @@ func summariseQueue(jobs []model.Job) queueSummary {
 				u = &userUse{user: who}
 				users[who] = u
 			}
-			u.cpus += j.CPUs
-			u.gpus += j.GPUs
+			u.cpus += j.TotalCPUs()
+			u.gpus += held(j).TotalGPUs()
 		case model.StatePending:
 			p.pending += n
 			s.pending += n

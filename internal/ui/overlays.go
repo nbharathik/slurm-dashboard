@@ -6,9 +6,12 @@ import (
 	"strings"
 	"time"
 
+	"charm.land/bubbles/v2/key"
+
 	"github.com/nbharathik/slurm-dashboard/internal/execx"
 	"github.com/nbharathik/slurm-dashboard/internal/slurm/units"
 	"github.com/nbharathik/slurm-dashboard/internal/ui/components"
+	"github.com/nbharathik/slurm-dashboard/internal/ui/keys"
 	"github.com/nbharathik/slurm-dashboard/internal/ui/layout"
 )
 
@@ -17,6 +20,15 @@ import (
 func (a *App) helpBox(w, h int) string {
 	th := a.th
 	groups := a.keys.Groups()
+	if n := len(a.views); n != 6 && len(groups) > 0 && len(groups[0].Bindings) > 0 {
+		groups[0].Bindings[0] = key.NewBinding(key.WithKeys(fmt.Sprintf("1-%d", n)), key.WithHelp(fmt.Sprintf("1-%d", n), "go to a tab"))
+	}
+	// The current tab's keys come first.
+	if i := slices.IndexFunc(groups, func(g keys.Group) bool { return g.Title == a.views[a.tab].Title() }); i > 0 {
+		g := groups[i]
+		g.Title += " (this tab)"
+		groups = append([]keys.Group{g}, slices.Delete(groups, i, i+1)...)
+	}
 	var cols []string
 	colW := 30
 	for _, g := range groups {
@@ -43,14 +55,14 @@ func (a *App) helpBox(w, h int) string {
 		end := min(i+perRow, len(cols))
 		var cells []string
 		for _, c := range cols[i:end] {
-			cells = append(cells, layout.FitLines(c, colW, strings.Count(c, "\n")+1))
+			cells = append(cells, layout.FitLines(c, colW-1, strings.Count(c, "\n")+1)+" ") // a gap before the next column
 		}
 		rows = append(rows, joinBlocks(cells))
 	}
 	body := strings.Join(rows, "\n")
 	body += "\n\n" + th.Muted.Render("Mouse: click tabs, rows, headers and hints; the wheel scrolls.")
 	body += "\n" + th.Muted.Render("Hold Shift (Option in iTerm2) to select text while the mouse is on.")
-	body += "\n" + th.Muted.Render("Commands: press / and type; tab completes. esc closes this help.")
+	body += "\n" + th.Muted.Render("Commands: press : and type; tab completes. esc closes this help.")
 	body = a.scrollWindow(body, h-6)
 	box := components.Modal(th, "Keys", body, nil, min(w-2, perRow*colW+6))
 	return layout.FitLines(box, min(w, layout.Width(layout.FirstLine(box))), min(h, strings.Count(box, "\n")+1))
@@ -59,15 +71,20 @@ func (a *App) helpBox(w, h int) string {
 // scrollWindow shows rows lines of body from the overlay's scroll offset,
 // with a hint when more lines are hidden.
 func (a *App) scrollWindow(body string, rows int) string {
+	return a.scrollLines(body, rows, &a.overlayScroll)
+}
+
+// scrollLines shows rows lines of body from *offset, clamping it.
+func (a *App) scrollLines(body string, rows int, offset *int) string {
 	lines := strings.Split(body, "\n")
 	if rows < 3 || len(lines) <= rows {
-		a.overlayScroll = 0
+		*offset = 0
 		return body
 	}
 	rows--
-	a.overlayScroll = min(max(a.overlayScroll, 0), len(lines)-rows)
-	win := lines[a.overlayScroll : a.overlayScroll+rows]
-	more := fmt.Sprintf("%s lines %d-%d of %d (j/k, pgup/pgdn scroll)", a.th.Sym.Arrow, a.overlayScroll+1, a.overlayScroll+rows, len(lines))
+	*offset = min(max(*offset, 0), len(lines)-rows)
+	win := lines[*offset : *offset+rows]
+	more := fmt.Sprintf("%s lines %d-%d of %d (j/k, pgup/pgdn scroll)", a.th.Sym.Arrow, *offset+1, *offset+rows, len(lines))
 	return strings.Join(win, "\n") + "\n" + a.th.Faint.Render(more)
 }
 
@@ -147,6 +164,7 @@ func (a *App) debugBox(w, h int) string {
 		hist = a.opt.History()
 	}
 	b.WriteString(a.rateLine(hist) + "\n")
+	b.WriteString(memoryLine() + "\n")
 	b.WriteString("\n" + th.Bold.Render("Recent commands") + "\n")
 	rows := max(h-8-strings.Count(b.String(), "\n"), 3)
 	start := max(len(hist)-rows, 0)

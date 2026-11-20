@@ -39,6 +39,8 @@ nvidia_h200_nvl = "H200"
 | `storage_crit` | `97` | Percent that is critical (above `storage_warn`) |
 | `warn_time_left` | `"10m"` | Warn when a running job is this close to its time limit: `off`, `5m`, `10m`, `30m`, `1h` |
 | `warn_waste` | `true` | After 30 minutes, note a running job that uses under 20% of its CPUs, 10% of its memory or 20% of its GPUs (one `sstat` call every 5 minutes) |
+| `confirm` | `"destructive"` | Ask before cancel, requeue and any action on several jobs; `all` also asks before holding or releasing one job |
+| `scheduler_tab` | `false` | An extra tab (key `7`) with the scheduler's health from `sdiag`: cycle times, backfill, controller load. One `sdiag` call every 2 minutes, only while the tab is open. Some sites allow `sdiag` to administrators only; the tab then says so |
 | `cluster_name` | `""` | The name in the header, instead of Slurm's `ClusterName` |
 | `notify_command` | `""` | Also run this when your job ends (see below); only from the file, never from the Settings screen |
 
@@ -95,6 +97,23 @@ in `SDASH_JOB_ID`, `SDASH_JOB_NAME`, `SDASH_JOB_STATE`, `SDASH_EXIT_CODE` and
 notify_command = 'curl -s -d "$SDASH_JOB_NAME $SDASH_JOB_STATE" ntfy.sh/my-topic'
 ```
 
+More recipes. Use the variables only inside double quotes, never pasted
+into the command text:
+
+```toml
+# Mail (where the login node can send mail)
+notify_command = 'printf "%s ended: %s (exit %s)\n" "$SDASH_JOB_ID" "$SDASH_JOB_STATE" "$SDASH_EXIT_CODE" | mail -s "sdash: $SDASH_JOB_NAME $SDASH_JOB_STATE" you@example.org'
+
+# Slack incoming webhook; jq builds the JSON so any job name is safe
+notify_command = 'jq -n --arg t "$SDASH_JOB_NAME ($SDASH_JOB_ID): $SDASH_JOB_STATE" "{text: \$t}" | curl -s -H "Content-Type: application/json" --data @- https://hooks.slack.com/services/XXX'
+
+# Only failures
+notify_command = '[ "$SDASH_JOB_STATE" = COMPLETED ] || curl -s -d "$SDASH_JOB_NAME $SDASH_JOB_STATE" ntfy.sh/my-topic'
+```
+
+A webhook URL is a secret: keep the config file private (`chmod 600`). sdash
+ignores `notify_command` in a file others can write.
+
 Notices come only while sdash runs; keep it open in tmux. For desktop
 notices inside tmux, add `set -g allow-passthrough on` to `~/.tmux.conf`.
 
@@ -119,7 +138,8 @@ Good candidates: `[[storage]]`, `[gpu_names]` and `hide_partitions`.
 user, so sdash takes them only from a file nobody else can change. If the
 file is writable by its group or everyone, belongs to another user (root
 excepted), or has an unsafe parent directory,
-those two are ignored and `sdash config` says so. Check ownership and write
+those two are ignored, as are `[profiles]` (they choose the `slurm.conf` every
+Slurm command reads), and `sdash config` says so. Check ownership and write
 permissions on the file and its parent directories.
 
 ## Problems in the file
@@ -137,5 +157,6 @@ what replaced them. `sdash config` lists each problem with its line.
 | State: last tab, dismissed alerts, palette history, and the grouping, sort, node kind and usage range you chose | `~/.local/state/sdash/` |
 | Storage readings for the 30-day line (paths and sizes) | `~/.local/state/sdash/storage.jsonl` |
 | Cache, debug log, crash reports | `~/.cache/sdash/` |
+| Copies of batch scripts sdash fetched (`v`, rerun), so a rerun works after Slurm forgets them; kept 30 days | `~/.cache/sdash/scripts/` |
 
 Directories are created with mode 0700 and files with 0600.

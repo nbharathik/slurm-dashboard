@@ -1,0 +1,17 @@
+{
+  "items": [
+    {
+      "ID": "4110",
+      "Start": "2026-09-29T03:00:00Z",
+      "Nodes": "gpu01",
+      "Reason": "ReqNodeNotAvail, UnavailableNodes:gpu02"
+    },
+    {
+      "ID": "4111",
+      "Start": "0001-01-01T00:00:00Z",
+      "Nodes": "",
+      "Reason": "Nodes required for job are DOWN, DRAINED or reserved for jobs in higher priority partitions"
+    }
+  ],
+  "warnings": null
+}

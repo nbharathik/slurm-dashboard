@@ -43,7 +43,8 @@ type Palette struct {
 	sel     int
 	err     string
 	hist    []string
-	histPos int // -1 = not browsing
+	histPos int  // -1 = not browsing
+	moved   bool // the highlight was moved with the arrows since the last edit
 }
 
 func zoneSuggestion(i int) string { return fmt.Sprintf("palette:sugg:%d", i) }
@@ -75,11 +76,23 @@ func (a *App) updatePalette(msg tea.KeyPressMsg) tea.Cmd {
 		return nil
 	case "enter":
 		text := strings.TrimSpace(p.String())
+		if p.moved && p.sel < len(p.sugg) {
+			text = strings.TrimSpace(p.sugg[p.sel].Value)
+		}
 		if text == "" {
 			a.palette = nil
 			return nil
 		}
 		cmd, err := a.runPalette(text)
+		if err != nil && p.sel < len(p.sugg) {
+			// "que" + enter runs the highlighted "queue".
+			bare := func(v string) string { return strings.ToLower(strings.TrimLeft(v, "/:")) }
+			if s := strings.TrimSpace(p.sugg[p.sel].Value); bare(s) != bare(text) && strings.HasPrefix(bare(s), bare(text)) {
+				if c, e := a.runPalette(s); e == nil {
+					cmd, err, text = c, nil, s
+				}
+			}
+		}
 		if err != nil {
 			p.err = err.Error()
 			return nil
@@ -102,6 +115,7 @@ func (a *App) updatePalette(msg tea.KeyPressMsg) tea.Cmd {
 			}
 		} else if p.sel > 0 {
 			p.sel--
+			p.moved = true
 		}
 		return nil
 	case "down":
@@ -115,6 +129,7 @@ func (a *App) updatePalette(msg tea.KeyPressMsg) tea.Cmd {
 			}
 		} else if p.sel < len(p.sugg)-1 {
 			p.sel++
+			p.moved = true
 		}
 		return nil
 	case "left":
@@ -165,6 +180,7 @@ func (a *App) updatePalette(msg tea.KeyPressMsg) tea.Cmd {
 	}
 	p.histPos = -1
 	p.err = ""
+	p.moved = false
 	p.refresh(a)
 	return nil
 }
@@ -348,12 +364,12 @@ func (a *App) resolveJobs(ref string) ([]model.Job, error) {
 	mine := a.st.MyJobs.Data
 	switch ref {
 	case ".":
-		if s, ok := a.views[a.tab].(interface{ SelectedJobs() []model.Job }); ok {
+		if s, ok := a.views[a.tab].(views.JobPicker); ok {
 			if jobs := s.SelectedJobs(); len(jobs) > 0 {
 				return jobs, nil
 			}
 		}
-		if s, ok := a.viewByName("jobs").(interface{ SelectedJobs() []model.Job }); ok {
+		if s, ok := a.viewByName("jobs").(views.JobPicker); ok {
 			if jobs := s.SelectedJobs(); len(jobs) > 0 {
 				return jobs, nil
 			}

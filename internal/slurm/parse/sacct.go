@@ -65,6 +65,13 @@ func History(raw []byte) (jobs []model.HistoryJob, warns []model.ParseWarning) {
 			stepCPU[parent] += cpu
 			if fe.err != nil {
 				w.add(n, line, "%v", fe.err)
+				return
+			}
+			if id.Step != "extern" && len(jobs[i].Steps) < model.MaxSteps {
+				st, _ := units.ParseJobState(f[4])
+				code, _, _ := units.ParseExitCode(f[5])
+				el, _ := units.ParseSeconds(f[9])
+				jobs[i].Steps = append(jobs[i].Steps, model.JobStep{Name: own(id.Step), State: model.JobState(intern(string(st))), ExitCode: code, Elapsed: el, PeakMemMB: peak})
 			}
 			return
 		}

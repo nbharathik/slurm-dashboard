@@ -10,10 +10,7 @@ import (
 )
 
 // jobsFormat is the squeue -o format parse.MyJobs reads.
-var jobsFormat = strings.Join([]string{
-	"%i", "%F", "%K", "%P", "%q", "%a", "%T", "%M", "%l", "%L", "%D", "%C",
-	"%m", "%b", "%r", "%N", "%S", "%e", "%V", "%Q", "%E", "%u", "%j",
-}, parse.Sep)
+var jobsFormat = parse.JobsFormat()
 
 const (
 	clusterFormat   = "JobID:48,UserName:48,Partition:64,NumNodes:8,NodeList:1024,EndTime:24,tres-alloc:1024"
@@ -83,6 +80,9 @@ func (c Commands) Partitions() []string { return []string{"scontrol", "show", "p
 
 // Reservations is "scontrol show reservation -o".
 func (c Commands) Reservations() []string { return []string{"scontrol", "show", "reservation", "-o"} }
+
+// Sdiag is "sdiag" with no arguments (read-only; --reset is not).
+func (c Commands) Sdiag() []string { return []string{"sdiag"} }
 
 // JobDetail is "scontrol show job -o <id>".
 func (c Commands) JobDetail(id string) []string {

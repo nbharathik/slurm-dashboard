@@ -20,7 +20,7 @@ import (
 
 func newQueueCmd(a *app) *cobra.Command {
 	var (
-		asJSON                           bool
+		asJSON, asCSV                    bool
 		user, part, stateFilter, groupBy string
 	)
 	cmd := &cobra.Command{
@@ -46,8 +46,13 @@ func newQueueCmd(a *app) *cobra.Command {
 			st := rt.store
 			st.AllJobs.Data, err = rt.sources.AllJobs(ctx)
 			st.AllJobs.Has = rt.fail("alljobs", err)
+			// Allocations count --gpus requests and real memory, as the Queue tab does.
+			if slices.ContainsFunc(st.AllJobs.Data, func(j model.Job) bool { return j.State == model.StateRunning }) {
+				st.Cluster.Data, err = rt.sources.Cluster(ctx, nil)
+				st.Cluster.Has = rt.fail("cluster", err)
+			}
 			var jobs []model.Job
-			for _, j := range state.JoinJobs(st.AllJobs.Data, nil, state.PendingJobs(st.AllJobs.Data)) {
+			for _, j := range state.JoinJobs(st.AllJobs.Data, st.Cluster.Data.Jobs, state.PendingJobs(st.AllJobs.Data)) {
 				switch {
 				case user != "" && j.User != user:
 				case part != "" && !slices.Contains(strings.Split(j.Partition, ","), part):
@@ -57,9 +62,12 @@ func newQueueCmd(a *app) *cobra.Command {
 				}
 			}
 			doc := report.Jobs(report.NewHeader(st, a.clock()), "all", jobs)
-			if asJSON {
+			switch {
+			case asJSON:
 				err = writeJSON(cmd.OutOrStdout(), doc)
-			} else {
+			case asCSV:
+				err = writeCSV(cmd.OutOrStdout(), doc.Jobs)
+			default:
 				err = renderQueue(cmd.OutOrStdout(), doc, groupBy, st.User, st.PrivateJobs)
 			}
 			if err != nil {
@@ -73,6 +81,8 @@ func newQueueCmd(a *app) *cobra.Command {
 	}
 	fl := cmd.Flags()
 	fl.BoolVar(&asJSON, "json", false, "print JSON")
+	fl.BoolVar(&asCSV, "csv", false, "print CSV with the JSON field names as columns")
+	cmd.MarkFlagsMutuallyExclusive("json", "csv")
 	fl.StringVarP(&user, "user", "u", "", "only this user's jobs")
 	fl.StringVarP(&part, "partition", "p", "", "only jobs in this partition")
 	fl.StringVar(&stateFilter, "state", "", "only jobs in this state: R, PD, CG, ... (or running, pending)")
@@ -145,12 +155,13 @@ func renderQueue(w io.Writer, doc report.JobsDoc, by, me string, private bool) e
 			if i > 0 {
 				_, _ = fmt.Fprintln(w)
 			}
-			cpus, gpus := 0, 0
+			cpus, gpus, tasks := 0, 0, 0
 			for _, j := range groups[g] {
-				cpus += j.CPUs
-				gpus += j.GPUs
+				cpus += j.TotalCPUs
+				gpus += j.TotalGPUs
+				tasks += j.Tasks
 			}
-			_, _ = fmt.Fprintf(w, "%s: %s, %s, %s\n", g, plural(len(groups[g]), "job"), plural(cpus, "CPU"), plural(gpus, "GPU"))
+			_, _ = fmt.Fprintf(w, "%s: %s, %s, %s\n", g, plural(tasks, "job"), plural(cpus, "CPU"), plural(gpus, "GPU"))
 		}
 		if err := renderJobs(w, report.JobsDoc{Jobs: groups[g]}, true); err != nil {
 			return err
@@ -164,9 +175,9 @@ func renderQueue(w io.Writer, doc report.JobsDoc, by, me string, private bool) e
 
 func newHistoryCmd(a *app) *cobra.Command {
 	var (
-		asJSON      bool
-		days        int
-		stateFilter string
+		asJSON, asCSV bool
+		days          int
+		stateFilter   string
 	)
 	cmd := &cobra.Command{
 		Use:               "history [jobid]",
@@ -208,9 +219,12 @@ print a seff-like card for that job: what went wrong if it failed, and
 				}
 			}
 			doc := report.History(report.NewHeader(st, a.clock()), days, jobs, st.UID)
-			if asJSON {
+			switch {
+			case asJSON:
 				err = writeJSON(cmd.OutOrStdout(), doc)
-			} else {
+			case asCSV:
+				err = writeCSV(cmd.OutOrStdout(), doc.Jobs)
+			default:
 				err = renderHistory(cmd.OutOrStdout(), doc)
 			}
 			if err != nil {
@@ -224,6 +238,8 @@ print a seff-like card for that job: what went wrong if it failed, and
 	}
 	fl := cmd.Flags()
 	fl.BoolVar(&asJSON, "json", false, "print JSON")
+	fl.BoolVar(&asCSV, "csv", false, "print CSV with the JSON field names as columns")
+	cmd.MarkFlagsMutuallyExclusive("json", "csv")
 	fl.IntVar(&days, "days", 7, "how many days back (1-30)")
 	fl.StringVar(&stateFilter, "state", "", "only this state (COMPLETED, TIMEOUT, ...) or \"failed\" for any failure")
 	_ = cmd.RegisterFlagCompletionFunc("state", fixedCompletions("failed", "COMPLETED", "FAILED", "TIMEOUT", "OUT_OF_MEMORY", "CANCELLED", "NODE_FAIL"))

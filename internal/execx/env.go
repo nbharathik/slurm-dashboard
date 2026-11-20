@@ -5,8 +5,10 @@ import "strings"
 // droppedPrefixes are variables that change Slurm output formats; sdash parses fixed formats.
 var droppedPrefixes = []string{"SQUEUE_", "SINFO_", "SACCT_", "SSTAT_", "SPRIO_", "SSHARE_"}
 
-// droppedKeys are removed, then set to fixed values by SanitizeEnv.
-var droppedKeys = map[string]bool{"SLURM_TIME_FORMAT": true, "LC_ALL": true}
+// droppedKeys are removed; the first two are then set to fixed values by
+// SanitizeEnv. SLURM_CLUSTERS would add per-cluster headers to the output;
+// other clusters are reached with --profile instead.
+var droppedKeys = map[string]bool{"SLURM_TIME_FORMAT": true, "LC_ALL": true, "SLURM_CLUSTERS": true}
 
 // SanitizeEnv returns environ without Slurm format overrides, plus LC_ALL=C and SLURM_TIME_FORMAT=standard.
 func SanitizeEnv(environ []string) []string {

@@ -20,6 +20,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nbharathik/slurm-dashboard/internal/atomicfile"
 	"github.com/nbharathik/slurm-dashboard/internal/execx"
 	"github.com/nbharathik/slurm-dashboard/internal/meta"
 )
@@ -31,12 +32,14 @@ const (
 	DefaultWeb      = "https://github.com/" + meta.Repo
 )
 
-// Bound downloads and extracted data from release servers.
+// Bound downloads and extracted data from release servers. The release
+// binary is under 20 MiB (checked in CI), so 64 MiB leaves room without
+// letting an update hold hundreds of MiB on a shared login node.
 const (
 	maxJSON     = 1 << 20
 	maxChecksum = 1 << 20
-	maxArchive  = 200 << 20
-	maxBinary   = 200 << 20
+	maxArchive  = 64 << 20
+	maxBinary   = 64 << 20
 )
 
 // Errors callers can match.
@@ -76,6 +79,9 @@ type Updater struct {
 	// when either is installed; a nil Runner skips the check.
 	Runner   execx.Runner
 	LookPath func(string) (string, error)
+	// AllowUnsigned installs a release without a signature even when a
+	// verifier is installed (--allow-unsigned).
+	AllowUnsigned bool
 }
 
 // Result is what Apply installed.
@@ -360,23 +366,8 @@ func replace(exe string, bin []byte) error {
 	if fi, err := os.Stat(exe); err == nil {
 		mode = fi.Mode().Perm()
 	}
-	f, err := os.CreateTemp(filepath.Dir(exe), ".sdash-update-*")
-	if err != nil {
-		return fmt.Errorf("cannot write next to %s: %w", exe, err)
-	}
-	tmp := f.Name()
-	defer func() { _ = os.Remove(tmp) }()
-	_, werr := f.Write(bin)
-	serr := f.Sync()
-	cerr := f.Close()
-	if err := errors.Join(werr, serr, cerr); err != nil {
-		return err
-	}
-	if err := os.Chmod(tmp, mode); err != nil {
-		return err
-	}
-	if err := os.Rename(tmp, exe); err != nil {
-		return err
+	if err := atomicfile.Write(exe, bin, mode, true); err != nil {
+		return fmt.Errorf("cannot replace %s: %w", exe, err)
 	}
 	return nil
 }

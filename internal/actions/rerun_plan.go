@@ -70,8 +70,10 @@ func PlanRerun(line *parse.SbatchLine, directives []parse.SbatchOpt, suggest map
 			rf.Original = v
 		}
 		if name == "cpus-per-task" && rf.Suggest != "" {
-			if n, _ := lastOf(lineOpts, directives, "ntasks"); n != "" && n != "1" {
-				rf.Suggest = "" // a per-task count cannot come from a total
+			for _, opt := range []string{"ntasks", "ntasks-per-node", "nodes"} {
+				if n, _ := lastOf(lineOpts, directives, opt); n != "" && n != "1" {
+					rf.Suggest = "" // a per-task count cannot come from a total
+				}
 			}
 		}
 		used[name] = true

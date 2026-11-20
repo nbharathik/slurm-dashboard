@@ -23,6 +23,12 @@ const (
 // ErrSignature means the release's signature or provenance did not verify.
 var ErrSignature = errors.New("signature check failed")
 
+// ErrUnsigned means a verifier is installed but the release carries no
+// signature it can check.
+var ErrUnsigned = errors.New("release is not signed")
+
+const unsignedHint = "; nothing was changed (pass --allow-unsigned to install with the checksum only)"
+
 // maxBundle bounds the size of checksums.txt.sigstore.json.
 const maxBundle = 1 << 20
 
@@ -45,7 +51,8 @@ func GHArgv(archive string) []string {
 
 // verify checks the release's signature with cosign, or its build
 // provenance with gh, whichever is installed. It returns how it verified,
-// and a note when it could not.
+// and a note when it could not. A missing signature is an error while a
+// verifier is installed, unless AllowUnsigned is set.
 func (u *Updater) verify(ctx context.Context, base string, sums, archive []byte, name string) (how, note string, err error) {
 	if u.Runner == nil || u.LookPath == nil {
 		return "", "", nil
@@ -68,13 +75,21 @@ func (u *Updater) verify(ctx context.Context, base string, sums, archive []byte,
 	if err != nil {
 		return "", "", err
 	}
+	unsigned := func(why string) (string, string, error) {
+		if u.AllowUnsigned {
+			return "", why, nil
+		}
+		return "", "", fmt.Errorf("%w: %s%s", ErrUnsigned, why, unsignedHint)
+	}
+	noBundle := false
 	if cosignErr == nil {
 		bundle, err := u.get(ctx, base+"checksums.txt.sigstore.json", maxBundle)
 		var he httpError
 		switch {
 		case errors.As(err, &he) && he.status == http.StatusNotFound:
+			noBundle = true
 			if ghErr != nil {
-				return "", "this release has no cosign signature", nil
+				return unsigned("this release has no cosign signature")
 			}
 		case err != nil:
 			return "", "", fmt.Errorf("signature: %w", err)
@@ -97,6 +112,9 @@ func (u *Updater) verify(ctx context.Context, base string, sums, archive []byte,
 	if err != nil {
 		msg := strings.ToLower(string(res.Stderr) + " " + err.Error())
 		if strings.Contains(msg, "gh auth login") || strings.Contains(msg, "authenticat") {
+			if noBundle {
+				return unsigned("this release has no cosign signature and gh is not logged in")
+			}
 			return "", "gh is not logged in, so the build provenance was not checked", nil
 		}
 		return "", "", fmt.Errorf("%w: gh attestation verify: %v; nothing was changed", ErrSignature, execx.FirstLine([]byte(err.Error())))

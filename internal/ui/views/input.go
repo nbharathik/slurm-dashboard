@@ -2,29 +2,50 @@ package views
 
 import (
 	"slices"
+	"strings"
 
 	tea "charm.land/bubbletea/v2"
 
+	"github.com/nbharathik/slurm-dashboard/internal/textsafe"
 	"github.com/nbharathik/slurm-dashboard/internal/ui/layout"
 	"github.com/nbharathik/slurm-dashboard/internal/ui/theme"
 )
 
 // LineInput is a one-line text editor (filter lines, search).
 type LineInput struct {
-	Prompt string
-	Err    string
-	text   []rune
-	cur    int
+	Prompt  string
+	Err     string
+	text    []rune
+	cur     int
+	initial string
 }
 
 // NewLineInput starts an input with initial text.
 func NewLineInput(prompt, initial string) *LineInput {
 	r := []rune(initial)
-	return &LineInput{Prompt: prompt, text: r, cur: len(r)}
+	return &LineInput{Prompt: prompt, text: r, cur: len(r), initial: initial}
 }
 
 // Value returns the text.
 func (l *LineInput) Value() string { return string(l.text) }
+
+// Initial is the text the input started with, restored when it is cancelled.
+func (l *LineInput) Initial() string { return l.initial }
+
+// Insert adds pasted text at the cursor; line breaks become spaces and
+// control characters are dropped.
+func (l *LineInput) Insert(s string) {
+	r := []rune(PasteText(s))
+	l.text = slices.Insert(l.text, l.cur, r...)
+	l.cur += len(r)
+	l.Err = ""
+}
+
+// PasteText makes pasted text safe for a one-line input.
+func PasteText(s string) string {
+	s = strings.NewReplacer("\r\n", " ", "\n", " ", "\r", " ").Replace(s)
+	return textsafe.Field(s)
+}
 
 // Update edits the text; it reports enter (done) and esc (cancel).
 func (l *LineInput) Update(msg tea.KeyPressMsg) (done, cancel bool) {

@@ -79,6 +79,9 @@ func (s *Stream) skip(r rune) bool {
 		fallthrough
 	case controlString:
 		switch r {
+		case '\n': // ends an unterminated string; the newline is kept (S8)
+			s.state = ground
+			return false
 		case 0x07, 0x9c:
 			s.state = ground
 		case 0x1b:

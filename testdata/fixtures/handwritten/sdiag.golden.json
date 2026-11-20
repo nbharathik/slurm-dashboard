@@ -1,0 +1,84 @@
+{
+  "items": {
+    "At": "2026-09-28T14:00:00Z",
+    "Since": "2026-09-28T00:00:00Z",
+    "ServerThreads": 3,
+    "AgentQueue": 0,
+    "DBDQueue": 0,
+    "Submitted": 1520,
+    "Started": 1400,
+    "Completed": 1350,
+    "Cancelled": 40,
+    "Failed": 10,
+    "Pending": 812,
+    "Running": 402,
+    "Main": {
+      "LastUS": 8732,
+      "MaxUS": 1200345,
+      "MeanUS": 15890,
+      "MeanDepth": 140,
+      "PerMinute": 3,
+      "LastQueue": 812
+    },
+    "Backfill": {
+      "Jobs": 312,
+      "JobsTotal": 9921,
+      "Cycles": 1410,
+      "LastAt": "2026-09-28T13:59:30Z",
+      "LastUS": 2348112,
+      "MaxUS": 25031998,
+      "MeanUS": 1890225,
+      "LastDepth": 812,
+      "LastTried": 220,
+      "MeanDepth": 790,
+      "QueueLength": 812
+    },
+    "RPCTypes": [
+      {
+        "Name": "REQUEST_JOB_INFO",
+        "Count": 40120,
+        "AveUS": 1890,
+        "TotalU": 75826800
+      },
+      {
+        "Name": "REQUEST_NODE_INFO",
+        "Count": 30881,
+        "AveUS": 640,
+        "TotalU": 19763840
+      },
+      {
+        "Name": "REQUEST_PARTITION_INFO",
+        "Count": 52310,
+        "AveUS": 212,
+        "TotalU": 11090100
+      },
+      {
+        "Name": "REQUEST_SUBMIT_BATCH_JOB",
+        "Count": 1520,
+        "AveUS": 4100,
+        "TotalU": 6232000
+      }
+    ],
+    "RPCUsers": [
+      {
+        "Name": "root",
+        "Count": 120000,
+        "AveUS": 340,
+        "TotalU": 40800000
+      },
+      {
+        "Name": "alice",
+        "Count": 5210,
+        "AveUS": 190,
+        "TotalU": 989900
+      },
+      {
+        "Name": "you",
+        "Count": 812,
+        "AveUS": 200,
+        "TotalU": 162400
+      }
+    ]
+  },
+  "warnings": null
+}

@@ -17,7 +17,11 @@ const (
 	RateLimitWait   = 30 * time.Second // least wait for every source once the controller rate-limits
 	RefreshDebounce = time.Second
 	IdleFactor      = 3
+	DeepIdleFactor  = 10 // left alone for hours: about one query a minute
 	staggerMax      = 500 * time.Millisecond
+	// catchUpSpread spreads the runs that come due when idle ends, so they
+	// do not all reach the controller at once.
+	catchUpSpread = 3 * time.Second
 )
 
 // Collector is one data source.
@@ -50,6 +54,9 @@ type Options struct {
 	Active func() bool
 	// Once runs the collector until it succeeds once, then stops.
 	Once bool
+	// LightIdle keeps the collector at IdleFactor in deep idle while it
+	// returns true (the user's jobs, so job-end notices stay timely).
+	LightIdle func() bool
 	// Timeout bounds one run.
 	Timeout time.Duration
 }
@@ -84,7 +91,7 @@ type Scheduler struct {
 	rng     *rand.Rand
 	entries []*entry
 	visible string
-	idle    bool
+	idle    int // 0 active, 1 idle (×IdleFactor), 2 deep idle (×DeepIdleFactor)
 	paused  bool
 	manual  bool
 }
@@ -176,20 +183,57 @@ func (s *Scheduler) Paused() bool {
 
 // SetIdle switches idle mode (intervals ×3).
 func (s *Scheduler) SetIdle(idle bool) {
-	s.mu.Lock()
-	changed := s.idle != idle
-	s.idle = idle
-	s.mu.Unlock()
-	if changed {
-		s.nudgeAll()
+	level := 0
+	if idle {
+		level = 1
 	}
+	s.SetIdleLevel(level)
+}
+
+// SetIdleLevel sets 0 (active), 1 (idle, ×IdleFactor) or 2 (deep idle,
+// ×DeepIdleFactor). Waking up spreads the runs that came due.
+func (s *Scheduler) SetIdleLevel(level int) {
+	level = min(max(level, 0), 2)
+	s.mu.Lock()
+	changed := s.idle != level
+	waking := level < s.idle
+	s.idle = level
+	s.mu.Unlock()
+	if !changed {
+		return
+	}
+	if waking {
+		s.spreadNudge()
+		return
+	}
+	s.nudgeAll()
 }
 
 // Idle reports whether idle mode is on.
 func (s *Scheduler) Idle() bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.idle
+	return s.idle > 0
+}
+
+// spreadNudge nudges every collector, a short random delay apart, so the
+// sources that came due while idle do not all run at once.
+func (s *Scheduler) spreadNudge() {
+	s.mu.Lock()
+	entries := slices.Clone(s.entries)
+	delays := make([]time.Duration, len(entries))
+	for i := range entries {
+		delays[i] = time.Duration(s.rng.Int64N(int64(catchUpSpread)))
+	}
+	s.mu.Unlock()
+	for i, e := range entries {
+		time.AfterFunc(delays[i], func() {
+			select {
+			case e.nudge <- struct{}{}:
+			default:
+			}
+		})
+	}
 }
 
 // Refresh runs the named collectors now (all if none); busy or just-refreshed ones are skipped.
@@ -345,7 +389,10 @@ func (s *Scheduler) baseIntervalLocked(e *entry) time.Duration {
 	if !s.visibleLocked(e) && e.opt.HiddenMin > d {
 		d = e.opt.HiddenMin
 	}
-	if s.idle {
+	switch {
+	case s.idle >= 2 && (e.opt.LightIdle == nil || !e.opt.LightIdle()):
+		d *= DeepIdleFactor
+	case s.idle >= 1:
 		d *= IdleFactor
 	}
 	return max(d, Floor)

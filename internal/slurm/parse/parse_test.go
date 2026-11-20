@@ -206,7 +206,7 @@ func TestFieldHelpers(t *testing.T) {
 }
 
 func FuzzAllParsers(f *testing.F) {
-	for _, p := range []string{"23.11/submitline-script.txt", "23.11/assocmgr.txt", "handwritten/submitline-quoted.txt", "23.11/myjobs.txt", "23.11/nodes.txt", "23.11/history.txt", "handwritten/myjobs.txt", "handwritten/history.txt", "handwritten/jobdetail-array.txt", "handwritten/myjobs-escapes.txt", "handwritten/nodes-escapes.txt"} {
+	for _, p := range []string{"23.11/submitline-script.txt", "23.11/assocmgr.txt", "handwritten/submitline-quoted.txt", "23.11/myjobs.txt", "23.11/nodes.txt", "23.11/history.txt", "handwritten/myjobs.txt", "handwritten/history.txt", "handwritten/jobdetail-array.txt", "handwritten/myjobs-escapes.txt", "handwritten/nodes-escapes.txt", "handwritten/sdiag.txt"} {
 		if b, err := os.ReadFile("../../../testdata/fixtures/" + p); err == nil {
 			f.Add(b)
 		}

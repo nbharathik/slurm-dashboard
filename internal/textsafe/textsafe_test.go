@@ -81,6 +81,7 @@ func TestStreamAcrossReadBoundaries(t *testing.T) {
 		"\x1b(Bplain\u009b31mc1\u202e\u200b",
 		"bad\xffutf8\xe6\x97",
 		"unterminated\x1b]52;c;payload",
+		"line1\x1b]8;;unterminated\nline2\n", "\u009dno end\nnext", "a\x1b]x\x1b\nb",
 		"\x1b[31", "\x1b", "\x1b\ntext", "\x1b]title\x1b\x1b\\end",
 	} {
 		for split := 0; split <= len(input); split++ {
@@ -102,6 +103,17 @@ func TestStreamAcrossReadBoundaries(t *testing.T) {
 		if got := stream.Text([]byte("next")); got != "next" {
 			t.Fatalf("flush did not reset stream: %q", got)
 		}
+	}
+}
+
+// S8: one unterminated control string hides only the rest of its line.
+func TestUnterminatedStringEndsAtNewline(t *testing.T) {
+	in := "start\x1b]8;;http://x\nkept 1\nkept 2\n"
+	if got := Text(in); got != "start\nkept 1\nkept 2\n" {
+		t.Fatalf("Text = %q", got)
+	}
+	if got := Field("a\x1b]0;title\nb"); got != "ab" {
+		t.Fatalf("Field = %q", got)
 	}
 }
 

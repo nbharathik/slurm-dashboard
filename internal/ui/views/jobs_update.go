@@ -60,7 +60,7 @@ func (v *Jobs) update(ctx *Context, msg tea.Msg) tea.Cmd {
 func (v *Jobs) key(ctx *Context, msg tea.KeyPressMsg) tea.Cmd {
 	k := ctx.Keys
 	if v.menu != nil {
-		out, done := v.menu.update(msg)
+		out, done := v.menu.update(k, msg)
 		if done {
 			v.menu = nil
 		}
@@ -73,8 +73,9 @@ func (v *Jobs) key(ctx *Context, msg tea.KeyPressMsg) tea.Cmd {
 		done, cancel := v.input.Update(msg)
 		switch {
 		case cancel:
+			// Back to the filter applied before this edit; esc again clears it.
+			v.filter, _ = ParseFilter(v.input.Initial())
 			v.input = nil
-			v.filter = Filter{}
 			v.Refresh(ctx)
 		case done:
 			f, err := ParseFilter(v.input.Value())
@@ -185,10 +186,27 @@ func (v *Jobs) key(ctx *Context, msg tea.KeyPressMsg) tea.Cmd {
 		if hasCur {
 			return Emit(ScriptMsg{Job: cur})
 		}
+	case key.Matches(msg, k.Node):
+		if !hasCur || len(cur.NodeList) == 0 {
+			return Emit(FlashMsg{Text: "this job runs on no node yet", Err: true})
+		}
+		return Emit(NodeMsg{Name: cur.NodeList[0]})
 	case msg.String() == "i" && v.detail:
 		v.allFields = !v.allFields
 	}
 	return nil
+}
+
+// Paste adds pasted text to the filter being typed.
+func (v *Jobs) Paste(ctx *Context, s string) {
+	if v.input == nil {
+		return
+	}
+	v.input.Insert(s)
+	if f, err := ParseFilter(v.input.Value()); err == nil {
+		v.filter = f
+		v.Refresh(ctx)
+	}
 }
 
 func actionOn(id string, jobs []model.Job) tea.Cmd {
@@ -251,7 +269,7 @@ func (v *Jobs) setGroup(ctx *Context, open bool) {
 		return
 	}
 	if !open {
-		if j, ok := v.byID[id]; ok && j.ID.IsArray() && v.expanded[j.ID.ArrayJobID] {
+		if j, ok := v.lookup(id); ok && j.ID.IsArray() && v.expanded[j.ID.ArrayJobID] {
 			v.expanded[j.ID.ArrayJobID] = false
 			v.Refresh(ctx)
 			v.table.SetCursorID("arr:" + strconv.FormatUint(j.ID.ArrayJobID, 10))
@@ -295,6 +313,13 @@ func (v *Jobs) click(ctx *Context, msg tea.MouseClickMsg) tea.Cmd {
 	for _, name := range []string{"cancel", "hold", "release", "requeue"} {
 		if ctx.InZone("jobs:btn:"+name, msg) {
 			return actionOn(name, v.SelectedJobs())
+		}
+	}
+	if j, ok := v.CurrentJob(); ok {
+		for _, n := range j.NodeList[:min(len(j.NodeList), maxCardNodes)] {
+			if ctx.InZone("jobs:node:"+n, msg) {
+				return Emit(NodeMsg{Name: n})
+			}
 		}
 	}
 	if j, ok := v.cursorJob(); ok {

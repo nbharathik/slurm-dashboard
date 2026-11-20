@@ -1,6 +1,7 @@
 package state
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -61,5 +62,22 @@ func TestFitNodes(t *testing.T) {
 	r = FitNodes(usage, parts, Request{CPUs: 1, Partition: "nope"}, nil)
 	if len(r.Reasons) != 1 || r.Reasons[0] != "no partition nope" {
 		t.Fatalf("unknown partition = %+v", r.Reasons)
+	}
+	// Two nodes asked for, one free: nothing fits now.
+	r = FitNodes(usage, parts, Request{GPUs: 1, GPUType: "h200", CPUs: 8, Nodes: 2}, nil)
+	if len(r.Now) != 0 || r.Soonest != nil || len(r.Reasons) == 0 {
+		t.Fatalf("2 nodes = %+v", r)
+	}
+	// A reserved or planned node is not free.
+	for _, flag := range []string{"RESERVED", "PLANNED", "REBOOT_REQUESTED"} {
+		n := h200("h200-01", 0)
+		n.Flags = []string{flag}
+		r = FitNodes(NodeGPUUsage([]model.Node{n}, nil, "you"), parts, Request{GPUs: 1, CPUs: 1}, nil)
+		if len(r.Now) != 0 {
+			t.Errorf("%s node counted as free: %+v", flag, r.Now)
+		}
+		if len(r.Reasons) != 1 || !strings.Contains(r.Reasons[0], "held for waiting jobs") {
+			t.Errorf("%s reasons = %q", flag, r.Reasons)
+		}
 	}
 }

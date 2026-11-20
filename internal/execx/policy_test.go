@@ -26,6 +26,7 @@ func TestClassify(t *testing.T) {
 		{"sacct", "-n", "-P", "-X", "-j", "812", "-o", "JobID,State,ExitCode,ElapsedRaw"},
 		{"sshare", "-U", "-n", "-P", "-o", "Account,User"},
 		{"sprio", "-h", "-u", "alice", "-o", "%i"},
+		{"sdiag"},
 		{"scontrol", "write", "batch_script", "812", "-"},
 		{"sbatch", "--test-only"},
 		{"lfs", "quota", "-q", "-u", "alice", "/lustre"},
@@ -64,6 +65,8 @@ func TestClassify(t *testing.T) {
 		{"scontrol", "write", "batch_script", "812", "out.sh"},
 		{"scontrol", "write", "config"},
 		{"scontrol"},
+		{"sdiag", "--reset"},
+		{"sdiag", "-r"},
 		{"sbatch", "--parsable"},
 		{"sbatch", "job.sh", "--test-only"}, // --test-only after the script goes to the script
 		{"sbatch", "-p", "gpu", "--test-only"},

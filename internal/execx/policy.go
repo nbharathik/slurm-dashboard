@@ -31,6 +31,7 @@ var clusterTools = map[string]bool{
 	// Slurm
 	"squeue": true, "sinfo": true, "scontrol": true, "sacct": true, "sstat": true,
 	"sshare": true, "sprio": true, "scancel": true, "sbatch": true, "srun": true,
+	"sdiag": true,
 	// storage quotas
 	"lfs": true, "mmlsquota": true, "beegfs-ctl": true, "quota": true,
 	// identity fallback when $USER is unset
@@ -47,7 +48,7 @@ var verifyTools = map[string]bool{"cosign": true, "gh": true}
 var slurmTools = map[string]bool{
 	"squeue": true, "sinfo": true, "scontrol": true, "sacct": true, "sstat": true,
 	"sshare": true, "sprio": true, "scancel": true, "sbatch": true, "srun": true,
-	"salloc": true,
+	"salloc": true, "sdiag": true,
 }
 
 // IsSlurmTool reports whether name (basename or path) is a Slurm client command.
@@ -70,6 +71,11 @@ func Classify(argv []string) Class {
 	switch filepath.Base(argv[0]) {
 	case "squeue", "sinfo", "sacct", "sstat", "sshare", "sprio", "mmlsquota", "quota", "id":
 		return ReadOnly
+	case "sdiag":
+		if len(argv) == 1 { // sdiag --reset clears the statistics
+			return ReadOnly
+		}
+		return Mutating
 	case "scontrol":
 		switch arg(1) {
 		case "show", "--version", "-V":

@@ -10,6 +10,7 @@ import (
 	osc52 "github.com/aymanbagabas/go-osc52/v2"
 
 	"github.com/nbharathik/slurm-dashboard/internal/actions"
+	"github.com/nbharathik/slurm-dashboard/internal/config"
 	"github.com/nbharathik/slurm-dashboard/internal/insights"
 	"github.com/nbharathik/slurm-dashboard/internal/model"
 	"github.com/nbharathik/slurm-dashboard/internal/ui/views"
@@ -28,6 +29,22 @@ type (
 
 var registry = actions.Default()
 
+// tabForJob is Jobs for the user's own jobs and Queue for a job only
+// everyone's list holds, so its card can open.
+func (a *App) tabForJob(id string) string {
+	for _, j := range a.st.MyJobs.Data {
+		if j.ID.Raw == id {
+			return model.TabJobs
+		}
+	}
+	for _, j := range a.st.AllJobs.Data {
+		if j.ID.Raw == id {
+			return model.TabQueue
+		}
+	}
+	return model.TabJobs
+}
+
 // handleRequest acts on messages from views and background commands.
 func (a *App) handleRequest(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
@@ -44,19 +61,19 @@ func (a *App) handleRequest(msg tea.Msg) tea.Cmd {
 	case startEstimateMsg:
 		a.showEstimate(msg)
 	case views.OpenJobMsg:
-		a.switchTab(a.tabIndex(model.TabJobs))
-		if o, ok := a.views[a.tab].(interface{ Open(*views.Context, string) }); ok {
+		a.switchTab(a.tabIndex(a.tabForJob(msg.ID)))
+		if o, ok := a.views[a.tab].(views.Opener); ok {
 			o.Open(a.ctx, msg.ID)
 			a.syncVisible()
 		}
 	case views.HistoryJobMsg:
 		a.switchTab(a.tabIndex(model.TabUsage))
-		if o, ok := a.views[a.tab].(interface{ Open(*views.Context, string) }); ok {
+		if o, ok := a.views[a.tab].(views.Opener); ok {
 			o.Open(a.ctx, msg.ID)
 		}
 	case views.NodeMsg:
 		a.switchTab(a.tabIndex(model.TabNodes))
-		if o, ok := a.views[a.tab].(interface{ Open(*views.Context, string) }); ok {
+		if o, ok := a.views[a.tab].(views.Opener); ok {
 			o.Open(a.ctx, msg.Name)
 		}
 	case views.PrefMsg:
@@ -65,7 +82,13 @@ func (a *App) handleRequest(msg tea.Msg) tea.Cmd {
 			saveState(a.opt.StateDir, a.state)
 		}
 	case views.DismissMsg:
-		a.state.Dismissed[msg.Key] = a.now().Add(insights.DismissFor)
+		now := a.now()
+		for k, until := range a.state.Dismissed {
+			if now.After(until) {
+				delete(a.state.Dismissed, k)
+			}
+		}
+		a.state.Dismissed[msg.Key] = now.Add(insights.DismissFor)
 		saveState(a.opt.StateDir, a.state)
 		for _, v := range a.views {
 			v.Refresh(a.ctx)
@@ -167,7 +190,9 @@ func (a *App) startAction(id string, jobs []model.Job, args map[string]string) t
 		a.setFlash(err.Error(), true)
 		return nil
 	}
-	if act.Destructive {
+	// Cancel and requeue always ask; hold and release ask for several jobs at
+	// once, or always with confirm = "all".
+	if act.Destructive || len(mine) > 1 || a.opt.Config.Confirm == config.ConfirmAll {
 		a.confirm = &Confirm{Action: act, Jobs: mine, Argvs: argvs}
 		return nil
 	}

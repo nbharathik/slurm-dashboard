@@ -17,6 +17,7 @@ type AccountInput struct {
 	PriorityRead  bool   // sshare has succeeded
 	PriorityErr   string // its last error, "" when none
 	BasicPriority bool   // PriorityType=priority/basic
+	FairTree      bool   // the fairshare value is a rank, not a usage ratio
 }
 
 // Account is the part of the usage view that is not about finished jobs:
@@ -57,7 +58,13 @@ func BuildAccount(in AccountInput) Account {
 	case !in.PriorityRead:
 		a.PriorityNote = "fairshare has not been read yet"
 	default:
-		if a.Standing = FairShareStanding(in.Shares, in.User); len(a.Standing) == 0 {
+		a.Standing = FairShareStanding(in.Shares, in.User)
+		if in.FairTree {
+			for i := range a.Standing {
+				a.Standing[i].Verdict = usageVerdict(a.Standing[i].UsedPct, a.Standing[i].SharesPct)
+			}
+		}
+		if len(a.Standing) == 0 {
 			a.PriorityNote = "you have no fairshare row"
 		}
 		a.Pending = PendingPriorities(in.Priorities)

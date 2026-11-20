@@ -49,13 +49,32 @@ func (r *rotatingFile) Write(p []byte) (int, error) {
 		return 0, os.ErrClosed
 	}
 	if r.size > 0 && r.size+int64(len(p)) > r.maxSize {
-		if err := r.rotate(); err != nil {
+		if err := r.rotateOrFollow(len(p)); err != nil {
 			return 0, err
 		}
 	}
 	n, err := r.f.Write(p)
 	r.size += int64(n)
 	return n, err
+}
+
+// rotateOrFollow rotates, unless another sdash already did: then the open
+// file is no longer at path, and this one reopens path instead of rotating
+// a second time (which would push the other's fresh log out).
+func (r *rotatingFile) rotateOrFollow(n int) error {
+	mine, err1 := r.f.Stat()
+	cur, err2 := os.Stat(r.path)
+	if err1 == nil && err2 == nil && !os.SameFile(mine, cur) {
+		_ = r.f.Close()
+		r.f = nil
+		if err := r.open(); err != nil {
+			return err
+		}
+		if r.size+int64(n) <= r.maxSize {
+			return nil
+		}
+	}
+	return r.rotate()
 }
 
 // rotate shifts path.(k-2) -> path.(k-1), ..., path -> path.1 and reopens.

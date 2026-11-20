@@ -34,7 +34,16 @@
         "Time": 0.2,
         "GPUHours": 0,
         "GPUUtil": -1
-      }
+      },
+      "Steps": [
+        {
+          "Name": "batch",
+          "State": "COMPLETED",
+          "ExitCode": 0,
+          "Elapsed": 60000000000,
+          "PeakMemMB": 3
+        }
+      ]
     },
     {
       "ID": {
@@ -70,7 +79,16 @@
         "Time": 0.15,
         "GPUHours": 0,
         "GPUUtil": -1
-      }
+      },
+      "Steps": [
+        {
+          "Name": "batch",
+          "State": "COMPLETED",
+          "ExitCode": 0,
+          "Elapsed": 45000000000,
+          "PeakMemMB": 59
+        }
+      ]
     },
     {
       "ID": {
@@ -106,7 +124,16 @@
         "Time": 0,
         "GPUHours": 0,
         "GPUUtil": -1
-      }
+      },
+      "Steps": [
+        {
+          "Name": "batch",
+          "State": "FAILED",
+          "ExitCode": 3,
+          "Elapsed": 0,
+          "PeakMemMB": 0
+        }
+      ]
     },
     {
       "ID": {
@@ -142,7 +169,16 @@
         "Time": 0.01,
         "GPUHours": 0,
         "GPUUtil": -1
-      }
+      },
+      "Steps": [
+        {
+          "Name": "batch",
+          "State": "FAILED",
+          "ExitCode": 1,
+          "Elapsed": 3000000000,
+          "PeakMemMB": 3
+        }
+      ]
     },
     {
       "ID": {
@@ -178,7 +214,16 @@
         "Time": 1.2833333333333334,
         "GPUHours": 0,
         "GPUUtil": -1
-      }
+      },
+      "Steps": [
+        {
+          "Name": "batch",
+          "State": "CANCELLED",
+          "ExitCode": 0,
+          "Elapsed": 77000000000,
+          "PeakMemMB": 3
+        }
+      ]
     },
     {
       "ID": {
@@ -214,7 +259,16 @@
         "Time": 0.006666666666666667,
         "GPUHours": 0,
         "GPUUtil": -1
-      }
+      },
+      "Steps": [
+        {
+          "Name": "batch",
+          "State": "CANCELLED",
+          "ExitCode": 0,
+          "Elapsed": 2000000000,
+          "PeakMemMB": 0
+        }
+      ]
     },
     {
       "ID": {
@@ -250,7 +304,16 @@
         "Time": 0.01,
         "GPUHours": 0,
         "GPUUtil": -1
-      }
+      },
+      "Steps": [
+        {
+          "Name": "batch",
+          "State": "CANCELLED",
+          "ExitCode": 0,
+          "Elapsed": 3000000000,
+          "PeakMemMB": 312
+        }
+      ]
     },
     {
       "ID": {
@@ -286,7 +349,16 @@
         "Time": 0.012986111111111111,
         "GPUHours": 0.051944444444444446,
         "GPUUtil": -1
-      }
+      },
+      "Steps": [
+        {
+          "Name": "batch",
+          "State": "RUNNING",
+          "ExitCode": 0,
+          "Elapsed": 187000000000,
+          "PeakMemMB": 0
+        }
+      ]
     },
     {
       "ID": {
@@ -425,7 +497,16 @@
         "Time": 0.051944444444444446,
         "GPUHours": 0,
         "GPUUtil": -1
-      }
+      },
+      "Steps": [
+        {
+          "Name": "batch",
+          "State": "RUNNING",
+          "ExitCode": 0,
+          "Elapsed": 187000000000,
+          "PeakMemMB": 0
+        }
+      ]
     },
     {
       "ID": {
@@ -462,7 +543,16 @@
         "Time": 0.051944444444444446,
         "GPUHours": 0,
         "GPUUtil": -1
-      }
+      },
+      "Steps": [
+        {
+          "Name": "batch",
+          "State": "RUNNING",
+          "ExitCode": 0,
+          "Elapsed": 187000000000,
+          "PeakMemMB": 0
+        }
+      ]
     },
     {
       "ID": {
@@ -498,7 +588,16 @@
         "Time": 0.1,
         "GPUHours": 0,
         "GPUUtil": -1
-      }
+      },
+      "Steps": [
+        {
+          "Name": "batch",
+          "State": "CANCELLED",
+          "ExitCode": 0,
+          "Elapsed": 12000000000,
+          "PeakMemMB": 4
+        }
+      ]
     }
   ],
   "warnings": null

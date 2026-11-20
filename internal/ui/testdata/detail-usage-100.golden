@@ -21,10 +21,10 @@
   │ Elapsed:       41:00 of 01:00:00 (68%)                                                       │  
   │ CPU used:      09:50:24 (90%)                                                                │  
   │ Memory:        31.8G of 32G (99%)                                                            │  
+  │ Steps:         batch OUT_OF_MEMORY, 41m, peak 31.8G                                          │  
   │ Directory:     /home/you/data                                                                │  
   │                                                                                              │  
   │ [ Stdout ] [ Stderr ] [ Script ] [ Rerun ]                                                   │  
-  │                                                                                              │  
   │                                                                                              │  
   │                                                                                              │  
   │                                                                                              │  

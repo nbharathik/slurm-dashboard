@@ -27,6 +27,27 @@ type FakeClock struct {
 	now     time.Time
 	waiters []fakeWaiter
 	changed chan struct{}
+	afters  int
+}
+
+// Afters counts After calls, so a test can tell when goroutines are settled.
+func (c *FakeClock) Afters() int {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.afters
+}
+
+// NextAt is the earliest pending timer, or the zero time.
+func (c *FakeClock) NextAt() time.Time {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	var next time.Time
+	for _, w := range c.waiters {
+		if next.IsZero() || w.at.Before(next) {
+			next = w.at
+		}
+	}
+	return next
 }
 
 type fakeWaiter struct {
@@ -50,6 +71,7 @@ func (c *FakeClock) Now() time.Time {
 func (c *FakeClock) After(d time.Duration) <-chan time.Time {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	c.afters++
 	ch := make(chan time.Time, 1)
 	if d <= 0 {
 		ch <- c.now

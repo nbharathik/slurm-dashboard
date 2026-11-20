@@ -75,7 +75,7 @@ as 'sdash history' and needs Slurm accounting.`,
 // can hide them, and the summary then says why instead of failing.
 func readAccount(ctx context.Context, rt *slurmRuntime) insights.AccountInput {
 	st := rt.store
-	in := insights.AccountInput{User: st.User, NoAccounting: st.Site.AccountingOff(), BasicPriority: st.Site.BasicPriority()}
+	in := insights.AccountInput{User: st.User, NoAccounting: st.Site.AccountingOff(), BasicPriority: st.Site.BasicPriority(), FairTree: st.Site.FairTree()}
 	if !in.NoAccounting {
 		scopes, err := rt.sources.Limits(ctx)
 		in.Scopes, in.LimitsRead, in.LimitsErr = scopes, err == nil, errText(err)
