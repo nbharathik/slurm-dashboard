@@ -5,7 +5,7 @@ and the project uses [Semantic Versioning](https://semver.org/). Command-line
 flags, `--json` output (`"schema": 1`) and config keys stay compatible within
 0.x; new JSON fields may be added.
 
-## [0.3.0] - Unreleased
+## [0.3.0] - 2026-11-20
 
 Lighter on the login node, more accurate numbers, safer defaults.
 
