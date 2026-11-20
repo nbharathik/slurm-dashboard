@@ -76,6 +76,24 @@ func Key(argv []string) string {
 	return strings.ReplaceAll(strings.Join(argv, " "), "\x1f", "␟")
 }
 
+type timeoutKey struct{}
+
+// WithTimeout bounds how long a command may run, counted from when it gets
+// a slot rather than from when it was asked for.
+func WithTimeout(ctx context.Context, d time.Duration) context.Context {
+	return context.WithValue(ctx, timeoutKey{}, d)
+}
+
+type squeezeKey struct{}
+
+// WithSqueezedSpaces makes the real runner keep one space of each run in
+// stdout, for whitespace-separated output padded to fixed widths.
+func WithSqueezedSpaces(ctx context.Context) context.Context {
+	return context.WithValue(ctx, squeezeKey{}, true)
+}
+
+func squeezes(ctx context.Context) bool { b, _ := ctx.Value(squeezeKey{}).(bool); return b }
+
 type labelKey struct{}
 
 // WithLabel attaches a short source name (e.g. "myjobs") to ctx for history, logs and fixtures.

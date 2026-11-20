@@ -236,9 +236,9 @@ func (v *Nodes) nodeRow(ctx *Context, u state.NodeUsage) components.Row {
 	stateLabel := state.NodeStateLabel(n)
 	stateCell := stateLabel
 	switch {
-	case !state.Available(n):
+	case state.Down(n):
 		stateCell = th.Warn.Render(stateLabel)
-	case n.State == "IDLE":
+	case n.State == "IDLE" && state.Available(n):
 		stateCell = th.OK.Render(stateLabel)
 	}
 	cpu := ""
@@ -277,7 +277,7 @@ func (v *Nodes) nodeRow(ctx *Context, u state.NodeUsage) components.Row {
 	case len(u.Jobs) > 0:
 		jobs = jobOwners(ctx, u.Jobs)
 	}
-	return components.Row{ID: n.Name, Muted: !state.Available(n), Cells: map[string]string{
+	return components.Row{ID: n.Name, Muted: state.Down(n), Cells: map[string]string{
 		"node": n.Name, "state": stateCell, "cpu": cpu, "load": load, "mem": nodeMemCell(ctx, n),
 		"gpus": gpus, "type": gtype, "jobs": jobs, "freeby": freeIn(ctx, u),
 	}}
@@ -368,6 +368,9 @@ func partitionsPanel(ctx *Context, parts []state.PartSummary, w, h int) string {
 		nodes := fmt.Sprintf("%d idle %d mix %d alloc", s.Idle, s.Mixed, s.Alloc)
 		if s.Down > 0 {
 			nodes += " " + th.Warn.Render(strconv.Itoa(s.Down)+" down")
+		}
+		if s.Reserved > 0 {
+			nodes += " " + strconv.Itoa(s.Reserved) + " reserved"
 		}
 		res := fmt.Sprintf("CPUs %d free", s.CPUFree)
 		var gpus []string

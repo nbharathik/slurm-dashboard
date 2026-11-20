@@ -2,10 +2,12 @@ package ui
 
 import (
 	"fmt"
+	"runtime/metrics"
 	"strings"
 	"time"
 
 	"github.com/nbharathik/slurm-dashboard/internal/execx"
+	"github.com/nbharathik/slurm-dashboard/internal/slurm/units"
 )
 
 func (a *App) togglePause() {
@@ -70,6 +72,21 @@ func callRate(hist []execx.CallRecord, now time.Time) (perMin float64, lastMin i
 	}
 	span := max(now.Sub(oldest), time.Minute)
 	return float64(n) / span.Minutes(), lastMin
+}
+
+// memoryLine is what sdash holds: the live heap, what it took from the
+// system, and its goroutines. runtime/metrics does not stop the program.
+func memoryLine() string {
+	s := []metrics.Sample{{Name: "/memory/classes/heap/objects:bytes"}, {Name: "/memory/classes/total:bytes"}, {Name: "/sched/goroutines:goroutines"}}
+	metrics.Read(s)
+	val := func(i int) uint64 {
+		if s[i].Value.Kind() == metrics.KindUint64 {
+			return s[i].Value.Uint64()
+		}
+		return 0
+	}
+	return fmt.Sprintf("Memory: %s in use, %s from the system, %d goroutines",
+		units.FormatBytes(int64(val(0))), units.FormatBytes(int64(val(1))), val(2)) //nolint:gosec // memory sizes fit in int64
 }
 
 // rateLine is the debug overlay's summary of the load sdash puts on Slurm.

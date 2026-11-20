@@ -10,7 +10,12 @@ const (
 	TabNodes    = "nodes"
 	TabUsage    = "usage"
 	TabStorage  = "storage"
+	// TabScheduler is optional (setting scheduler_tab).
+	TabScheduler = "scheduler"
 )
+
+// OptionalTabs come after Tabs when turned on in the settings.
+var OptionalTabs = []Tab{{TabScheduler, "Scheduler"}}
 
 // Tab is one tab: its stable name and its label.
 type Tab struct{ Name, Title string }
@@ -44,7 +49,7 @@ func ResolveTab(name string) (tab string, gpuOnly, ok bool) {
 	if a, found := aliases[name]; found {
 		return a.tab, a.gpuOnly, true
 	}
-	for _, t := range Tabs {
+	for _, t := range append(Tabs[:len(Tabs):len(Tabs)], OptionalTabs...) {
 		if t.Name == name {
 			return t.Name, false, true
 		}

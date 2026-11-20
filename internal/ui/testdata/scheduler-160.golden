@@ -1,0 +1,45 @@
+  sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage  7 Scheduler                                                          tundra · you · demo  
+─────────────────────────────────────────────────────────────────────━━━━━━━━━━━━━──────────────────────────────────────────────────────────────────────────────
+                                                                                                                                                                
+   Scheduler health  normal                                                                                                                                     
+   ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   
+     Jobs        7 running · 5 pending                                                                                                                          
+     Since 00:00 320 submitted · 310 started · 20 completed · 1 failed · 2 cancelled                                                                            
+                                                                                                                                                                
+   Main scheduler  starts jobs at the front of the queue                                                                                                        
+   ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   
+     Cycle       last 7.3 ms · mean 9.1 ms · max 412.3 ms                                                                                                       
+     Pace        2 cycles a minute · looks at 5 jobs on average                                                                                                 
+                                                                                                                                                                
+   Backfill  starts smaller jobs in gaps, if they end in time                                                                                                   
+   ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   
+     Last run    0s ago, took 601.0 ms · mean 640.2 ms · max 8.1 s                                                                                              
+     Depth       looked at 5 of 5 jobs, tried 4                                                                                                                 
+     Started     210 jobs since the last reset, 1320 since slurmctld started                                                                                    
+                                                                                                                                                                
+   Controller load                                                                                                                                              
+   ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   
+     Queues      3 server threads · agent queue 0 · database queue 0                                                                                            
+     Requests    JOB_INFO                         33640  avg 1.2 ms                                                                                             
+                 NODE_INFO                        16820  avg 530 µs                                                                                             
+                 PARTITION_INFO                    8410  avg 190 µs                                                                                             
+     By user     root                 42050  86%                                                                                                                
+                 you                   6728  13%                                                                                                                
+                                                                                                                                                                
+                                                                                                                                                                
+                                                                                                                                                                
+                                                                                                                                                                
+                                                                                                                                                                
+                                                                                                                                                                
+                                                                                                                                                                
+                                                                                                                                                                
+                                                                                                                                                                
+                                                                                                                                                                
+                                                                                                                                                                
+                                                                                                                                                                
+                                                                                                                                                                
+                                                                                                                                                                
+                                                                                                                                                                
+                                                                                                                                                                
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ↑/k up · ↓/j down · r refresh · , settings · ? help                                                                                           updated 0s ago  

@@ -45,6 +45,22 @@ func standingVerdict(f float64) string {
 	return "far over your share: expect to wait"
 }
 
+// usageVerdict compares usage with shares. Under Fair Tree the fairshare
+// value is a rank among all users, so 0.5 does not mean "your share".
+func usageVerdict(usedPct, sharesPct float64) string {
+	switch {
+	case sharesPct <= 0:
+		return "no shares assigned to you here"
+	case usedPct <= sharesPct/2:
+		return "well under your share: your jobs are favoured"
+	case usedPct <= sharesPct:
+		return "under your share"
+	case usedPct <= 2*sharesPct:
+		return "over your share: others' jobs go first"
+	}
+	return "far over your share: expect to wait"
+}
+
 // PendingPriority is what drives one pending job's priority.
 type PendingPriority struct {
 	JobID    string

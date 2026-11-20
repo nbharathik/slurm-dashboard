@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unique"
 
 	"github.com/nbharathik/slurm-dashboard/internal/model"
 	"github.com/nbharathik/slurm-dashboard/internal/textsafe"
@@ -64,6 +65,28 @@ func cleanFields(f []string) []string {
 		f[i] = textsafe.Field(f[i])
 	}
 	return f
+}
+
+// intern stores a value that repeats across records (user, partition,
+// account, state, node name) once, however many jobs carry it.
+func intern(s string) string { return unique.Make(s).Value() }
+
+// internAll interns every element in place.
+func internAll(xs []string) []string {
+	for i := range xs {
+		xs[i] = intern(xs[i])
+	}
+	return xs
+}
+
+// own copies a value unique to its record (a job name), so the record does
+// not keep its whole output line in memory.
+func own(s string) string { return strings.Clone(s) }
+
+// ownID detaches a job ID's strings from the output line.
+func ownID(id model.JobID) model.JobID {
+	id.Raw, id.TaskSpec, id.Step = own(id.Raw), own(id.TaskSpec), own(id.Step)
+	return id
 }
 
 // fieldErr accumulates the first conversion error in a record.

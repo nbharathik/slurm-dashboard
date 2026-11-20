@@ -13,10 +13,10 @@
     792    debug       ⊘ CANCELLED      14m/1h     10%    5%     -  Sep 26                      │ Elapsed:       41:00 of 01:00:00 (68%)                     │  
     788    convert     ✗ FAILED 127     2s/1h       0%     -     -  Sep 26                      │ CPU used:      09:50:24 (90%)                              │  
     785    train-lora  ✓ COMPLETED      9h20m/1d   62%   68%   29h  Sep 25                      │ Memory:        31.8G of 32G (99%)                          │  
-    781    segfaulty   ✗ FAILED         5m/1h       0%   40%     -  Sep 24                      │ Directory:     /home/you/data                              │  
-    776    tokenize    ✓ COMPLETED      1h05m/8h   25%   10%   26h  Sep 23                      │                                                            │  
-    770    preempt-me  ⊘ PREEMPTED      3h/12h     50%   50%     -  Sep 22                      │ [ Stdout ] [ Stderr ] [ Script ] [ Rerun ]                 │  
-                                                                                                │                                                            │  
+    781    segfaulty   ✗ FAILED         5m/1h       0%   40%     -  Sep 24                      │ Steps:         batch OUT_OF_MEMORY, 41m, peak 31.8G        │  
+    776    tokenize    ✓ COMPLETED      1h05m/8h   25%   10%   26h  Sep 23                      │ Directory:     /home/you/data                              │  
+    770    preempt-me  ⊘ PREEMPTED      3h/12h     50%   50%     -  Sep 22                      │                                                            │  
+                                                                                                │ [ Stdout ] [ Stderr ] [ Script ] [ Rerun ]                 │  
                                                                                                 │                                                            │  
                                                                                                 │                                                            │  
                                                                                                 │                                                            │  

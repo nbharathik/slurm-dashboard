@@ -56,7 +56,7 @@ func (a *App) openRerun(id string) tea.Cmd {
 	own := false
 	if h, ok := a.historyJob(id); ok {
 		own, in.Name, in.Dir = true, h.Name, h.WorkDir
-		in.Suggest = insights.Suggested(insights.RightSize(h))
+		in.Suggest = insights.Suggested(insights.RerunSuggestions(h))
 	}
 	for _, j := range a.st.MyJobs.Data {
 		if j.ID.Raw == id {
@@ -225,8 +225,7 @@ func (a *App) editScript(id, script string) tea.Cmd {
 		a.setFlash("edit: "+err.Error(), true)
 		return nil
 	}
-	editor := strings.Fields(firstNonEmpty(a.opt.Getenv("VISUAL"), a.opt.Getenv("EDITOR"), "vi"))
-	cmd, err := execx.NewInteractive("", append(editor, path)...)
+	cmd, err := execx.NewInteractive("", append(execx.EditorArgv(a.opt.Getenv), path)...)
 	if err != nil {
 		_ = os.Remove(path)
 		a.setFlash(err.Error(), true)

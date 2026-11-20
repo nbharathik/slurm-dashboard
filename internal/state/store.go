@@ -108,6 +108,7 @@ type Store struct {
 	MyStats      Source[map[string]model.JobStat]
 	Storage      Source[[]model.Quota]
 	Groups       Source[[]string]
+	Sched        Source[model.SchedStats]
 
 	prevJobs map[string]model.Job
 	havePrev bool
@@ -116,43 +117,15 @@ type Store struct {
 // Apply records an update and returns the job transitions it revealed
 // (only for "myjobs").
 func (s *Store) Apply(u Update) []Transition {
-	switch u.Source {
-	case "nodes", "cluster", "partitions", "alljobs", "queuerank", "myjobs", "groups", "fairshare":
+	e, ok := lookupSource(u.Source)
+	if !ok {
+		return nil
+	}
+	if e.derives {
 		s.derived = false
 	}
-	switch u.Source {
-	case "myjobs":
-		if s.MyJobs.apply(u) {
-			return s.transitions(s.MyJobs.Data)
-		}
-	case "alljobs":
-		s.AllJobs.apply(u)
-	case "cluster":
-		s.Cluster.apply(u)
-	case "queuerank":
-		s.QueueRank.apply(u)
-	case "nodes":
-		s.Nodes.apply(u)
-	case "partitions":
-		s.Partitions.apply(u)
-	case "reservations":
-		s.Reservations.apply(u)
-	case "jobdetail":
-		s.Detail.apply(u)
-	case "history":
-		s.History.apply(u)
-	case "fairshare":
-		s.Fairshare.apply(u)
-	case "sprio":
-		s.Priorities.apply(u)
-	case "limits":
-		s.Limits.apply(u)
-	case "mystats":
-		s.MyStats.apply(u)
-	case "storage":
-		s.Storage.apply(u)
-	case "groups":
-		s.Groups.apply(u)
+	if e.apply(s, u) && u.Source == "myjobs" {
+		return s.transitions(s.MyJobs.Data)
 	}
 	return nil
 }
@@ -179,30 +152,20 @@ func (s *Store) Identity() Identity {
 // recent latest attempt of any source failed with the rate limit error. A
 // source that stopped running (its tab is hidden) does not keep it on.
 func (s *Store) RateLimited(now time.Time) bool {
-	type attempt struct {
-		err   error
-		tried time.Time
-	}
-	for _, a := range []attempt{
-		{s.MyJobs.Err, s.MyJobs.Tried},
-		{s.AllJobs.Err, s.AllJobs.Tried},
-		{s.Cluster.Err, s.Cluster.Tried},
-		{s.QueueRank.Err, s.QueueRank.Tried},
-		{s.Nodes.Err, s.Nodes.Tried},
-		{s.Partitions.Err, s.Partitions.Tried},
-		{s.Reservations.Err, s.Reservations.Tried},
-		{s.Detail.Err, s.Detail.Tried},
-		{s.History.Err, s.History.Tried},
-		{s.Fairshare.Err, s.Fairshare.Tried},
-		{s.Priorities.Err, s.Priorities.Tried},
-		{s.Limits.Err, s.Limits.Tried},
-		{s.MyStats.Err, s.MyStats.Tried},
-	} {
-		if a.err != nil && KindOf(a.err) == ErrRateLimited && now.Sub(a.tried) < 2*RateLimitWait {
+	for _, e := range sources {
+		st := e.status(s)
+		if st.Err != nil && KindOf(st.Err) == ErrRateLimited && now.Sub(st.Tried) < 2*RateLimitWait {
 			return true
 		}
 	}
 	return false
+}
+
+// DropAllJobs forgets everyone's jobs (the Queue tab loads them again), the
+// largest data on a big cluster.
+func (s *Store) DropAllJobs() {
+	s.AllJobs = Source[[]model.Job]{}
+	s.derived = false
 }
 
 // MaxEnded bounds Store.Ended.
@@ -220,7 +183,7 @@ func (s *Store) AddEnded(jobs ...model.HistoryJob) {
 // priority, including why a part is missing.
 func (s *Store) UsageInput() insights.AccountInput {
 	in := insights.AccountInput{
-		User: s.User, NoAccounting: s.Site.AccountingOff(), BasicPriority: s.Site.BasicPriority(),
+		User: s.User, NoAccounting: s.Site.AccountingOff(), BasicPriority: s.Site.BasicPriority(), FairTree: s.Site.FairTree(),
 		Scopes: s.Limits.Data, LimitsRead: s.Limits.Has, LimitsErr: firstLine(s.Limits.Err),
 		Shares: s.Fairshare.Data, Priorities: s.Priorities.Data, PriorityRead: s.Fairshare.Has, PriorityErr: firstLine(s.Fairshare.Err),
 	}
@@ -243,7 +206,7 @@ func (s *Store) Alerts(now time.Time, dismissed map[string]time.Time) []model.Al
 	return insights.Compute(insights.Input{
 		Now:          now,
 		UID:          s.UID,
-		MyJobs:       s.MyJobs.Data,
+		MyJobs:       JoinJobs(s.MyJobs.Data, s.Cluster.Data.Jobs, nil), // allocated GPUs and memory
 		Nodes:        s.Nodes.Data,
 		Partitions:   s.Partitions.Data,
 		Reservations: s.Reservations.Data,
@@ -292,10 +255,19 @@ func (s *Store) transitions(jobs []model.Job) []Transition {
 
 // Diff compares two snapshots of the user's jobs, keyed by raw job ID.
 func Diff(prev, cur map[string]model.Job) []Transition {
+	// A pending task range ("123_[4-9]") changes its ID as tasks start; it
+	// has not ended while any task of its array is still listed.
+	arrays := map[uint64]bool{}
+	for _, j := range cur {
+		if j.ID.IsArray() {
+			arrays[j.ID.ArrayJobID] = true
+		}
+	}
 	var out []Transition
 	for id, old := range prev {
 		now, ok := cur[id]
 		switch {
+		case !ok && strings.Contains(old.ID.TaskSpec, "[") && arrays[old.ID.ArrayJobID]:
 		case !ok:
 			out = append(out, Transition{Kind: Ended, Job: old})
 		case old.State == model.StatePending && now.State == model.StateRunning:

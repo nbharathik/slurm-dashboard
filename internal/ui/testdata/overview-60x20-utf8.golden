@@ -1,6 +1,6 @@
  sdash │ ‹ 1/6 Overview ! ›             tundra · you · demo 
 ───────────━━━━━━━━━━━━━━───────────────────────────────────
- Needs attention                                   6 in all 
+ Needs attention                                     3 more 
  ────────────────────────────────────────────────────────── 
    ✗ 809 preproc: OUT_OF_MEMORY (peak 31.8G of 32… [open]   
    ✗ 799 train-lora: TIMEOUT                       [open]   
@@ -9,7 +9,7 @@
  ────────────────────────────────────────────────────────── 
    Partition      Used        Free Total                    
    gpu        GPU [████████]     0     8  5 waiting, H100   
- Your jobs  0s ago  ● 3 running  ◌ 2 pending  ✗ 2 failed t… 
+ Your jobs  0s ago  ● 3 running  ◌ 8 pending  ✗ 2 failed t… 
    ID         NAME        STATE   ELAPSED/LIMIT   1-1 of 5  
  ────────────────────────────────────────────────────────── 
  ▶ 812        train-lora  ● RUN   5h46m/1d                  

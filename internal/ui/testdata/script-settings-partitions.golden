@@ -1,35 +1,35 @@
   sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage                               tundra · you · demo  
 ─────────━━━━━━━━━━━━━━─────────────────────────────────────────────────────────────────────────────────────────────────
                                                                                                                         
-  Needs attention                                                                                             6 in all  
+  Needs attention                                                                                                       
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
     ✗ 809 preproc: OUT_OF_MEMORY (peak 31.8G of 32G)                                                          [open]    
     ✗ 799 train-lora:╭────────────────────────────────────────────────────────────────────────────╮           [open]    
     ! Scratch is at 9│  Settings                                                                  │           [open]    
     ! 813 eval-bench │                                                                            │           [open]    
-                     │    Data                                                                    │                     
-  Cluster            │    Refresh               ‹ normal ›  my jobs 10s, cluster 30s              │             0s ago  
-  ───────────────────│  ▶ Hide partitions       [x] gpu  [ ] cpu                                  │───────────────────  
-    Partition      Us│    Look                                                                    │                     
-    cpu*       CPU [█│    Theme                 ‹ auto ›                                          │                     
-                     │    Layout                ‹ clean ›                                         │                     
-  Your jobs          │    Plain symbols         ‹ off ›                                           │g  ✗ 2 failed today  
-    ID         NAME  │    Mouse                 ‹ on ›                                            │                     
-  ───────────────────│    Start on              ‹ overview ›                                      │───────────────────  
-  ▶ 812        train-│    Alerts                                                                  │                     
-    813        eval-b│    Job-end notices       ‹ on ›                                            │                     
-    816        prepro│    Time-limit warning    ‹ 10m ›                                           │                     
-    815_[3-9]  sweep │    Idle-job warning      ‹ on ›                                            │                     
-    818        big-sw│    Storage warning at    ‹ 90% ›                                           │                     
-                     │    Storage critical at   ‹ 97% ›                                           │                     
-  Storage            │    Other                                                                   │             0s ago  
-  ───────────────────│    Shell in a job via    ‹ srun ›                                          │───────────────────  
-    Home       ██████│                                                                            │                     
-    Scratch    ██████│  changed for this session (not saved in the demo)                          │                     
-    Project    █████░│  ↑↓ move · ‹› change · space toggles · esc closes                          │                     
-    Fairshare  ██████╰────────────────────────────────────────────────────────────────────────────╯                     
-                                                                                                                        
-                                                                                                                        
+    i Maintenance sta│    Data                                                                    │           [open]    
+    i Your last 5 job│    Refresh               ‹ normal ›  my jobs 10s, cluster 30s              │ons        [open]    
+                     │  ▶ Hide partitions       [x] gpu  [ ] cpu                                  │                     
+  Cluster            │    Look                                                                    │             0s ago  
+  ───────────────────│    Theme                 ‹ auto ›                                          │───────────────────  
+    Partition      Us│    Layout                ‹ clean ›                                         │                     
+    cpu*       CPU [█│    Plain symbols         ‹ off ›                                           │                     
+                     │    Mouse                 ‹ on ›                                            │                     
+  Your jobs          │    Start on              ‹ overview ›                                      │g  ✗ 2 failed today  
+    ID         NAME  │    Scheduler tab         ‹ off ›                                           │                     
+  ───────────────────│    Alerts                                                                  │───────────────────  
+  ▶ 812        train-│    Job-end notices       ‹ on ›                                            │                     
+    813        eval-b│    Time-limit warning    ‹ 10m ›                                           │                     
+    816        prepro│    Idle-job warning      ‹ on ›                                            │                     
+    815_[3-9]  sweep │    Storage warning at    ‹ 90% ›                                           │                     
+    818        big-sw│    Storage critical at   ‹ 97% ›                                           │                     
+                     │    Other                                                                   │                     
+  Storage            │    Shell in a job via    ‹ srun ›                                          │             0s ago  
+  ───────────────────│                                                                            │───────────────────  
+    Home       ██████│  changed for this session (not saved in the demo)                          │                     
+    Scratch    ██████│  ↑↓ move · ‹› change · space toggles · esc closes                          │                     
+    Project    █████░╰────────────────────────────────────────────────────────────────────────────╯                     
+    Fairshare  ████████████░░░░░░░░  0.62                                                                               
                                                                                                                         
                                                                                                                         
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────

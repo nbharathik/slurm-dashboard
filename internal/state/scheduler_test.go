@@ -3,6 +3,8 @@ package state
 import (
 	"context"
 	"errors"
+	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -46,6 +48,33 @@ func newTestScheduler(t *testing.T) (*Scheduler, *FakeClock) {
 
 func onlyEntry(s *Scheduler) *entry { return s.entries[0] }
 
+// After quit no collector goroutine is left.
+func TestNoGoroutinesAfterStop(t *testing.T) {
+	before := runtime.NumGoroutine()
+	s, clk := newTestScheduler(t)
+	for i := range 8 {
+		s.Add(&testCollector{name: "c" + strconv.Itoa(i), interval: time.Minute, clock: clk}, Options{})
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	s.Start(ctx)
+	go func() {
+		for range s.Updates() {
+		}
+	}()
+	clk.BlockUntil(8)
+	clk.Advance(time.Second)
+	s.SetIdleLevel(2)
+	s.SetIdleLevel(0) // wake-up nudges run on timers
+	cancel()
+	deadline := time.Now().Add(5 * time.Second)
+	for runtime.NumGoroutine() > before+1 && time.Now().Before(deadline) { // +1: the drain above
+		time.Sleep(10 * time.Millisecond)
+	}
+	if n := runtime.NumGoroutine(); n > before+1 {
+		t.Fatalf("%d goroutines left after stop (%d before)", n-before, before)
+	}
+}
+
 func TestIntervalFloorIdleVisibility(t *testing.T) {
 	s, _ := newTestScheduler(t)
 	fast := &testCollector{name: "fast", interval: time.Second}
@@ -67,11 +96,11 @@ func TestIntervalFloorIdleVisibility(t *testing.T) {
 	if got := s2.intervalLocked(e2); got != 5*time.Minute {
 		t.Fatalf("visible history = %s, want 5m", got)
 	}
-	s2.idle = true
+	s2.idle = 1
 	if got := s2.intervalLocked(e2); got != 15*time.Minute {
 		t.Fatalf("idle = %s, want 15m", got)
 	}
-	s2.idle = false
+	s2.idle = 0
 
 	s3, _ := newTestScheduler(t)
 	c := &testCollector{name: "cluster", interval: 30 * time.Second}

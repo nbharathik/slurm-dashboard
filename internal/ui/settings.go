@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 
 	"github.com/nbharathik/slurm-dashboard/internal/config"
@@ -85,18 +86,19 @@ func (a *App) updateSettings(msg tea.KeyPressMsg) tea.Cmd {
 		}
 		return a.changeSetting(st, func(c *config.Config) { st.Step(c, d) })
 	}
-	switch k := msg.String(); k {
-	case "esc", "q", ",", "ctrl+c":
+	k := a.keys
+	switch {
+	case key.Matches(msg, k.Back, k.Quit, k.Settings):
 		a.settings = nil
-	case "up", "k":
+	case key.Matches(msg, k.Up):
 		s.cur = (s.cur + len(s.rows) - 1) % len(s.rows)
-	case "down", "j", "tab":
+	case key.Matches(msg, k.Down, k.NextFocus):
 		s.cur = (s.cur + 1) % len(s.rows)
-	case "left", "h":
+	case key.Matches(msg, k.Decrease):
 		return step(-1)
-	case "right", "l":
+	case key.Matches(msg, k.Increase):
 		return step(1)
-	case "enter", "space":
+	case key.Matches(msg, k.Open, k.Select):
 		if onParts {
 			if len(parts) == 0 {
 				return nil

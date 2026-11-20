@@ -146,6 +146,18 @@ func TestDoctorWithFakes(t *testing.T) {
 	if code := runApp(h, a, "doctor"); code != ExitOK || !strings.Contains(h.stdout.String(), "✓") {
 		t.Fatalf("doctor text: %q", h.stdout.String())
 	}
+	if code := runApp(h, a, "doctor", "--report"); code != ExitOK {
+		t.Fatalf("doctor --report exit %d", code)
+	}
+	out := h.stdout.String()
+	if !strings.HasPrefix(out, "```\nsdash ") || !strings.Contains(out, "USER") {
+		t.Fatalf("report:\n%s", out)
+	}
+	for _, private := range []string{h.vars["USER"], a.doctorCluster} {
+		if private != "" && strings.Contains(out, private) {
+			t.Errorf("report shows %q:\n%s", private, out)
+		}
+	}
 }
 
 func TestDataCommandsReportFailures(t *testing.T) {

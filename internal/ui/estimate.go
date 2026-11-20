@@ -62,6 +62,12 @@ func (a *App) showEstimate(m startEstimateMsg) {
 	if a.estimates == nil {
 		a.estimates = map[string]startEstimateMsg{}
 	}
+	// Drop expired entries so the cache stays small over days in tmux.
+	for id, c := range a.estimates {
+		if a.now().Sub(c.at) >= estimateCacheFor {
+			delete(a.estimates, id)
+		}
+	}
 	a.estimates[m.id] = m
 	switch {
 	case m.err != nil:

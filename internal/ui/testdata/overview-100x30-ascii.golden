@@ -1,7 +1,7 @@
   sdash | 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage           tundra | you | demo  
 ---------==============-----------------------------------------------------------------------------
                                                                                                     
-  Needs attention                                                                         6 in all  
+  Needs attention                                                                           2 more  
   ------------------------------------------------------------------------------------------------  
     x 809 preproc: OUT_OF_MEMORY (peak 31.8G of 32G)                                      [open]    
     x 799 train-lora: TIMEOUT                                                             [open]    
@@ -14,13 +14,13 @@
     gpu        GPU [########]     0     8  5 waiting, H100                                          
     cpu*       CPU [####--  ]   144   512  1 down                                                   
                                                                                                     
-  Your jobs                                     0s ago  R 3 running  P 2 pending  F 2 failed today  
+  Your jobs                                     0s ago  R 3 running  P 8 pending  F 2 failed today  
     ID         NAME        STATE   ELAPSED/LIMIT  RESOURCES     WHERE                               
   ------------------------------------------------------------------------------------------------  
   > 812        train-lora  R RUN   5h46m/1d       1 GPU 8 CPU   gpu01                               
     813        eval-bench  R RUN   1h52m/2h       1 GPU 4 CPU   gpu01                               
     816        preproc     R RUN   30s/1h         16 CPU        cpu01                               
-    815_[3-9]  sweep       P PD    -/4h           1 GPU 8 CPU   #2/5 Resources                      
+    815_[3-9]  sweep       P PD    -/4h           7 GPU 56 CPU  #2/5 Resources                      
     818        big-sweep   H HELD  -/12h          4 GPU 32 CPU  JobHeldUser                         
   Storage                                                                                   0s ago  
   ------------------------------------------------------------------------------------------------  

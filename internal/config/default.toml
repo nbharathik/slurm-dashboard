@@ -20,6 +20,8 @@
 # storage_crit    = 97          # percent that is critical
 # warn_time_left  = "10m"       # warn this long before a job hits its time limit: off | 5m | 10m | 30m | 1h
 # warn_waste      = true        # after 30 minutes, note a running job that leaves most of what it asked for idle
+# confirm         = "destructive" # ask before cancel, requeue and actions on several jobs; "all" asks always
+# scheduler_tab   = false       # an extra tab (key 7) with the scheduler's health from sdiag
 # cluster_name    = ""          # name in the header (default: Slurm's ClusterName)
 # notify_command  = ""          # also run this when your job ends, e.g.
 #                               # 'notify-send "$SDASH_JOB_NAME $SDASH_JOB_STATE"'

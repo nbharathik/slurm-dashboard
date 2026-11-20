@@ -9,14 +9,17 @@ It is a user tool, not a security boundary for an untrusted login node.
   redirected CLI logs retain raw bytes.
 - Configured storage commands and notification hooks execute as you, including
   shell commands. Use trusted config files, parent directories and `PATH` tools.
-  Unsafe config permissions disable command entries and prevent settings saves.
+  Unsafe config permissions disable command entries and `[profiles]`, and
+  prevent settings saves.
 - No telemetry. Slurm clients contact cluster services; updates contact GitHub.
   SSH sessions and configured hooks can also use the network.
 - State, logs and recordings may contain usernames, paths and job details.
   Review them before sharing; use `sdash --demo` for public screenshots.
 - Downloads are checked with SHA-256. Signature/provenance checks depend on
-  available `cosign` or authenticated `gh` and release metadata; checksum-only
-  installation is possible and is reported explicitly.
+  available `cosign` or authenticated `gh` and release metadata. Without
+  either tool the install is checksum-only and says so; with one installed,
+  a release that has no signature is refused unless `sdash update` gets
+  `--allow-unsigned`, as `install.sh` refuses it too.
   GitHub build provenance is generated only for public-repository releases.
   Use `cosign` for signature verification of private releases; `gh` verification
   requires GitHub provenance and fails if it is missing.

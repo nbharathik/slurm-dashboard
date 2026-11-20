@@ -1,7 +1,7 @@
   sdash │ 1 Overview !  2 Jobs  3 Queue  4 Nodes  5 Usage  6 Storage           tundra · you · demo  
 ─────────━━━━━━━━━━━━━━─────────────────────────────────────────────────────────────────────────────
                                                                                                     
-  Needs attention                                                                         6 in all  
+  Needs attention                                                                           2 more  
   ────────────────────────────────────────────────────────────────────────────────────────────────  
     ✗ 809 preproc: OUT_OF_MEMORY (peak 31.8G of 32G)                                      [open]    
     ✗ 799 train-lora: TIMEOUT                                                             [open]    
@@ -20,7 +20,7 @@
   ▶ 8│  Press any key to start.                                                               │     
     8╰────────────────────────────────────────────────────────────────────────────────────────╯     
     816        preproc     ● RUN   30s/1h         16 CPU        cpu01                               
-    815_[3-9]  sweep       ◌ PD    -/4h           1 GPU 8 CPU   #2/5 Resources                      
+    815_[3-9]  sweep       ◌ PD    -/4h           7 GPU 56 CPU  #2/5 Resources                      
     818        big-sweep   ‖ HELD  -/12h          4 GPU 32 CPU  JobHeldUser                         
   Storage                                                                                   0s ago  
   ────────────────────────────────────────────────────────────────────────────────────────────────  

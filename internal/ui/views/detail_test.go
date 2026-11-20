@@ -55,7 +55,8 @@ func TestDetailFollowsJobsWithoutForeignPolling(t *testing.T) {
 	owned := model.Job{ID: model.JobID{Raw: "1"}, User: "you", State: model.StateRunning}
 	foreign := model.Job{ID: model.JobID{Raw: "2"}, User: "someone", State: model.StateRunning}
 	v := NewJobs(ctx)
-	v.byID = map[string]model.Job{"1": owned, "2": foreign}
+	v.jobs = []model.Job{owned, foreign}
+	v.byID = map[string]int{"1": 0, "2": 1}
 	v.table.SetRows([]components.Row{{ID: "1"}, {ID: "2"}})
 	v.detail, v.detailID = true, "1"
 	cmd := v.key(ctx, tea.KeyPressMsg{Code: tea.KeyDown})

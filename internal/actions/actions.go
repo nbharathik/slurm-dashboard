@@ -157,11 +157,24 @@ func Run(ctx context.Context, r execx.Runner, a Action, argvs [][]string) Result
 	return res
 }
 
-// Command renders argv lists for display ("scancel 812 813").
+// Command renders argv lists for display ("scancel 812 813"). An argument
+// with spaces or quotes is shown in single quotes, as a shell would need it,
+// so it never reads like several options.
 func Command(argvs [][]string) string {
 	lines := make([]string, len(argvs))
 	for i, a := range argvs {
-		lines[i] = execx.Key(a)
+		words := make([]string, len(a))
+		for j, w := range a {
+			words[j] = quoteWord(w)
+		}
+		lines[i] = execx.Key(words)
 	}
 	return strings.Join(lines, "\n")
+}
+
+func quoteWord(w string) string {
+	if w != "" && !strings.ContainsAny(w, " \t\n'\"\\$`") {
+		return w
+	}
+	return "'" + strings.ReplaceAll(w, "'", `'\''`) + "'"
 }

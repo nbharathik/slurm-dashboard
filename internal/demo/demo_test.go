@@ -166,7 +166,7 @@ func TestScript(t *testing.T) {
 	if j := jobs["815_3"]; j.State != model.StateRunning || len(j.NodeList) != 1 || j.NodeList[0] != "gpu01" {
 		t.Fatalf("815_3 = %+v", j)
 	}
-	if _, ok := jobs["815_[4-9]"]; !ok || len(ts) != 2 {
+	if _, ok := jobs["815_[4-9]"]; !ok || len(ts) != 1 || ts[0].Job.ID.Raw != "813" {
 		t.Fatalf("pending remainder missing or transitions %v", ts)
 	}
 	nodes, err := src.Nodes(ctx)

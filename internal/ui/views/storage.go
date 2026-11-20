@@ -51,6 +51,9 @@ func NewStorage(*Context) *Storage {
 // Name implements View.
 func (v *Storage) Name() string { return "storage" }
 
+// ExportTable returns the table as shown.
+func (v *Storage) ExportTable() ([]string, [][]string) { return v.table.Export() }
+
 // Title implements View.
 func (v *Storage) Title() string { return "Storage" }
 

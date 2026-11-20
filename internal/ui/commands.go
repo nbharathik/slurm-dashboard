@@ -55,6 +55,8 @@ func init() {
 		{Name: "copy", Aliases: []string{"yank"}, Args: "<id|path|cmd>", Desc: "copy to the clipboard", Complete: fixed("id", "path", "cmd"), Run: runCopy},
 		{Name: "doctor", Desc: "check the environment", Run: runViewCommand("doctor")},
 		{Name: "fairshare", Aliases: []string{"priority", "sshare"}, Desc: "fairshare and the priority of your pending jobs", Run: runViewCommand("fairshare")},
+		{Name: "node", Args: "[name]", Desc: "open a node, or the node of the open job", Complete: completeNodes, Run: runNode},
+		{Name: "export", Aliases: []string{"save"}, Args: "[csv|json] [file]", Desc: "save the table as shown to a file", Complete: fixed("csv", "json"), Run: runExport},
 		{Name: "help", Aliases: []string{"keys", "?"}, Args: "[command]", Desc: "show help", Complete: completeCommands, Run: runHelp},
 		{Name: "quit", Aliases: []string{"exit", "q"}, Desc: "quit sdash", Run: func(a *App, _ []string) (tea.Cmd, error) { return a.quit(), nil }},
 	}
@@ -142,7 +144,7 @@ func completeSort(a *App, arg int, _ string) []candidate {
 	if arg > 1 {
 		return nil
 	}
-	if s, ok := a.views[a.tab].(interface{ SortColumns() []string }); ok {
+	if s, ok := a.views[a.tab].(views.Sorter); ok {
 		var out []candidate
 		for _, c := range s.SortColumns() {
 			out = append(out, candidate{Value: c})
@@ -206,9 +208,9 @@ func runViewCommand(name string) func(*App, []string) (tea.Cmd, error) {
 var commandHandlers = map[string]func(*App, []string) (tea.Cmd, error){}
 
 func runFilter(a *App, args []string) (tea.Cmd, error) {
-	f, ok := a.views[a.tab].(interface{ SetFilter(string) error })
+	f, ok := a.views[a.tab].(views.Filterer)
 	if !ok {
-		f, ok = a.viewByName(model.TabJobs).(interface{ SetFilter(string) error })
+		f, ok = a.viewByName(model.TabJobs).(views.Filterer)
 		a.switchTab(a.tabIndex(model.TabJobs))
 	}
 	if !ok {
@@ -220,9 +222,7 @@ func runFilter(a *App, args []string) (tea.Cmd, error) {
 }
 
 func runSort(a *App, args []string) (tea.Cmd, error) {
-	s, ok := a.views[a.tab].(interface {
-		SortBy(col string, desc bool) error
-	})
+	s, ok := a.views[a.tab].(views.Sorter)
 	if !ok {
 		return nil, errors.New("this view cannot be sorted")
 	}
@@ -274,8 +274,8 @@ func runRange(a *App, args []string) (tea.Cmd, error) {
 		return nil, fmt.Errorf("range %q: use 1d, 7d or 30d", args[0])
 	}
 	a.switchTab(a.tabIndex(model.TabUsage))
-	if r, ok := a.viewByName(model.TabUsage).(interface{ SetRange(*views.Context, int) }); ok {
-		r.SetRange(a.ctx, d)
+	if r, ok := a.viewByName(model.TabUsage).(views.Ranger); ok {
+		return r.SetRange(d), nil
 	}
 	return views.Emit(views.HistoryRangeMsg{Days: d}), nil
 }

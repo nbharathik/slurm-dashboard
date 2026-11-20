@@ -19,6 +19,7 @@
   │ Elapsed:       01:10:00 of 08:00:00 (15%)                                                                        │  
   │ CPU used:      08:12:48 (22%)                                                                                    │  
   │ Memory:        5.8G of 64G (9%)                                                                                  │  
+  │ Steps:         batch COMPLETED, 1h10m, peak 5.8G                                                                 │  
   │ Directory:     /home/you/data                                                                                    │  
   │                                                                                                                  │  
   │ Right-sizing                                                                                                     │  
@@ -30,7 +31,6 @@
   │   #SBATCH --cpus-per-task=11                                                                                     │  
   │                                                                                                                  │  
   │ [ Stdout ] [ Stderr ] [ Script ] [ Rerun ] [ Copy #SBATCH ]                                                      │  
-  │                                                                                                                  │  
   ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯  
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   esc close · l logs · e stderr · , settings · ? help                                                   updated 0s ago  

@@ -65,4 +65,4 @@ with cosign and ship with SBOMs and build provenance. See [security](SECURITY.md
 Bug reports and reports from clusters sdash has not seen yet help the most. See
 [contributing](CONTRIBUTING.md).
 
-[Usage](docs/usage.md) · [Settings](docs/config.md) · [Changelog](CHANGELOG.md) · [MIT licence](LICENSE)
+[Usage](docs/usage.md) · [Settings](docs/config.md) · [For administrators](docs/admin.md) · [Changelog](CHANGELOG.md) · [MIT licence](LICENSE)

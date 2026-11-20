@@ -135,9 +135,10 @@ func (a *app) slurmRuntime(ctx context.Context) (*slurmRuntime, error) {
 		cfg:    cfg,
 		runner: r,
 		sources: &state.Sources{
-			Runner: r,
-			Cmd:    slurm.Commands{Caps: caps, User: user},
-			Log:    a.log,
+			Runner:    r,
+			Cmd:       slurm.Commands{Caps: caps, User: user},
+			Log:       a.log,
+			ScriptDir: scriptDir(cacheDir, cluster),
 		},
 		store: &state.Store{
 			User: user, UID: a.uid(), ClusterName: cluster, Caps: caps, PrivateJobs: info.HidesJobs(), Site: info,
@@ -146,6 +147,24 @@ func (a *app) slurmRuntime(ctx context.Context) (*slurmRuntime, error) {
 		},
 	}
 	return rt, nil
+}
+
+// scriptDir is where batch script copies are kept, per cluster ("" without
+// a cache, as in the demo).
+func scriptDir(cacheDir, cluster string) string {
+	if cacheDir == "" {
+		return ""
+	}
+	name := strings.Map(func(r rune) rune {
+		if r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '-' || r == '_' {
+			return r
+		}
+		return -1
+	}, cluster)
+	if name == "" {
+		name = "default"
+	}
+	return filepath.Join(cacheDir, "scripts", name)
 }
 
 // fail records a source error for the report and returns false.

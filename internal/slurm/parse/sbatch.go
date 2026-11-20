@@ -4,6 +4,7 @@ import (
 	"errors"
 	"path"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/nbharathik/slurm-dashboard/internal/textsafe"
 )
@@ -196,11 +197,12 @@ func sbatchToks(words []string) (toks []sbatchTok, rest []string) {
 				}
 				continue
 			}
+			_, size := utf8.DecodeRuneInString(w[1:]) // a whole letter, never half of one
 			name := sbatchShort[w[1]]
 			if name == "" {
-				name = "-" + w[1:2] // unknown: keep the letter so it is shown, never carried
+				name = "-" + w[1:1+size] // unknown: keep the letter so it is shown, never carried
 			}
-			v := w[2:]
+			v := w[1+size:]
 			if v == "" {
 				v = next()
 			}

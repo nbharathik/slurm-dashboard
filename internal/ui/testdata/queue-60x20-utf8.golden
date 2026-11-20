@@ -12,7 +12,7 @@
      813        you    eval-bench    ● RUN   1h52m/2h       
      816        you    preproc       ● RUN   30s/1h         
                                                             
-   ▾ pending           4 jobs                               
+   ▾ pending           10 jobs                              
      810        dave   rl-agent      ◌ PD    -/8h           
      805        dave   rl-agent      ◌ PD    -/8h           
      815_[3-9]  you    sweep         ◌ PD    -/4h           

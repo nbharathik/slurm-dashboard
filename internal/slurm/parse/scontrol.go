@@ -234,7 +234,18 @@ func jobDetail(kv map[string]string) (model.JobDetail, error) {
 	d.NodeList, err = units.ExpandHostlist(kv["NodeList"])
 	fe.set(err)
 
+	// TRES memory is the whole job's, per node or per CPU alike; the
+	// MinMemory* keys are per node or per CPU and need the layout.
+	nodes := int64(max(d.Nodes, 1))
 	switch {
+	case d.AllocTRES["mem"] != "":
+		var total int64
+		total, err = units.MemMB(d.AllocTRES["mem"], 0)
+		d.MemPerNodeMB = total / nodes
+	case d.ReqTRES["mem"] != "":
+		var total int64
+		total, err = units.MemMB(d.ReqTRES["mem"], 0)
+		d.MemPerNodeMB = total / nodes
 	case kv["MinMemoryNode"] != "":
 		d.MemPerNodeMB, err = units.MemMB(kv["MinMemoryNode"], 0)
 	case kv["MinMemoryCPU"] != "":

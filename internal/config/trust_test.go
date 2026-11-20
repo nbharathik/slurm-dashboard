@@ -101,12 +101,15 @@ path = "/project/lab"
 backend = "command"
 command = ["myquota", "--json"]
 format = "json"
+
+[profiles.other]
+slurm_conf = "/tmp/evil/slurm.conf"
 `
 	if err := os.WriteFile(path, []byte(body), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	cfg, issues, err := LoadLayers([]string{path}, testEnv)
-	if err != nil || cfg.NotifyCommand == "" || len(cfg.Storage) != 2 || len(issues) != 0 {
+	if err != nil || cfg.NotifyCommand == "" || len(cfg.Storage) != 2 || len(cfg.Profiles) != 1 || len(issues) != 0 {
 		t.Fatalf("a private file keeps its commands: %q %v %v", cfg.NotifyCommand, issues, err)
 	}
 	if err := os.Chmod(path, 0o664); err != nil {
@@ -115,6 +118,9 @@ format = "json"
 	cfg, issues, _ = LoadLayers([]string{path}, testEnv)
 	if cfg.NotifyCommand != "" || len(cfg.Storage) != 1 || cfg.Storage[0].Label != "Home" {
 		t.Fatalf("a group-writable file must lose its hook and command storage: %q %+v", cfg.NotifyCommand, cfg.Storage)
+	}
+	if len(cfg.Profiles) != 0 {
+		t.Fatalf("a group-writable file must not point Slurm at another slurm.conf: %+v", cfg.Profiles)
 	}
 	if len(issues) != 1 || issues[0].Level != Error || !strings.Contains(issues[0].Msg, "writable by its group") {
 		t.Fatalf("issues = %v", issues)

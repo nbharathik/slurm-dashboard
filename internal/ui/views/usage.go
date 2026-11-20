@@ -95,6 +95,24 @@ func (v *Usage) Badge(*Context) string { return "" }
 // Capturing implements View.
 func (v *Usage) Capturing() bool { return v.input != nil }
 
+// HasSearch marks a tab where / filters the table.
+func (v *Usage) HasSearch() {}
+
+// ExportTable returns the table as shown, filter and sort included.
+func (v *Usage) ExportTable() ([]string, [][]string) { return v.table.Export() }
+
+// Paste adds pasted text to the filter being typed.
+func (v *Usage) Paste(ctx *Context, s string) {
+	if v.input == nil {
+		return
+	}
+	v.input.Insert(s)
+	if f, err := ParseFilter(v.input.Value()); err == nil {
+		v.filter = f
+		v.Refresh(ctx)
+	}
+}
+
 // Days is the selected range.
 func (v *Usage) Days() int { return v.days }
 
@@ -367,8 +385,8 @@ func (v *Usage) Update(ctx *Context, msg tea.Msg) tea.Cmd {
 			done, cancel := v.input.Update(m)
 			switch {
 			case cancel:
+				v.filter, _ = ParseFilter(v.input.Initial())
 				v.input = nil
-				v.filter = Filter{}
 				v.Refresh(ctx)
 			case done:
 				v.input = nil

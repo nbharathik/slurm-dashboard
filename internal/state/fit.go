@@ -88,9 +88,10 @@ func FitNodes(usage []NodeUsage, parts []model.Partition, req Request, aliases m
 	}
 	typed := false
 	busy := 0 // nodes big enough but full, with no end times to go by
+	held := 0 // healthy nodes that could run it but are reserved or rebooting
 	for _, u := range usage {
 		ps, ok := eligible[u.Node.Name]
-		if !ok || !Available(u.Node) {
+		if !ok || Down(u.Node) {
 			continue
 		}
 		total, free := gpusOf(u.Node, req.GPUType, aliases)
@@ -98,6 +99,10 @@ func FitNodes(usage []NodeUsage, parts []model.Partition, req Request, aliases m
 			continue // never enough GPUs of that type here
 		}
 		typed = true
+		if !Available(u.Node) {
+			held++
+			continue
+		}
 		if req.CPUs > u.Node.CPUTotal || (req.MemMB > 0 && u.Node.MemTotalMB > 0 && req.MemMB > u.Node.MemTotalMB) {
 			continue
 		}
@@ -137,6 +142,9 @@ func FitNodes(usage []NodeUsage, parts []model.Partition, req Request, aliases m
 	if len(res.Now) == 0 && res.Soonest == nil && busy > 0 {
 		res.Reasons = append(res.Reasons, strconv.Itoa(busy)+" node(s) could run it but are busy, and the end times of the jobs there are not visible")
 	}
+	if len(res.Now) == 0 && res.Soonest == nil && held > 0 {
+		res.Reasons = append(res.Reasons, strconv.Itoa(held)+" node(s) could run it but are held for a reservation, maintenance or a reboot")
+	}
 	if req.GPUs > 0 && !typed && len(res.Reasons) == 0 {
 		what := strconv.Itoa(req.GPUs) + " GPU"
 		if req.GPUType != "" {
@@ -150,6 +158,12 @@ func FitNodes(usage []NodeUsage, parts []model.Partition, req Request, aliases m
 	slices.SortFunc(res.Now, func(a, b Fit) int {
 		return cmp.Or(cmp.Compare(b.FreeGPUs, a.FreeGPUs), cmp.Compare(b.FreeCPUs, a.FreeCPUs), strings.Compare(a.Node, b.Node))
 	})
+	// A multi-node request fits only when that many nodes fit; the soonest
+	// single node says nothing about when enough are free.
+	if req.Nodes > 1 && len(res.Now) < req.Nodes {
+		res.Reasons = append(res.Reasons, strconv.Itoa(len(res.Now))+" of the "+strconv.Itoa(req.Nodes)+" nodes asked for could take it now")
+		res.Now, res.Soonest = nil, nil
+	}
 	fits := res.Now
 	if res.Soonest != nil {
 		fits = append(slices.Clone(fits), *res.Soonest)

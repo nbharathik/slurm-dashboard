@@ -94,7 +94,8 @@ func LoadLevel(n model.Node) int {
 type PartSummary struct {
 	Partition                 model.Partition
 	Nodes, Idle, Mixed, Alloc int
-	Down                      int // nodes that cannot take jobs
+	Down                      int // see Down
+	Reserved                  int // see Reserved; not free, not down
 	CPUTotal, CPUFree         int
 	GPUTotal, GPUFree         int
 	MIGTotal, MIGFree         int
@@ -137,26 +138,37 @@ func PartitionSummaries(parts []model.Partition, usage []NodeUsage, pending map[
 			s.CPUTotal += n.CPUTotal
 			s.GPUTotal += n.GPUTotal
 			s.MIGTotal += n.MIGTotal
-			if !Available(n) {
+			switch {
+			case Down(n):
 				s.Down++
-				s.CPUUnavailable += n.CPUTotal - min(max(n.CPUAlloc, 0), n.CPUTotal)
-				s.GPUUnavailable += n.GPUTotal - min(max(n.GPUAlloc, 0), n.GPUTotal)
-				s.MIGUnavailable += n.MIGTotal - min(max(n.MIGAlloc, 0), n.MIGTotal)
 				if n.Reason != "" {
 					s.DownReasons = append(s.DownReasons, n.Name+": "+ShortReason(n.Reason))
 				}
-			} else {
-				s.CPUFree += max(n.CPUTotal-n.CPUAlloc, 0)
-				s.GPUFree += u.Free
-				s.MIGFree += u.MIGFree
+			case Reserved(n):
+				s.Reserved++
+			}
+			if !Down(n) {
 				switch n.State {
 				case "IDLE":
 					s.Idle++
 				case "MIXED":
 					s.Mixed++
-				default:
+				case "ALLOCATED", "COMPLETING":
 					s.Alloc++
+				default:
+					if Available(n) {
+						s.Alloc++
+					}
 				}
+			}
+			if !Available(n) {
+				s.CPUUnavailable += n.CPUTotal - min(max(n.CPUAlloc, 0), n.CPUTotal)
+				s.GPUUnavailable += n.GPUTotal - min(max(n.GPUAlloc, 0), n.GPUTotal)
+				s.MIGUnavailable += n.MIGTotal - min(max(n.MIGAlloc, 0), n.MIGTotal)
+			} else {
+				s.CPUFree += max(n.CPUTotal-n.CPUAlloc, 0)
+				s.GPUFree += u.Free
+				s.MIGFree += u.MIGFree
 			}
 			for _, g := range n.GPUs {
 				if g.MIG {

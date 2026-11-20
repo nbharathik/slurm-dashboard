@@ -97,7 +97,7 @@ func TestWriteDefault(t *testing.T) {
 	}
 	entries, _ := os.ReadDir(dir)
 	for _, e := range entries {
-		if strings.HasPrefix(e.Name(), ".config-") {
+		if strings.HasPrefix(e.Name(), ".sdash-") {
 			t.Fatalf("temporary file left behind: %s", e.Name())
 		}
 	}

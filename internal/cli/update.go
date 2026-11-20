@@ -15,7 +15,7 @@ import (
 )
 
 func newUpdateCmd(a *app) *cobra.Command {
-	var check, asJSON bool
+	var check, asJSON, allowUnsigned bool
 	var version string
 	cmd := &cobra.Command{
 		Use:   "update",
@@ -94,6 +94,7 @@ Source installations update with make update from their checkout.`,
 				}
 				tag = st.Latest
 			}
+			u.AllowUnsigned = allowUnsigned
 			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Downloading %s %s for %s/%s...\n", meta.AppName, tag, u.GOOS, u.GOARCH)
 			res, err := u.Apply(ctx, tag)
 			if err != nil {
@@ -118,6 +119,7 @@ Source installations update with make update from their checkout.`,
 	f.BoolVar(&check, "check", false, "only report whether a newer release exists")
 	f.StringVar(&version, "version", "", "install this release `tag` instead of the latest (e.g. v0.1.0)")
 	f.BoolVar(&asJSON, "json", false, "with --check, print JSON")
+	f.BoolVar(&allowUnsigned, "allow-unsigned", false, "install a release without a signature even when cosign or gh is installed")
 	return cmd
 }
 

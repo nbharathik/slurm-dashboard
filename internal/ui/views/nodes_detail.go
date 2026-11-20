@@ -87,7 +87,7 @@ func (v *Nodes) nodeDetail(ctx *Context, w, h int) string {
 			}
 			res += fmt.Sprintf(" %d %s", g, kind)
 		}
-		b = append(b, layout.Pad(j.ID.Raw, 11, false, "")+layout.Pad(who, 10, false, th.Sym.Ellipsis)+
+		b = append(b, ctx.Mark("nodes:job:"+j.ID.Raw, th.Key.Render(layout.Pad(j.ID.Raw, 11, false, "")))+layout.Pad(who, 10, false, th.Sym.Ellipsis)+
 			layout.Pad(res, 14, false, "")+th.Muted.Render(end))
 	}
 	if u.Estimate {

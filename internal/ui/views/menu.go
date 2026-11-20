@@ -4,10 +4,12 @@ import (
 	"strconv"
 	"strings"
 
+	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 
 	"github.com/nbharathik/slurm-dashboard/internal/model"
 	"github.com/nbharathik/slurm-dashboard/internal/ui/components"
+	"github.com/nbharathik/slurm-dashboard/internal/ui/keys"
 	"github.com/nbharathik/slurm-dashboard/internal/ui/layout"
 	"github.com/nbharathik/slurm-dashboard/internal/ui/theme"
 )
@@ -63,15 +65,15 @@ func newJobMenu(jobs []model.Job, me string) *jobMenu {
 	return m
 }
 
-func (m *jobMenu) update(msg tea.KeyPressMsg) (tea.Msg, bool) {
-	switch msg.String() {
-	case "esc", "m", "q":
+func (m *jobMenu) update(k *keys.Map, msg tea.KeyPressMsg) (tea.Msg, bool) {
+	switch {
+	case key.Matches(msg, k.Back, k.Menu, k.Quit):
 		return nil, true
-	case "up", "k":
+	case key.Matches(msg, k.Up):
 		m.sel = max(m.sel-1, 0)
-	case "down", "j":
+	case key.Matches(msg, k.Down):
 		m.sel = min(m.sel+1, len(m.items)-1)
-	case "enter":
+	case key.Matches(msg, k.Open):
 		return m.items[m.sel].msg, true
 	default:
 		for _, it := range m.items {

@@ -33,10 +33,12 @@ func parseSstatRow(w *warnings, n int, line string) (sstatRow, bool) {
 	r.job, _, _ = strings.Cut(f[0], ".")
 	tres := units.ParseTRES(f[5])
 	var err error
-	r.maxRSS, err = units.MemMB(f[2], 0)
+	// TRESUsageInTot mem covers all tasks of the step, as the request does;
+	// MaxRSS is the largest single task (D3). History reads it the same way.
+	r.maxRSS, err = units.MemMB(tres["mem"], 0)
 	fe.set(err)
 	if r.maxRSS == 0 {
-		r.maxRSS, err = units.MemMB(tres["mem"], 0)
+		r.maxRSS, err = units.MemMB(f[2], 0)
 		fe.set(err)
 	}
 	r.aveRSS, err = units.MemMB(f[3], 0)

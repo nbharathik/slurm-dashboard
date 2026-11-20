@@ -12,7 +12,7 @@
      813        you    eval-bench    R RUN   1h52m/2h       
      816        you    preproc       R RUN   30s/1h         
                                                             
-   v pending           4 jobs                               
+   v pending           10 jobs                              
      810        dave   rl-agent      P PD    -/8h           
      805        dave   rl-agent      P PD    -/8h           
      815_[3-9]  you    sweep         P PD    -/4h           

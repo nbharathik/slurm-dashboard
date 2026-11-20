@@ -70,11 +70,19 @@ func TestStandingAndPending(t *testing.T) {
 		}
 	}
 
+	// Under Fair Tree the value is a rank: usage against shares decides.
+	ft := BuildAccount(AccountInput{PriorityRead: true, FairTree: true, User: "alice", Shares: []model.Share{
+		{Account: "research", User: "alice", NormShares: 0.25, EffectiveUsage: 0.2, FairShare: 0.2},
+	}})
+	if len(ft.Standing) != 1 || ft.Standing[0].Verdict != "under your share" {
+		t.Errorf("fair tree standing = %+v", ft.Standing)
+	}
+
 	pp := PendingPriorities([]model.PriorityFactors{
 		{JobID: "812", Priority: 5120, Age: 512, FairShare: 3072, Partition: 1000},
 		{JobID: "813", Priority: 1},
 	})
-	if pp[0].Biggest != "fairshare 3072" || pp[0].Line != "5120 = fairshare 3072 + partition 1000 + age 512" {
+	if pp[0].Biggest != "fairshare 3072" || pp[0].Line != "5120 = fairshare 3072 + partition 1000 + age 512 + other 536" {
 		t.Errorf("pending = %+v", pp[0])
 	}
 	if pp[1].Biggest != "" || pp[1].Line != "1" {

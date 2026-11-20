@@ -119,6 +119,9 @@ func TestRunGrantsExactlyTheConfirmedArgv(t *testing.T) {
 	if res.Err == nil || !strings.Contains(res.Summary(1), "Job has already finished") {
 		t.Fatalf("failure = %+v", res)
 	}
+	if got := Command([][]string{{"sbatch", "--job-name=my job", "--comment=it's"}}); got != `sbatch '--job-name=my job' '--comment=it'\''s'` {
+		t.Errorf("quoted command = %s", got)
+	}
 	if Command([][]string{{"scancel", "1", "2"}}) != "scancel 1 2" {
 		t.Fatal("Command")
 	}

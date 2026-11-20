@@ -7,12 +7,15 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/nbharathik/slurm-dashboard/internal/atomicfile"
 )
 
 // ErrUnsafe identifies paths that cannot hold private application state.
 var ErrUnsafe = errors.New("unsafe application persistence path")
 
-// Directory refuses symlinks and writable ancestors before creating private state.
+// Directory creates dir and requires it to be the user's own and writable
+// only by them; its parents may be shared.
 func Directory(dir string) error {
 	if dir == "" || dir == "." {
 		return ErrUnsafe
@@ -24,19 +27,6 @@ func Directory(dir string) error {
 	if abs == filepath.Dir(abs) {
 		return ErrUnsafe
 	}
-	for p := abs; ; p = filepath.Dir(p) {
-		st, e := os.Lstat(p)
-		if e == nil {
-			if !st.IsDir() || st.Mode()&os.ModeSymlink != 0 || !safeDirectory(st, p == abs) {
-				return fmt.Errorf("%w: %s", ErrUnsafe, p)
-			}
-		} else if !errors.Is(e, os.ErrNotExist) {
-			return e
-		}
-		if p == filepath.Dir(p) {
-			break
-		}
-	}
 	if err := os.MkdirAll(abs, 0o700); err != nil {
 		return err
 	}
@@ -44,8 +34,19 @@ func Directory(dir string) error {
 	if err != nil {
 		return err
 	}
-	if !safeDirectory(st, true) || st.Mode()&os.ModeSymlink != 0 {
-		return ErrUnsafe
+	if !st.IsDir() || st.Mode()&os.ModeSymlink != 0 {
+		return fmt.Errorf("%w: %s is not a directory", ErrUnsafe, abs)
+	}
+	if !safeDirectory(st) && ownDirectory(st) {
+		if err := os.Chmod(abs, 0o700); err == nil { //nolint:gosec // a directory needs x to be entered
+			st, err = os.Lstat(abs)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	if !safeDirectory(st) {
+		return fmt.Errorf("%w: %s must belong to you and be writable only by you", ErrUnsafe, abs)
 	}
 	return nil
 }
@@ -106,14 +107,5 @@ func Write(path string, data []byte) error {
 	} else if !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
-	f, err := os.CreateTemp(dir, ".sdash-*")
-	if err != nil {
-		return err
-	}
-	defer func() { _ = os.Remove(f.Name()) }()
-	_, werr := f.Write(data)
-	if err = errors.Join(werr, f.Close()); err != nil {
-		return err
-	}
-	return os.Rename(f.Name(), path)
+	return atomicfile.Write(path, data, 0o600, false)
 }

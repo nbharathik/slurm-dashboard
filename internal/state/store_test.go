@@ -24,6 +24,25 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+// A pending task range that splits as tasks start has not ended; once no
+// task of the array is listed, it has.
+func TestDiffArraySplit(t *testing.T) {
+	arr := func(raw, spec string, st model.JobState) model.Job {
+		return model.Job{ID: model.JobID{Raw: raw, ArrayJobID: 123, TaskSpec: spec}, State: st}
+	}
+	prev := map[string]model.Job{"123_[1-10]": arr("123_[1-10]", "[1-10]", model.StatePending)}
+	cur := map[string]model.Job{
+		"123_1":      arr("123_1", "1", model.StateRunning),
+		"123_[2-10]": arr("123_[2-10]", "[2-10]", model.StatePending),
+	}
+	if got := Diff(prev, cur); len(got) != 0 {
+		t.Fatalf("split reported as %+v", got)
+	}
+	if got := Diff(cur, map[string]model.Job{}); len(got) != 2 || got[0].Kind != Ended || got[1].Kind != Ended {
+		t.Fatalf("array that left the queue = %+v", got)
+	}
+}
+
 func TestJoinJobsRealCluster(t *testing.T) {
 	jobs, _ := parse.MyJobs(fixture(t, "23.11/myjobs.txt"))
 	running, _ := parse.Running(fixture(t, "23.11/cluster.txt"))
@@ -48,6 +67,30 @@ func TestJoinJobsRealCluster(t *testing.T) {
 	}
 	if len(jobs) != len(joined) || &jobs[0] == &joined[0] {
 		t.Fatal("JoinJobs must copy")
+	}
+}
+
+// A job submitted to two partitions is ranked against every job in each,
+// and both ways of building the list agree.
+func TestQueueRanksMultiPartition(t *testing.T) {
+	all := []parse.PendingJob{
+		{ID: "1", Partition: "gpu", Priority: 900},
+		{ID: "2", Partition: "gpu", Priority: 800},
+		{ID: "3", Partition: "cpu", Priority: 100},
+		{ID: "4", Partition: "gpu,cpu", Priority: 500},
+	}
+	direct := QueueRanks(all)
+	if r := direct["4"]; r != (Rank{Rank: 1, Total: 2}) {
+		t.Errorf("rank of 4 = %+v, want 1 of 2 (first in cpu)", r)
+	}
+	if r := direct["2"]; r != (Rank{Rank: 2, Total: 3}) {
+		t.Errorf("rank of 2 = %+v, want 2 of 3 in gpu", r)
+	}
+	viaFilter := QueueRanks(PendingIn(all, []string{"gpu", "cpu"}))
+	for id, r := range direct {
+		if viaFilter[id] != r {
+			t.Errorf("%s: %+v from the full list, %+v from PendingIn", id, r, viaFilter[id])
+		}
 	}
 }
 

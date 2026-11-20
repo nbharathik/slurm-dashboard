@@ -9,7 +9,7 @@ import (
 )
 
 // MyJobsFields is the number of fields in the jobs squeue format.
-const MyJobsFields = 23
+const MyJobsFields = jobFieldCount
 
 // MyJobs parses "squeue -h -o" with 23 Sep-separated fields; Name is last so it may contain anything.
 func MyJobs(raw []byte) (jobs []model.Job, warns []model.ParseWarning) {
@@ -23,43 +23,46 @@ func MyJobs(raw []byte) (jobs []model.Job, warns []model.ParseWarning) {
 			w.add(n, line, "expected %d fields, got %d", MyJobsFields, len(f))
 			return
 		}
-		id, err := units.ParseJobID(f[0])
+		id, err := units.ParseJobID(f[fJobID])
 		if err != nil {
 			w.add(n, line, "%v", err)
 			return
 		}
 		var fe fieldErr
-		state, _ := units.ParseJobState(f[6])
+		state, _ := units.ParseJobState(f[fState])
+		// Repeated values are interned and the rest copied, so a large queue
+		// keeps one copy of each user or partition and none of the raw lines.
 		j := model.Job{
-			ID:         id,
-			Partition:  f[3],
-			QOS:        f[4],
-			Account:    f[5],
-			State:      state,
-			Nodes:      fe.atoi(f[10]),
-			CPUs:       fe.atoi(f[11]),
-			Reason:     f[14],
-			SubmitTime: fe.time(f[18], units.ParseTimestamp),
-			StartTime:  fe.time(f[16], units.ParseTimestamp),
-			EndTime:    fe.time(f[17], units.ParseTimestamp),
-			Priority:   fe.atoi64(f[19]),
-			Dependency: nullToEmpty(f[20]),
-			User:       f[21],
-			Name:       f[22],
+			ID:         ownID(id),
+			Partition:  intern(f[fPartition]),
+			QOS:        intern(f[fQOS]),
+			Account:    intern(f[fAccount]),
+			State:      model.JobState(intern(string(state))),
+			Nodes:      fe.atoi(f[fNodes]),
+			CPUs:       fe.atoi(f[fCPUs]),
+			Reason:     intern(f[fReason]),
+			SubmitTime: fe.time(f[fSubmit], units.ParseTimestamp),
+			StartTime:  fe.time(f[fStart], units.ParseTimestamp),
+			EndTime:    fe.time(f[fEnd], units.ParseTimestamp),
+			Priority:   fe.atoi64(f[fPriority]),
+			Dependency: own(nullToEmpty(f[fDependency])),
+			User:       intern(f[fUser]),
+			Name:       own(f[fName]),
 		}
-		used, _, err := units.ParseDuration(f[7])
+		used, _, err := units.ParseDuration(f[fTimeUsed])
 		fe.set(err)
 		j.TimeUsed = used
-		j.TimeLimit, err = units.ParseLimit(f[8])
+		j.TimeLimit, err = units.ParseLimit(f[fTimeLimit])
 		fe.set(err)
-		j.TimeLeft, err = units.ParseLimit(f[9])
+		j.TimeLeft, err = units.ParseLimit(f[fTimeLeft])
 		fe.set(err)
-		mem, err := units.MemMB(f[12], 0)
+		mem, err := units.MemMB(f[fMem], 0)
 		fe.set(err)
 		j.MemPerNodeMB = mem
-		gpus, typ := units.ParseGRES(f[13])
-		j.GPUs, j.GPUType = gpus*max(j.Nodes, 1), typ
-		j.NodeList, err = units.ExpandHostlist(f[15])
+		gpus, typ := units.ParseGRES(f[fGRES])
+		j.GPUs, j.GPUType = gpus*max(j.Nodes, 1), intern(typ)
+		j.NodeList, err = units.ExpandHostlist(f[fNodeList])
+		j.NodeList = internAll(j.NodeList)
 		fe.set(err)
 		if fe.err != nil {
 			w.add(n, line, "%v", fe.err)
@@ -104,10 +107,10 @@ func Running(raw []byte) (jobs []model.RunningJob, warns []model.ParseWarning) {
 		}
 		mem, _ := units.MemMB(tres["mem"], 0)
 		rj := model.RunningJob{
-			ID:        id,
-			User:      f[1],
-			Partition: f[2],
-			NodeList:  nodes,
+			ID:        ownID(id),
+			User:      intern(f[1]),
+			Partition: intern(f[2]),
+			NodeList:  internAll(nodes),
 			EndTime:   fe.time(f[5], units.ParseTimestamp),
 			GPUs:      max(gpus, mig),
 			MIGSlices: mig,
@@ -146,7 +149,7 @@ func QueueRank(raw []byte) (jobs []PendingJob, warns []model.ParseWarning) {
 			return
 		}
 		var fe fieldErr
-		p := PendingJob{ID: f[0], Partition: f[1], Priority: fe.atoi64(f[2])}
+		p := PendingJob{ID: own(f[0]), Partition: intern(f[1]), Priority: fe.atoi64(f[2])}
 		if fe.err != nil {
 			w.add(n, line, "%v", fe.err)
 			return
@@ -174,12 +177,14 @@ func StartEstimates(raw []byte) (out []StartEstimate, warns []model.ParseWarning
 
 	lines(raw, w, func(n int, line string) {
 		f := cleanFields(strings.Fields(line))
-		if len(f) != 4 {
+		if len(f) < 4 {
 			w.add(n, line, "expected 4 fields, got %d", len(f))
 			return
 		}
 		var fe fieldErr
-		e := StartEstimate{ID: f[0], Start: fe.time(f[1], units.ParseTimestamp), Nodes: nullToEmpty(f[2]), Reason: nullToEmpty(f[3])}
+		// The reason is last and may hold spaces ("ReqNodeNotAvail, UnavailableNodes:...").
+		reason := strings.Join(f[3:], " ")
+		e := StartEstimate{ID: f[0], Start: fe.time(f[1], units.ParseTimestamp), Nodes: nullToEmpty(f[2]), Reason: nullToEmpty(reason)}
 		if fe.err != nil {
 			w.add(n, line, "%v", fe.err)
 			return

@@ -132,6 +132,8 @@ func (s *Sim) dispatch(ctx context.Context, now time.Time, argv []string) (strin
 		return fmt.Sprintf("%s|%s|%d|%.6f|%d|%.6f|%.6f\n", s.sc.Account, s.sc.User, f.RawShares, f.NormShares, f.RawUsage, f.EffectiveUsage, f.FairShare), nil
 	case "sprio":
 		return s.sprio(now, args)
+	case "sdiag":
+		return s.sdiag(now), nil
 	case "scancel":
 		return s.scancel(ctx, now, args)
 	case "srun":

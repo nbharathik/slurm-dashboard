@@ -150,8 +150,6 @@ type (
 		Job    model.Job
 		Stderr bool
 	}
-	// EffMsg shows the efficiency card of a finished job.
-	EffMsg struct{ ID string }
 	// NodeMsg opens a node's detail on the Nodes tab.
 	NodeMsg struct{ Name string }
 	// AnalyseMsg starts the disk-usage analyser on a storage path.

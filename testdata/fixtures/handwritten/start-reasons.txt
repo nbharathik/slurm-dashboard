@@ -1,0 +1,2 @@
+4110                                            2026-09-29T03:00:00     gpu01                       ReqNodeNotAvail, UnavailableNodes:gpu02
+4111                                            N/A                     (null)                      Nodes required for job are DOWN, DRAINED or reserved for jobs in higher priority partitions

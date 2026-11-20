@@ -83,6 +83,13 @@ func (v *RerunView) SetScript(script string) {
 // Capturing reports that a field is being edited, so keys are text.
 func (v *RerunView) Capturing() bool { return v.edit != nil }
 
+// Paste adds pasted text to the field being edited.
+func (v *RerunView) Paste(_ *Context, s string) {
+	if v.edit != nil {
+		v.edit.Insert(s)
+	}
+}
+
 func (v *RerunView) value(f actions.RerunField) string {
 	if s, ok := v.values[f.Name]; ok {
 		return s

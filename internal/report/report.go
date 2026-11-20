@@ -51,6 +51,9 @@ type Job struct {
 	MemMB      int64      `json:"mem_mb"`
 	GPUs       int        `json:"gpus"`
 	GPUType    string     `json:"gpu_type,omitempty"`
+	Tasks      int        `json:"tasks"`
+	TotalCPUs  int        `json:"total_cpus"`
+	TotalGPUs  int        `json:"total_gpus"`
 	Priority   int64      `json:"priority"`
 	QueueRank  int        `json:"queue_rank,omitempty"`
 	QueueTotal int        `json:"queue_total,omitempty"`
@@ -69,6 +72,7 @@ func FromJob(j model.Job) Job {
 		TimeUsedS: int64(j.TimeUsed / time.Second), TimeLimitS: secs(j.TimeLimit), TimeLeftS: secs(j.TimeLeft),
 		Submit: tp(j.SubmitTime), Start: tp(j.StartTime), End: tp(j.EndTime),
 		Nodes: j.Nodes, NodeList: nodes, CPUs: j.CPUs, MemMB: j.MemPerNodeMB, GPUs: j.GPUs, GPUType: j.GPUType,
+		Tasks: j.ID.Tasks(), TotalCPUs: j.TotalCPUs(), TotalGPUs: j.TotalGPUs(),
 		Priority: j.Priority, QueueRank: j.QueueRank, QueueTotal: j.QueueTotal, Dependency: j.Dependency,
 	}
 }
@@ -76,15 +80,29 @@ func FromJob(j model.Job) Job {
 // JobsDoc is the output of "sdash jobs --json".
 type JobsDoc struct {
 	Header
-	Scope string `json:"scope"`
-	Jobs  []Job  `json:"jobs"`
+	Scope  string    `json:"scope"`
+	Totals JobTotals `json:"totals"`
+	Jobs   []Job     `json:"jobs"`
+}
+
+// JobTotals counts array tasks, so folded rows add up.
+type JobTotals struct {
+	Rows  int `json:"rows"`
+	Tasks int `json:"tasks"`
+	CPUs  int `json:"cpus"`
+	GPUs  int `json:"gpus"`
 }
 
 // Jobs builds the jobs document.
 func Jobs(h Header, scope string, jobs []model.Job) JobsDoc {
 	out := JobsDoc{Header: h, Scope: scope, Jobs: make([]Job, 0, len(jobs))}
 	for _, j := range SortJobs(jobs) {
-		out.Jobs = append(out.Jobs, FromJob(j))
+		r := FromJob(j)
+		out.Jobs = append(out.Jobs, r)
+		out.Totals.Rows++
+		out.Totals.Tasks += r.Tasks
+		out.Totals.CPUs += r.TotalCPUs
+		out.Totals.GPUs += r.TotalGPUs
 	}
 	return out
 }

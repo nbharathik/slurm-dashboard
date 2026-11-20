@@ -5,6 +5,142 @@ and the project uses [Semantic Versioning](https://semver.org/). Command-line
 flags, `--json` output (`"schema": 1`) and config keys stay compatible within
 0.x; new JSON fields may be added.
 
+## [0.3.0] - 2026-11-20
+
+Lighter on the login node, more accurate numbers, safer defaults.
+
+Update with `sdash update`, or install fresh with
+`curl -fsSL https://raw.githubusercontent.com/nbharathik/slurm-dashboard/main/install.sh | sh`.
+
+### Lighter
+
+- Fewer Slurm calls: an open job card refreshes every 30 seconds and its
+  live usage every minute; nodes, running jobs and queue ranks refresh every
+  2 to 5 minutes on tabs that do not show them.
+- Left alone for 2 hours, sdash slows to about one call a minute and frees
+  what it can rebuild; your own jobs stay checked often enough for job-end
+  notices while you have jobs and notices are on. The first key press
+  catches up, spread over a few seconds.
+- Less memory: everyone's jobs are freed 2 minutes after leaving the Queue
+  tab, repeated names are stored once, command output is not copied, and
+  the Queue no longer copies the job list. sdash uses at most 4 threads and
+  a 512 MiB soft memory ceiling unless `GOMAXPROCS`, `GOGC` or `GOMEMLIMIT`
+  is set.
+- The clock ticks every 5 seconds when the terminal is unfocused and every
+  30 seconds when idle; alerts are recomputed once a minute, not every second.
+- No slow growth over days: the demo no longer keeps every command it ran,
+  and lists of ended jobs, unfolded arrays and hidden alerts are bounded.
+- `ctrl+d` shows memory in use; `sdash doctor` estimates the Slurm calls a
+  minute at your refresh setting.
+
+### Added
+
+- An optional Scheduler tab (key `7`, `scheduler_tab` in Settings): main
+  and backfill cycle times, how deep backfill looks, controller load and
+  the busiest requests and users, from `sdiag`. Off by default; it calls
+  `sdiag` every 2 minutes only while open.
+- A pending job that can never start as requested (time limit above the
+  partition's, more nodes than it has, more per node than its largest node)
+  is flagged in `why`, `sdash why` and Needs attention.
+- `why` says how long your jobs in that partition usually waited.
+- `--csv` on `sdash jobs`, `queue` and `history`; `:export csv` and
+  `--csv` neutralise cells that a spreadsheet would read as a formula.
+- `sdash doctor --report`: one anonymised block to paste into an issue.
+- `n` on a running job opens its node; a multi-node job's card lists its
+  nodes, and a node's card links to its jobs (click).
+- An array task's card sums up the whole array: running, pending, done and
+  failed tasks, naming the failed ones.
+- The history card lists the job's steps (state, exit code, time, peak
+  memory), so you can see which step failed.
+- Batch scripts sdash fetched are kept privately for 30 days, so rerun
+  still works after Slurm has forgotten the script.
+- Docs: hook recipes (mail, Slack, failures only) and a page for
+  administrators (calls a minute, what sdash runs, site install, module).
+
+### Security
+
+- A job name starting with `=`, `+`, `-` or `@` no longer runs as a
+  formula when an export is opened in a spreadsheet.
+- The submit-line parser no longer splits a multi-byte character after a
+  dash (found by fuzzing).
+- A `$VISUAL` of only spaces no longer makes `:config` or the rerun editor
+  run the file itself; `$EDITOR`, then `vi`, is used.
+
+### Changed
+
+- Needs attention uses spare room for more alerts and says how many are
+  hidden ("2 more").
+- Help opens with the keys of the tab you are on.
+- In the command line, Enter runs the highlighted suggestion when you moved
+  to it, or when what you typed is only its beginning.
+
+### Fixed
+
+- GPU and CPU counts for arrays: a pending range such as `815_[3-9]` counts
+  all its tasks in its row, a folded array, group headings, the Queue
+  summary, the Overview and `sdash queue`, so folded and unfolded totals
+  match. Pending counts on the Overview count tasks too. `--json` and
+  `--csv` rows of `jobs` and `queue` gain `tasks`, `total_cpus` and
+  `total_gpus` (`cpus` and `gpus` stay per task), and the JSON has a
+  `totals` block. Stepped arrays (`--array=0-98:2`) count every task.
+- `sdash queue` uses what running jobs were allocated, as the Queue tab
+  does, so `--gpus` jobs show their GPUs there too.
+- Running jobs that asked with `--gpus` show their GPUs in the Queue and
+  match the `GPU jobs` filter, when running-job data is loaded.
+- `--mem-per-cpu` jobs: running jobs and the job card show the real memory
+  per node (from the allocation and the TRES totals), not the per-CPU
+  value; the idle-memory warning uses it too.
+- Live memory of a multi-task job is the total of its tasks, as the
+  request and the history are, not its largest task.
+- On clusters with tens of thousands of running jobs the running-jobs
+  query no longer runs into the output limit: padding is dropped as it
+  arrives.
+- An unterminated escape sequence in a log hides at most the rest of its
+  line, not the rest of the log.
+- Two sdash instances sharing a debug log no longer rotate it twice.
+- Opening one task of an array (for example from the Overview) no longer
+  lets cancel or logs act on the whole array or another task.
+- `:range` changes the Usage range; `/` filters the Usage table.
+- Right-size suggestions no longer give `--mem` or `--cpus-per-task` values
+  for jobs on several nodes, where they could raise the request.
+- The priority line adds up: factors sdash does not read show as "other".
+- Start estimates are kept when the pending reason has spaces.
+- Queue rank for jobs submitted to several partitions.
+- A pending array that starts some tasks is no longer reported as ended.
+- Reserved, maintenance and rebooting nodes are not counted as free;
+  `sdash free --nodes N` needs N fitting nodes. Nodes the backfill
+  scheduler planned for a waiting job (`PLANNED`, `mixed-`) still count,
+  as shorter jobs run there. "Down" counts only down, drained, failing or
+  not responding nodes; partitions show "N reserved" for reserved and
+  maintenance nodes (JSON: `nodes_reserved`), and `sdash free` says when
+  the only nodes that fit are held.
+- Under Fair Tree, the fairshare verdict compares usage with shares.
+- A capability probe that failed because slurmdbd was down is retried after
+  10 minutes instead of a day.
+- Late log or script lookups no longer open over another job or tab; paste
+  works in the command line, filters, log search and the rerun form; `esc`
+  while editing a filter keeps the filter applied before; long info boxes
+  scroll; a card whose job left the queue closes.
+
+### Safer
+
+- `sdash update` refuses a release without a signature when cosign or gh is
+  installed, as `install.sh` does; `--allow-unsigned` overrides.
+- A config file others can write also loses `[profiles]`.
+- One hung filesystem no longer makes every storage location unavailable.
+- Job-end hooks for many jobs ending at once all run.
+- State, cache and logs work in group-writable homes; only sdash's own
+  directories must be private.
+- Settings saves never leave the config missing.
+- Hold and release ask first for several jobs; new setting `confirm`.
+
+### New
+
+- `sdash wait JOBID...`: wait until jobs end; exits 0 only if all completed,
+  never when stopped. It also waits for one task of a pending array.
+- Rerun of a job that ran out of memory or time offers half as much again.
+- `:node` jumps from a job to its node; `:export csv|json` saves a table.
+
 ## [0.2.0] - 2026-10-17
 
 Tested on six Slurm versions, works on more clusters, installs more reliably.
@@ -123,6 +259,7 @@ The first release.
 - Signed releases (cosign), SBOMs, build provenance, pinned GitHub Actions;
   `install.sh` and `sdash update` check checksums and signatures.
 
+[0.3.0]: https://github.com/nbharathik/slurm-dashboard/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/nbharathik/slurm-dashboard/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/nbharathik/slurm-dashboard/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/nbharathik/slurm-dashboard/compare/v0.1.0...v0.1.1

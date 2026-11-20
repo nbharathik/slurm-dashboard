@@ -130,15 +130,25 @@ func PriorityLine(pf model.PriorityFactors) string {
 	parts := []part{{"age", pf.Age}, {"fairshare", pf.FairShare}, {"job size", pf.JobSize}, {"partition", pf.Partition}, {"QOS", pf.QOS}}
 	sort.SliceStable(parts, func(i, j int) bool { return parts[i].v > parts[j].v })
 	var terms []string
+	var sum int64
 	for _, p := range parts {
 		if p.v != 0 {
 			terms = append(terms, fmt.Sprintf("%s %d", p.name, p.v))
+			sum += p.v
 		}
 	}
 	if len(terms) == 0 {
 		return strconv.FormatInt(pf.Priority, 10)
 	}
-	return fmt.Sprintf("%d = %s", pf.Priority, strings.Join(terms, " + "))
+	line := fmt.Sprintf("%d = %s", pf.Priority, strings.Join(terms, " + "))
+	// Factors sdash does not read (association, TRES, site, nice) make up the rest.
+	switch rest := pf.Priority - sum; {
+	case rest > 0:
+		line += fmt.Sprintf(" + other %d", rest)
+	case rest < 0:
+		line += fmt.Sprintf(" - other %d", -rest)
+	}
+	return line
 }
 
 // PriorityFor finds a job's sprio factors; an array's pending tasks share

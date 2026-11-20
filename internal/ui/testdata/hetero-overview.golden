@@ -18,7 +18,7 @@
     debug      GPU [        ]     1     1  RTX PRO 6000 BW                                                                                  
     login      CPU no access      -     -  closed to you (DenyAccounts)                                                                     
                                                                                                                                             
-  Your jobs                                                                             0s ago  ● 4 running  ◌ 2 pending  ✗ 1 failed today  
+  Your jobs                                                                             0s ago  ● 4 running  ◌ 8 pending  ✗ 1 failed today  
     ID          NAME         STATE  ELAPSED/LIMIT  RESOURCES     WHERE                                                                      
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
   ▶ 4101        train-h200   ● RUN  6h15m/1d       2 GPU 16 CPU  h200-01                                                                    
@@ -26,7 +26,7 @@
     4102        notebook     ● RUN  1h25m/8h       1 GPU 4 CPU   mig01                                                                      
     4105_1      sweep        ● RUN  1m/4h          1 GPU 8 CPU   h200-01                                                                    
     4106        finetune-4x  ◌ PD   -/1d           4 GPU 32 CPU  #1/3 Resources                                                             
-    4105_[2-8]  sweep        ◌ PD   -/4h           1 GPU 8 CPU   #2/3 Resources                                                             
+    4105_[2-8]  sweep        ◌ PD   -/4h           7 GPU 56 CPU  #2/3 Resources                                                             
                                                                                                                                             
   Storage                                                                                                                           0s ago  
   ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  

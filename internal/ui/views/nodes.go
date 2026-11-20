@@ -387,7 +387,8 @@ func (v *Nodes) updateInput(ctx *Context, msg tea.KeyPressMsg) {
 	done, cancel := v.input.Update(msg)
 	switch {
 	case cancel:
-		v.input, v.filter = nil, NodeFilter{}
+		v.filter, _ = ParseNodeFilter(v.input.Initial())
+		v.input = nil
 	case done:
 		f, err := ParseNodeFilter(v.input.Value())
 		if err != nil {
@@ -399,6 +400,21 @@ func (v *Nodes) updateInput(ctx *Context, msg tea.KeyPressMsg) {
 		if f, err := ParseNodeFilter(v.input.Value()); err == nil { // live filtering
 			v.filter, v.input.Err = f, ""
 		}
+	}
+	v.Refresh(ctx)
+}
+
+// ExportTable returns the table as shown, filter and sort included.
+func (v *Nodes) ExportTable() ([]string, [][]string) { return v.table.Export() }
+
+// Paste adds pasted text to the filter being typed.
+func (v *Nodes) Paste(ctx *Context, s string) {
+	if v.input == nil {
+		return
+	}
+	v.input.Insert(s)
+	if f, err := ParseNodeFilter(v.input.Value()); err == nil {
+		v.filter = f
 	}
 	v.Refresh(ctx)
 }
@@ -430,6 +446,13 @@ func (v *Nodes) click(ctx *Context, msg tea.MouseClickMsg) tea.Cmd {
 	if ctx.InZone("nodes:close", msg) {
 		v.detail = ""
 		return nil
+	}
+	if u, ok := v.usage[v.detail]; ok {
+		for _, j := range u.Jobs {
+			if ctx.InZone("nodes:job:"+j.ID.Raw, msg) {
+				return Emit(OpenJobMsg{ID: j.ID.Raw})
+			}
+		}
 	}
 	for col, by := range map[string]string{"node": "name", "state": "state", "cpu": "cpu", "gpus": "gpu", "load": "load"} {
 		if ctx.InZone(v.table.ColZone(col), msg) {

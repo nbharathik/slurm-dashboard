@@ -18,6 +18,10 @@ import (
 // CacheTTL is how long probed capabilities and the cluster name are reused.
 const CacheTTL = 24 * time.Hour
 
+// RetryTTL is how long capabilities are reused when a probe failed for a
+// reason that may pass soon, such as slurmdbd restarting.
+const RetryTTL = 10 * time.Minute
+
 // Probe determines the Slurm version and which optional features work (cheap queries that fail when missing).
 func Probe(ctx context.Context, r execx.Runner, user string) (model.Capabilities, error) {
 	res, err := r.Run(execx.WithLabel(ctx, "version"), Version()...)
@@ -32,21 +36,43 @@ func Probe(ctx context.Context, r execx.Runner, user string) (model.Capabilities
 	return caps, nil
 }
 
-func probeFeatures(ctx context.Context, r execx.Runner, user string, caps *model.Capabilities) {
+// probeFeatures fills the optional features and reports whether a probe
+// failed for a reason that may pass soon.
+func probeFeatures(ctx context.Context, r execx.Runner, user string, caps *model.Capabilities) (retry bool) {
 	ok := func(label string, argv ...string) bool {
 		_, err := r.Run(execx.WithLabel(ctx, label), argv...)
+		if err != nil && transient(err) {
+			retry = true
+		}
 		return err == nil
 	}
 	caps.HasSacct = ok("probe-sacct", "sacct", "-n", "-X", "-S", "now-1minutes", "-E", "now", "-o", "JobID")
 	caps.HasSshare = ok("probe-sshare", "sshare", "-U", "-n", "-P", "-o", "User")
 	caps.HasSprio = ok("probe-sprio", "sprio", "-h", "-u", user, "-o", "%i")
 	caps.HasSstat = ok("probe-sstat", "sstat", "--version")
+	return retry
+}
+
+// transient reports an error from a busy, restarting or throttling daemon.
+func transient(err error) bool {
+	if errors.Is(err, execx.ErrTimeout) || errors.Is(err, context.DeadlineExceeded) {
+		return true
+	}
+	low := strings.ToLower(err.Error())
+	for _, s := range []string{"connection refused", "socket timed out", "unable to contact", "problem talking to the database", "rate limit exceeded"} {
+		if strings.Contains(low, s) {
+			return true
+		}
+	}
+	return false
 }
 
 type capsCache struct {
 	Version  string             `json:"version"`
 	ProbedAt time.Time          `json:"probed_at"`
 	Caps     model.Capabilities `json:"caps"`
+	// Retry marks a probe with a failure that may pass soon (RetryTTL).
+	Retry bool `json:"retry,omitempty"`
 }
 
 // CachedProbe is Probe with a 24-hour cache in cacheDir, keyed by Slurm version.
@@ -61,16 +87,22 @@ func CachedProbe(ctx context.Context, r execx.Runner, user, cacheDir string, now
 	}
 	path := cachePath(cacheDir, "capabilities.json")
 	var c capsCache
-	if readJSON(path, &c) == nil && c.Version == caps.Version && now.Sub(c.ProbedAt) < CacheTTL && now.After(c.ProbedAt) {
-		return c.Caps, nil
+	if readJSON(path, &c) == nil && c.Version == caps.Version && now.After(c.ProbedAt) {
+		ttl := CacheTTL
+		if c.Retry {
+			ttl = RetryTTL
+		}
+		if now.Sub(c.ProbedAt) < ttl {
+			return c.Caps, nil
+		}
 	}
-	probeFeatures(ctx, r, user, &caps)
-	_ = writeJSON(path, capsCache{Version: caps.Version, ProbedAt: now, Caps: caps})
+	retry := probeFeatures(ctx, r, user, &caps)
+	_ = writeJSON(path, capsCache{Version: caps.Version, ProbedAt: now, Caps: caps, Retry: retry})
 	return caps, nil
 }
 
 // infoCacheVersion goes up when infoCache gains fields, so older caches are refetched.
-const infoCacheVersion = 2
+const infoCacheVersion = 3
 
 type infoCache struct {
 	Version     int               `json:"version"`

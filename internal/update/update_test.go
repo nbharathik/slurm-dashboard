@@ -515,17 +515,22 @@ func TestApplyChecksSignature(t *testing.T) {
 		signed  string
 		note    string
 		err     error
+		allow   bool
 	}{
-		{"no tools", withBundle, nil, execx.FakeResponse{}, "", "install cosign or gh", nil},
-		{"cosign ok", withBundle, []string{"cosign"}, execx.FakeResponse{}, SignedCosign, "", nil},
-		{"cosign fails", withBundle, []string{"cosign", "gh"}, execx.FakeResponse{ExitCode: 1, Stderr: []byte("Error: none of the expected identities matched")}, "", "", ErrSignature},
-		{"no bundle", nil, []string{"cosign"}, execx.FakeResponse{}, "", "no cosign signature", nil},
-		{"gh ok", nil, []string{"gh"}, execx.FakeResponse{}, SignedGH, "", nil},
-		{"gh logged out", nil, []string{"gh"}, execx.FakeResponse{ExitCode: 4, Stderr: []byte("To get started with GitHub CLI, please run:  gh auth login")}, "", "not logged in", nil},
-		{"gh fails", nil, []string{"gh"}, execx.FakeResponse{ExitCode: 1, Stderr: []byte("verification failed: no attestations")}, "", "", ErrSignature},
+		{name: "no tools", mutate: withBundle, note: "install cosign or gh"},
+		{name: "cosign ok", mutate: withBundle, tools: []string{"cosign"}, signed: SignedCosign},
+		{name: "cosign fails", mutate: withBundle, tools: []string{"cosign", "gh"}, respond: execx.FakeResponse{ExitCode: 1, Stderr: []byte("Error: none of the expected identities matched")}, err: ErrSignature},
+		{name: "no bundle", tools: []string{"cosign"}, err: ErrUnsigned},
+		{name: "no bundle, allowed", tools: []string{"cosign"}, note: "no cosign signature", allow: true},
+		{name: "no bundle, gh logged out", tools: []string{"cosign", "gh"}, respond: execx.FakeResponse{ExitCode: 4, Stderr: []byte("please run:  gh auth login")}, err: ErrUnsigned},
+		{name: "no bundle, gh ok", tools: []string{"cosign", "gh"}, signed: SignedGH},
+		{name: "gh ok", tools: []string{"gh"}, signed: SignedGH},
+		{name: "gh logged out", tools: []string{"gh"}, respond: execx.FakeResponse{ExitCode: 4, Stderr: []byte("To get started with GitHub CLI, please run:  gh auth login")}, note: "not logged in"},
+		{name: "gh fails", tools: []string{"gh"}, respond: execx.FakeResponse{ExitCode: 1, Stderr: []byte("verification failed: no attestations")}, err: ErrSignature},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			u, _, exe := setup(t, c.mutate)
+			u.AllowUnsigned = c.allow
 			fake := execx.NewFake()
 			fake.Handler = func(_ context.Context, argv []string) (execx.Result, error) {
 				if argv[0] != "cosign" && argv[0] != "gh" || execx.Classify(argv) != execx.ReadOnly {

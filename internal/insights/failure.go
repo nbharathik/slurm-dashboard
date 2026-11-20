@@ -148,20 +148,68 @@ func Suggested(list []Suggestion) map[string]string {
 	return out
 }
 
+// RerunSuggestions are the changes the rerun form offers: right-sizing for
+// a completed job, the fix for one that ran out of memory or time.
+func RerunSuggestions(h model.HistoryJob) []Suggestion {
+	if h.State == model.StateCompleted {
+		return RightSize(h)
+	}
+	return FixFailed(h)
+}
+
+// FixFailed proposes the change a job that ran out of memory or time needs:
+// half as much again. Nothing is changed without the user confirming the
+// rerun, and a value is only offered for single-node jobs.
+func FixFailed(h model.HistoryJob) []Suggestion {
+	var out []Suggestion
+	switch h.State {
+	case model.StateOOM:
+		base := max(h.PeakMemMB, h.AllocMemMB)
+		if base <= 0 || h.Nodes > 1 {
+			return nil
+		}
+		v := memSuggestion(base * 3 / 2)
+		out = append(out, Suggestion{
+			What: "Memory", Reason: "ran out of memory at " + units.FormatMB(float64(base)),
+			Line: "#SBATCH --mem=" + v, Option: "mem", Value: v,
+		})
+	case model.StateTimeout:
+		if h.TimeLimit == nil || *h.TimeLimit <= 0 {
+			return nil
+		}
+		q := 15 * time.Minute
+		want := (*h.TimeLimit*3/2 + q - 1) / q * q
+		v := sbatchTime(want)
+		out = append(out, Suggestion{
+			What: "Time", Reason: "hit its time limit of " + units.FormatDuration(*h.TimeLimit),
+			Line: "#SBATCH --time=" + v, Option: "time", Value: v,
+		})
+	}
+	return out
+}
+
 // RightSize proposes #SBATCH changes for a COMPLETED job.
 func RightSize(h model.HistoryJob) []Suggestion {
 	if h.State != model.StateCompleted {
 		return nil
 	}
 	var out []Suggestion
+	// Totals cannot be split into per-node or per-task options: on several
+	// nodes the reason is shown without a value to copy.
+	multiNode := h.Nodes > 1
 	if h.AllocMemMB > 0 && h.PeakMemMB > 0 && float64(h.PeakMemMB) < 0.6*float64(h.AllocMemMB) {
 		want := int64(math.Ceil(float64(h.PeakMemMB) * 1.3))
-		out = append(out, Suggestion{
+		s := Suggestion{
 			What:   "Memory",
 			Reason: fmt.Sprintf("peak %s of %s (%d%%)", units.FormatMB(float64(h.PeakMemMB)), units.FormatMB(float64(h.AllocMemMB)), efficiencyPercent(float64(h.PeakMemMB)/float64(h.AllocMemMB))),
 			Line:   "#SBATCH --mem=" + memSuggestion(want),
 			Option: "mem", Value: memSuggestion(want),
-		})
+		}
+		if multiNode {
+			s.Reason += fmt.Sprintf(" over %d nodes; check each node's use before lowering --mem", h.Nodes)
+			s.Line, s.Option, s.Value = "", "", ""
+		}
+		out = append(out, s)
 	}
 	if h.TimeLimit != nil && *h.TimeLimit > 0 && h.Elapsed > 0 && h.Elapsed < *h.TimeLimit/2 {
 		want := time.Duration(float64(h.Elapsed) * 1.5)
@@ -176,12 +224,17 @@ func RightSize(h model.HistoryJob) []Suggestion {
 	}
 	if h.AllocCPUs >= 4 && h.Eff.CPU >= 0 && h.Eff.CPU < 0.4 {
 		want := max(1, int(math.Ceil(float64(h.AllocCPUs)*h.Eff.CPU*1.5)))
-		out = append(out, Suggestion{
+		s := Suggestion{
 			What:   "CPUs",
 			Reason: fmt.Sprintf("%d%% of %d CPUs busy on average", efficiencyPercent(h.Eff.CPU), h.AllocCPUs),
 			Line:   fmt.Sprintf("#SBATCH --cpus-per-task=%d", want),
 			Option: "cpus-per-task", Value: strconv.Itoa(want),
-		})
+		}
+		if multiNode {
+			s.Reason += fmt.Sprintf(" over %d nodes", h.Nodes)
+			s.Line, s.Option, s.Value = "", "", ""
+		}
+		out = append(out, s)
 	}
 	if h.GPUs > 0 && h.Eff.GPUUtil >= 0 && h.Eff.GPUUtil < 0.3 {
 		out = append(out, Suggestion{
@@ -244,6 +297,21 @@ func EffCard(h model.HistoryJob) []string {
 			util = fmt.Sprintf(", utilisation %d%%", efficiencyPercent(h.Eff.GPUUtil))
 		}
 		add("GPUs:          %d, %.1f GPU-hours%s", h.GPUs, h.Eff.GPUHours, util)
+	}
+	for i, s := range h.Steps {
+		label := ""
+		if i == 0 {
+			label = "Steps:"
+		}
+		state := string(s.State)
+		if s.ExitCode != 0 {
+			state += fmt.Sprintf(" (exit %d)", s.ExitCode)
+		}
+		mem := ""
+		if s.PeakMemMB > 0 {
+			mem = ", peak " + units.FormatMB(float64(s.PeakMemMB))
+		}
+		add("%-14s %s %s, %s%s", label, s.Name, state, units.FormatShort(s.Elapsed), mem)
 	}
 	return b
 }

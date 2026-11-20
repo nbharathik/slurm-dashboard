@@ -116,13 +116,12 @@ func HookEnv(e Event) []string {
 	}
 }
 
-// RunHook runs notify.on_job_end for an event with a 10 s timeout.
+// RunHook runs notify.on_job_end for an event with a 10 s timeout, counted
+// from when it starts: hooks for many jobs ending at once wait their turn.
 func RunHook(ctx context.Context, r *execx.RealRunner, script string, e Event) error {
 	if strings.TrimSpace(script) == "" || e.State == Started {
 		return nil
 	}
-	ctx, cancel := context.WithTimeout(ctx, HookTimeout)
-	defer cancel()
-	_, err := execx.RunUserShell(ctx, r, script, HookEnv(e))
+	_, err := execx.RunUserShell(execx.WithTimeout(ctx, HookTimeout), r, script, HookEnv(e))
 	return err
 }
