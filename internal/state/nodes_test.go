@@ -100,8 +100,8 @@ func TestPartitionSummaries(t *testing.T) {
 	}
 }
 
-// A node the backfill scheduler planned for a waiting job is healthy:
-// not free, but never "down".
+// A node the backfill scheduler planned for a waiting job is healthy and
+// still takes shorter jobs; a reserved one is not free; neither is down.
 func TestPlannedNodesAreNotDown(t *testing.T) {
 	node := func(name, raw string) model.Node {
 		base, flags := units.ParseNodeState(raw)
@@ -111,10 +111,13 @@ func TestPlannedNodesAreNotDown(t *testing.T) {
 		node("g1", "MIXED+PLANNED"), node("g2", "mixed-"), node("g3", "IDLE+RESERVED"),
 		node("g4", "MIXED+DRAIN"), node("g5", "IDLE*"), node("g6", "MIXED+COMPLETING"),
 	}
-	for _, n := range nodes[:3] {
-		if Down(n) || !Reserved(n) || Available(n) {
+	for _, n := range nodes[:2] {
+		if Down(n) || Reserved(n) || !Available(n) {
 			t.Errorf("%s %v: down %v reserved %v available %v", n.Name, n.Flags, Down(n), Reserved(n), Available(n))
 		}
+	}
+	if g3 := nodes[2]; Down(g3) || !Reserved(g3) || Available(g3) {
+		t.Errorf("reserved g3: down %v reserved %v available %v", Down(g3), Reserved(g3), Available(g3))
 	}
 	for _, n := range nodes[3:5] {
 		if !Down(n) || Reserved(n) {
@@ -129,7 +132,7 @@ func TestPlannedNodesAreNotDown(t *testing.T) {
 		ids[i] = n.Name
 	}
 	s := PartitionSummaries([]model.Partition{{Name: "gpu", State: "UP", Nodes: ids}}, NodeGPUUsage(nodes, nil, "you"), nil, nil)[0]
-	if s.Down != 2 || s.Reserved != 3 || s.Mixed != 3 || s.Idle != 1 || s.CPUFree != 32 || s.GPUFree != 2 {
+	if s.Down != 2 || s.Reserved != 1 || s.Mixed != 3 || s.Idle != 1 || s.CPUFree != 96 || s.GPUFree != 6 {
 		t.Errorf("summary = %+v", s)
 	}
 }

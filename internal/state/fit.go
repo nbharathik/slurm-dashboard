@@ -88,7 +88,7 @@ func FitNodes(usage []NodeUsage, parts []model.Partition, req Request, aliases m
 	}
 	typed := false
 	busy := 0 // nodes big enough but full, with no end times to go by
-	held := 0 // healthy nodes that could run it but are planned or reserved
+	held := 0 // healthy nodes that could run it but are reserved or rebooting
 	for _, u := range usage {
 		ps, ok := eligible[u.Node.Name]
 		if !ok || Down(u.Node) {
@@ -143,7 +143,7 @@ func FitNodes(usage []NodeUsage, parts []model.Partition, req Request, aliases m
 		res.Reasons = append(res.Reasons, strconv.Itoa(busy)+" node(s) could run it but are busy, and the end times of the jobs there are not visible")
 	}
 	if len(res.Now) == 0 && res.Soonest == nil && held > 0 {
-		res.Reasons = append(res.Reasons, strconv.Itoa(held)+" node(s) could run it but are held for waiting jobs, a reservation or a reboot")
+		res.Reasons = append(res.Reasons, strconv.Itoa(held)+" node(s) could run it but are held for a reservation, maintenance or a reboot")
 	}
 	if req.GPUs > 0 && !typed && len(res.Reasons) == 0 {
 		what := strconv.Itoa(req.GPUs) + " GPU"

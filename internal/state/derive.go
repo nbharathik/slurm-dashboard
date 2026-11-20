@@ -204,13 +204,14 @@ func NodeGPUUsage(nodes []model.Node, running []model.RunningJob, me string) []N
 }
 
 // unavailable reports nodes that cannot take new jobs now: down, drained,
-// reserved, planned for a waiting job, rebooting or changing power state.
+// reserved, rebooting or changing power state. PLANNED is not one: shorter
+// jobs still backfill there.
 func unavailable(n model.Node) bool {
 	switch n.State {
-	case "DOWN", "DRAIN", "DRAINED", "DRAINING", "FAIL", "FAILING", "FUTURE", "UNKNOWN", "POWERED_DOWN", "MAINT", "RESERVED", "PLANNED":
+	case "DOWN", "DRAIN", "DRAINED", "DRAINING", "FAIL", "FAILING", "FUTURE", "UNKNOWN", "POWERED_DOWN", "MAINT", "RESERVED":
 		return true
 	}
-	for _, f := range []string{"DRAIN", "NOT_RESPONDING", "MAINTENANCE", "POWERED_DOWN", "FAIL", "RESERVED", "PLANNED", "POWERING_DOWN", "POWERING_UP", "POWER_DOWN", "REBOOT_REQUESTED", "REBOOT_ISSUED"} {
+	for _, f := range []string{"DRAIN", "NOT_RESPONDING", "MAINTENANCE", "POWERED_DOWN", "FAIL", "RESERVED", "POWERING_DOWN", "POWERING_UP", "POWER_DOWN", "REBOOT_REQUESTED", "REBOOT_ISSUED"} {
 		if n.HasFlag(f) {
 			return true
 		}
@@ -232,17 +233,16 @@ func Down(n model.Node) bool {
 	return n.HasFlag("DRAIN") || n.HasFlag("FAIL") || n.HasFlag("NOT_RESPONDING")
 }
 
-// Reserved reports a healthy node held for a waiting job, a reservation
-// or maintenance.
+// Reserved reports a healthy node held for a reservation or maintenance.
 func Reserved(n model.Node) bool {
 	if Down(n) {
 		return false
 	}
 	switch n.State {
-	case "PLANNED", "RESERVED", "MAINT":
+	case "RESERVED", "MAINT":
 		return true
 	}
-	return n.HasFlag("PLANNED") || n.HasFlag("RESERVED") || n.HasFlag("MAINTENANCE")
+	return n.HasFlag("RESERVED") || n.HasFlag("MAINTENANCE")
 }
 
 // GPUNodes returns only nodes with GPUs or MIG slices.

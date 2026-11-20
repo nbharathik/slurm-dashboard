@@ -68,15 +68,20 @@ func TestFitNodes(t *testing.T) {
 	if len(r.Now) != 0 || r.Soonest != nil || len(r.Reasons) == 0 {
 		t.Fatalf("2 nodes = %+v", r)
 	}
-	// A reserved or planned node is not free.
-	for _, flag := range []string{"RESERVED", "PLANNED", "REBOOT_REQUESTED"} {
+	// A planned node still takes jobs now; a reserved or rebooting one does not.
+	planned := h200("h200-01", 0)
+	planned.Flags = []string{"PLANNED"}
+	if r = FitNodes(NodeGPUUsage([]model.Node{planned}, nil, "you"), parts, Request{GPUs: 1, CPUs: 1}, nil); len(r.Now) != 1 {
+		t.Errorf("planned node not free: %+v", r)
+	}
+	for _, flag := range []string{"RESERVED", "REBOOT_REQUESTED"} {
 		n := h200("h200-01", 0)
 		n.Flags = []string{flag}
 		r = FitNodes(NodeGPUUsage([]model.Node{n}, nil, "you"), parts, Request{GPUs: 1, CPUs: 1}, nil)
 		if len(r.Now) != 0 {
 			t.Errorf("%s node counted as free: %+v", flag, r.Now)
 		}
-		if len(r.Reasons) != 1 || !strings.Contains(r.Reasons[0], "held for waiting jobs") {
+		if len(r.Reasons) != 1 || !strings.Contains(r.Reasons[0], "held for a reservation") {
 			t.Errorf("%s reasons = %q", flag, r.Reasons)
 		}
 	}

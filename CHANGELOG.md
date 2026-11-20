@@ -107,12 +107,13 @@ Update with `sdash update`, or install fresh with
 - Start estimates are kept when the pending reason has spaces.
 - Queue rank for jobs submitted to several partitions.
 - A pending array that starts some tasks is no longer reported as ended.
-- Reserved, planned and rebooting nodes are not counted as free;
-  `sdash free --nodes N` needs N fitting nodes. They are not called down:
-  "down" counts only down, drained, failing or not responding nodes, and
-  partitions show "N reserved" for nodes held for a waiting job, a
-  reservation or maintenance (JSON: `nodes_reserved`). `sdash free` says
-  when the only nodes that fit are held.
+- Reserved, maintenance and rebooting nodes are not counted as free;
+  `sdash free --nodes N` needs N fitting nodes. Nodes the backfill
+  scheduler planned for a waiting job (`PLANNED`, `mixed-`) still count,
+  as shorter jobs run there. "Down" counts only down, drained, failing or
+  not responding nodes; partitions show "N reserved" for reserved and
+  maintenance nodes (JSON: `nodes_reserved`), and `sdash free` says when
+  the only nodes that fit are held.
 - Under Fair Tree, the fairshare verdict compares usage with shares.
 - A capability probe that failed because slurmdbd was down is retried after
   10 minutes instead of a day.
